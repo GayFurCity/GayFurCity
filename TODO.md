@@ -7,7 +7,7 @@
 | [app/models/pool.rb](app/models/pool.rb#L308) | 308 | finds wrong post when the pool contains multiple copies of the same post (#2042). |
 | [app/models/post.rb](app/models/post.rb#L1621) | 1621 | This must happen *after* the `is_deleted` flag is set to true (issue #3419). |
 | [app/logical/gay_fur_city/paginator/active_record_extension.rb](app/logical/gay_fur_city/paginator/active_record_extension.rb#L48) | 48 | Hack: in sequential pagination we fetch one more record than we need |
-| [test/test_helper.rb](test/test_helper.rb#L276) | 276 | Testing modules should not have a say in if we can or cannot use assert_equal with nil |
+| [test/test_helper.rb](test/test_helper.rb#L281) | 281 | Testing modules should not have a say in if we can or cannot use assert_equal with nil |
 
 ### FIXMEs
 | Filename | line # | FIXME |
@@ -17,8 +17,8 @@
 | [app/models/artist.rb](app/models/artist.rb#L230) | 230 | This is a hack. Setting an association directly immediately updates without regard for the parents validity. |
 | [app/models/tag_relationship.rb](app/models/tag_relationship.rb#L109) | 109 | Rails assigns different join aliases for joins(:antecedent_tag) and joins(:antecedent_tag, :consquent_tag) |
 | [app/models/user_vote.rb](app/models/user_vote.rb#L62) | 62 | the logic around this is a mess, and I'm frankly amazed it works |
-| [test/unit/post_test.rb](test/unit/post_test.rb#L2176) | 2176 | This test fails randomly at different assertions |
-| [test/functional/post_events/formatting_test.rb](test/functional/post_events/formatting_test.rb#L81) | 81 | make a way to test two actions at once, as these are both only ever created at the same time in a determined order |
+| [test/unit/post_test.rb](test/unit/post_test.rb#L2293) | 2293 | This test fails randomly at different assertions |
+| [test/functional/post_events/formatting_test.rb](test/functional/post_events/formatting_test.rb#L82) | 82 | make a way to test two actions at once, as these are both only ever created at the same time in a determined order |
 | [test/unit/post_sets/favorites_test.rb](test/unit/post_sets/favorites_test.rb#L30) | 30 | PaginatedArray does not preserve mode and mode_seq |
 
 ### TODOs
@@ -31,7 +31,7 @@
 | [app/logical/user_attribute.rb](app/logical/user_attribute.rb#L47) | 47 | implement clone validation logic |
 | [app/logical/view_count_cache.rb](app/logical/view_count_cache.rb#L6) | 6 | replace with defaults with rails 7.2 upgrade |
 | [app/models/forum_topic.rb](app/models/forum_topic.rb#L173) | 173 | revisit muting, it may need to be further optimized or removed due to performance issues |
-| [app/models/media_asset.rb](app/models/media_asset.rb#L100) | 100 | reimplement ability to disable notifications |
+| [app/models/media_asset.rb](app/models/media_asset.rb#L101) | 101 | reimplement ability to disable notifications |
 | [app/models/post_event.rb](app/models/post_event.rb#L94) | 94 | We need access control/blocks for associations |
 | [app/models/post_flag.rb](app/models/post_flag.rb#L52) | 52 | We need access control/blocks for associations |
 | [app/models/post_set.rb](app/models/post_set.rb#L122) | 122 | convert to user throttle |
@@ -49,16 +49,16 @@
 | [app/views/posts/deletion_reasons/index.html.erb](app/views/posts/deletion_reasons/index.html.erb#L3) | 3 | convert to new table syntax |
 | [app/javascript/src/styles/common/_standard_elements.scss](app/javascript/src/styles/common/_standard_elements.scss#L29) | 29 | What if button is on a light background |
 | [app/views/posts/replacements/rejection_reasons/index.html.erb](app/views/posts/replacements/rejection_reasons/index.html.erb#L3) | 3 | convert to new table syntax |
-| [test/test_helper.rb](test/test_helper.rb#L278) | 278 | look into refactoring out minitest? |
-| [test/controllers/uploads_controller_test.rb](test/controllers/uploads_controller_test.rb#L146) | 146 | reimplement ability to disable notifications |
-| [test/unit/file_methods_test.rb](test/unit/file_methods_test.rb#L357) | 357 | neither video has audio |
-| [test/unit/post_test.rb](test/unit/post_test.rb#L515) | 515 | This was moved to be a controller concern to fix issues with internal post updates |
-| [test/unit/post_test.rb](test/unit/post_test.rb#L701) | 701 | Invalid tags are now reported as warnings, and don't trigger these. |
-| [test/unit/post_test.rb](test/unit/post_test.rb#L727) | 727 | These are now warnings and don't trigger these. |
-| [test/unit/post_test.rb](test/unit/post_test.rb#L1627) | 1627 | Needs to reload relationship to obtain non cached value |
-| [test/unit/post_test.rb](test/unit/post_test.rb#L2066) | 2066 | These don't quite make sense, what should hide deleted posts and what shouldn't? |
-| [test/unit/post_test.rb](test/unit/post_test.rb#L2459) | 2459 | These are pretty messed up, both structurally, and expectation wise. |
-| [test/controllers/posts/replacements_controller_test.rb](test/controllers/posts/replacements_controller_test.rb#L129) | 129 | reimplement ability to disable notifications |
+| [test/test_helper.rb](test/test_helper.rb#L283) | 283 | look into refactoring out minitest? |
+| [test/controllers/uploads_controller_test.rb](test/controllers/uploads_controller_test.rb#L155) | 155 | reimplement ability to disable notifications |
+| [test/unit/file_methods_test.rb](test/unit/file_methods_test.rb#L359) | 359 | neither video has audio |
+| [test/unit/post_test.rb](test/unit/post_test.rb#L552) | 552 | This was moved to be a controller concern to fix issues with internal post updates |
+| [test/unit/post_test.rb](test/unit/post_test.rb#L745) | 745 | Invalid tags are now reported as warnings, and don't trigger these. |
+| [test/unit/post_test.rb](test/unit/post_test.rb#L771) | 771 | These are now warnings and don't trigger these. |
+| [test/unit/post_test.rb](test/unit/post_test.rb#L1729) | 1729 | Needs to reload relationship to obtain non cached value |
+| [test/unit/post_test.rb](test/unit/post_test.rb#L2183) | 2183 | These don't quite make sense, what should hide deleted posts and what shouldn't? |
+| [test/unit/post_test.rb](test/unit/post_test.rb#L2590) | 2590 | These are pretty messed up, both structurally, and expectation wise. |
+| [test/controllers/posts/replacements_controller_test.rb](test/controllers/posts/replacements_controller_test.rb#L134) | 134 | reimplement ability to disable notifications |
 | [config/config.rb](config/config.rb#L164) | 164 | appealed posts should be visible, but this makes it far too easy to get the contents of deleted posts at a moments notice |
 
 ### HACKs

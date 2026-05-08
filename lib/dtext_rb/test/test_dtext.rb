@@ -1433,9 +1433,9 @@ class DTextTest < Minitest::Test
     assert_parse_id_link("dtext-avoid-posting-id-link", "/avoid_postings/1234", "avoid posting #1234")
     assert_parse_id_link("dtext-takedown-id-link", "/takedowns/1234", "takedown #1234")
 
-    assert_parse_id_link("dtext-github-id-link", "https://github.com/FemboyFans/FemboyFans/issues/1234", "issue #1234")
-    assert_parse_id_link("dtext-github-pull-id-link", "https://github.com/FemboyFans/FemboyFans/pull/1234", "pull #1234")
-    assert_parse_id_link("dtext-github-commit-id-link", "https://github.com/FemboyFans/FemboyFans/commit/1234", "commit #1234")
+    assert_parse_id_link("dtext-github-id-link", "https://github.com/GayFurCity/GayFurCity/issues/1234", "issue #1234")
+    assert_parse_id_link("dtext-github-pull-id-link", "https://github.com/GayFurCity/GayFurCity/pull/1234", "pull #1234")
+    assert_parse_id_link("dtext-github-commit-id-link", "https://github.com/GayFurCity/GayFurCity/commit/1234", "commit #1234")
 
     assert_parse('<p>(R-18指定注意)→<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/2053744">post #2053744</a></p>', '(R-18指定注意)→post #2053744')
 

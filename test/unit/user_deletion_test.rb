@@ -45,7 +45,7 @@ class UserDeletionTest < ActiveSupport::TestCase
       @tag = @post.tags.first
       @tag.follow!(@user)
 
-      @user.update_with(@user, email: "gay@femboy.fan")
+      @user.update_with(@user, email: "gay@gayfur.city")
 
       @deletion = UserDeletion.new(@user, "password", @request)
       with_inline_jobs { @deletion.delete! }

@@ -49,7 +49,7 @@ module Posts
     private
 
     def throttle(search_params)
-      return if FemboyFans.config.disable_throttles? || CurrentUser.user.is_trusted?
+      return if GayFurCity.config.disable_throttles? || CurrentUser.user.is_trusted?
 
       if %i[file url post_id hash].any? { |key| search_params[key].present? }
         if RateLimiter.check_limit("img:#{CurrentUser.ip_addr}", 1, 2.seconds)

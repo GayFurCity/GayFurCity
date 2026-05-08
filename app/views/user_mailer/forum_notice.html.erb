@@ -10,4 +10,4 @@
   <br>
 <% end %>
 
-<p><%= link_to("View topic", forum_topic_url(@forum_topic, page: @forum_topic.last_page, host: FemboyFans.config.hostname, only_path: false)) %> | <%= link_to("Unsubscribe", users_email_notification_url(user_id: @user.id, sig: email_sig(@user, :unsubscribe), host: FemboyFans.config.hostname, only_path: false)) %></p>
+<p><%= link_to("View topic", forum_topic_url(@forum_topic, page: @forum_topic.last_page, host: GayFurCity.config.hostname, only_path: false)) %> | <%= link_to("Unsubscribe", users_email_notification_url(user_id: @user.id, sig: email_sig(@user, :unsubscribe), host: GayFurCity.config.hostname, only_path: false)) %></p>

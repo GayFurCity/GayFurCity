@@ -5,4 +5,4 @@ require(File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config",
 require("faker")
 
 ENV["RAILS_ENV"] ||= "development"
-ENV["FEMBOYFANS_DISABLE_THROTTLES"] = "1"
+ENV["GAYFURCITY_DISABLE_THROTTLES"] = "1"

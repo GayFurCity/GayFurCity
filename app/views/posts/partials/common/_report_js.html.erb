@@ -4,7 +4,7 @@
   <%= javascript_tag(nonce: true) do -%>
     $(function() {
       $.ajax({
-        url: "<%= FemboyFans.config.reports.server %><%= url %>",
+        url: "<%= GayFurCity.config.reports.server %><%= url %>",
         type: "POST",
         headers: {
           "Authorization": "Bearer <%= Reports.jwt_signature(url) %>",

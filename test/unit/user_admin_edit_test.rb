@@ -43,13 +43,13 @@ class UserAdminEditTest < ActiveSupport::TestCase
 
     context("email") do
       should("allow owner") do
-        UserAdminEdit.new(@user, @owner, "127.0.0.1", { email: "test@femboy.fan" }).apply!
-        assert_equal("test@femboy.fan", @user.reload.email)
+        UserAdminEdit.new(@user, @owner, "127.0.0.1", { email: "test@gayfur.city" }).apply!
+        assert_equal("test@gayfur.city", @user.reload.email)
       end
 
       should("not allow admin") do
         old_email = @user.email
-        UserAdminEdit.new(@user, @admin, "127.0.0.1", { email: "test@femboy.fan" }).apply!
+        UserAdminEdit.new(@user, @admin, "127.0.0.1", { email: "test@gayfur.city" }).apply!
         assert_equal(old_email, @user.reload.email)
       end
     end

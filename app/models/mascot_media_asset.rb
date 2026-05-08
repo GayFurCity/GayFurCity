@@ -5,7 +5,7 @@ class MascotMediaAsset < MediaAsset
 
   module StorageMethods
     def path_prefix
-      FemboyFans.config.mascot_path_prefix
+      GayFurCity.config.mascot_path_prefix
     end
 
     def is_protected?

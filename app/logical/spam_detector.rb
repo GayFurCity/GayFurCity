@@ -22,7 +22,7 @@ class SpamDetector
                  content:      :content,
                  permalink:    :permalink)
   def self.enabled?
-    FemboyFans.config.rakismet_key.present? && FemboyFans.config.rakismet_url.present? && !Rails.env.test?
+    GayFurCity.config.rakismet_key.present? && GayFurCity.config.rakismet_url.present? && !Rails.env.test?
   end
 
   def self.working?
@@ -92,7 +92,7 @@ class SpamDetector
 
     is_spam
   rescue StandardError => e
-    FemboyFans::Logger.log(e)
+    GayFurCity::Logger.log(e)
     false
   end
 

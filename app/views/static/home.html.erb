@@ -59,11 +59,11 @@
   <%= tag.meta(name: "description", content: Config.instance.app_description) %>
   <%= tag.meta(property: "og:site", content: Config.instance.app_name) %>
   <%= tag.meta(property: "og:title", content: Config.instance.app_name) %>
-  <%= tag.meta(property: "og:url", content: root_url(host: FemboyFans.config.hostname, protocol: "https")) %>
-  <%= tag.meta(name: "canonical", content: root_url(host: FemboyFans.config.hostname, protocol: "https")) %>
+  <%= tag.meta(property: "og:url", content: root_url(host: GayFurCity.config.hostname, protocol: "https")) %>
+  <%= tag.meta(name: "canonical", content: root_url(host: GayFurCity.config.hostname, protocol: "https")) %>
 
   <meta property="og:type" content="website">
-  <meta property="og:image" content="<%= FemboyFans.config.hostname %>/main-icon.png">
+  <meta property="og:image" content="<%= GayFurCity.config.hostname %>/main-icon.png">
   <meta property="og:image:height" content="710">
   <meta property="og:image:width" content="710">
 
@@ -71,5 +71,5 @@
   <meta name="twitter:card" content="summary">
   <%= tag.meta(name: "twitter:title", content: Config.instance.app_name) %>
   <%= tag.meta(name: "twitter:description", content: Config.instance.app_description) %>
-  <meta property="twitter:image" content="<%= FemboyFans.config.hostname %>/main-icon.png">
+  <meta property="twitter:image" content="<%= GayFurCity.config.hostname %>/main-icon.png">
 <% end %>

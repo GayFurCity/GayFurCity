@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module FemboyFans
+module GayFurCity
   module Extensions
     module String
       def to_escaped_for_sql_like
@@ -76,13 +76,13 @@ module FemboyFans
 end
 
 class String
-  include(FemboyFans::Extensions::String)
+  include(GayFurCity::Extensions::String)
 end
 
 module Enumerable
-  include(FemboyFans::Extensions::Enumerable)
+  include(GayFurCity::Extensions::Enumerable)
 end
 
 class Hash
-  include(FemboyFans::Extensions::Hash)
+  include(GayFurCity::Extensions::Hash)
 end

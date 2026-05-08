@@ -22,7 +22,7 @@ Dir["#{File.dirname(__FILE__)}/*.sql"].each do |file|
     next
   end
   contents = File.read(file)
-  system(%{psql -h postgres --username femboyfans -c "COPY (#{contents}) TO STDOUT DELIMITER ',' CSV HEADER;" femboyfans > "#{target}/#{date}/#{date}-#{name}.csv"}, exception: true)
+  system(%{psql -h postgres --username gayfurcity -c "COPY (#{contents}) TO STDOUT DELIMITER ',' CSV HEADER;" gayfurcity > "#{target}/#{date}/#{date}-#{name}.csv"}, exception: true)
   system(%(xz "#{target}/#{date}/#{date}-#{name}.csv"), exception: true)
   puts("#{name} done")
 rescue RuntimeError => e

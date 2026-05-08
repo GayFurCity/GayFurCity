@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module FemboyFans
+module GayFurCity
   class Logger
     def self.log(exception, expected: false, **params)
       if expected

@@ -2,7 +2,7 @@
 
 module DocumentStore
   class Response
-    include(FemboyFans::Paginator::DocumentStoreExtensions)
+    include(GayFurCity::Paginator::DocumentStoreExtensions)
 
     delegate_missing_to(:records)
     attr_reader(:klass, :search)

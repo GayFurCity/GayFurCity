@@ -43,7 +43,7 @@
 
     <%= f.input(:comment_threshold, hint: "Comments below this score will be hidden by default.") %>
 
-    <%= f.input(:default_image_size, hint: "Show original image size, scaled to fit, scaled to fit vertically, or show resized #{FemboyFans.config.image.large_width} pixel sample version.", label: "Default image width", collection: [%w[Original original], ["Fit (Horizontal)", "fit"], ["Fit (Vertical)", "fitv"], ["Sample (#{FemboyFans.config.large_image_width}px)", "large"]], include_blank: false) %>
+    <%= f.input(:default_image_size, hint: "Show original image size, scaled to fit, scaled to fit vertically, or show resized #{GayFurCity.config.image.large_width} pixel sample version.", label: "Default image width", collection: [%w[Original original], ["Fit (Horizontal)", "fit"], ["Fit (Vertical)", "fitv"], ["Sample (#{GayFurCity.config.large_image_width}px)", "large"]], include_blank: false) %>
 
     <%= f.input(:per_page, label: "Posts per page", as: :select, collection: (25..250), include_blank: false) %>
 

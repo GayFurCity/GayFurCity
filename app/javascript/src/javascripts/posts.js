@@ -1250,7 +1250,7 @@ Post.initialize_vote_buttons = function () {
   const containers = $(".post-preview div#vote-buttons");
   for (const set of containers) {
     for (const button of $(set).find("button.vote-button")) {
-      $(button).on("click.femboyfans.vote", (event) => {
+      $(button).on("click.gayfurcity.vote", (event) => {
         event.preventDefault();
         const id = $(event.target).parent().parent().attr("data-id");
         switch ($(event.target).attr("data-action")) {
@@ -1287,8 +1287,8 @@ Post.initialize_vote_buttons = function () {
 
 Post.initialize_thumbnail_frame_preview = function () {
   const $input = $("#preview-thumbnail-frame-button");
-  $input.off("click.femboyfans");
-  $input.on("click.femboyfans", Post.preview_thumbnail_frame);
+  $input.off("click.gayfurcity");
+  $input.on("click.gayfurcity", Post.preview_thumbnail_frame);
 };
 
 Post.initialize_upload_settings = async function () {

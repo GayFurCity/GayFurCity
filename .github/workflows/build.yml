@@ -16,7 +16,7 @@ jobs:
     uses: ./.github/workflows/checks.yml
   build:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'femboyfans'
+    if: github.repository_owner == 'gayfurcity'
     needs: [checks]
     steps:
       - name: Checkout Repository

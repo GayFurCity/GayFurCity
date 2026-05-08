@@ -13,7 +13,7 @@ class DiscordNotification
   end
 
   def webhook_url
-    FemboyFans.config.discord.webhook_url
+    GayFurCity.config.discord.webhook_url
   end
 
   def create_embed
@@ -255,7 +255,7 @@ class DiscordNotification
     end
     return if embeds.blank?
 
-    conn = Faraday.new(FemboyFans.config.faraday_options)
+    conn = Faraday.new(GayFurCity.config.faraday_options)
     conn.post(webhook_url, {
       embeds: embeds,
     }.to_json, { content_type: "application/json" })

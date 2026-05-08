@@ -29,6 +29,6 @@ class Cache
   def self.redis
     # Using a shared variable like this here is OK
     # since pitchfork spawns a new process for each worker
-    @redis ||= Redis.new(url: FemboyFans.config.redis_url)
+    @redis ||= Redis.new(url: GayFurCity.config.redis_url)
   end
 end

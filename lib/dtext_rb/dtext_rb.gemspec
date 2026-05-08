@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors = %w[r888888888 evazion earlopain donovan_dmc]
 
   spec.summary = "DText Parser"
-  spec.homepage = "https://github.com/FemboyFans/FemboyFans/tree/master/lib/dtext_rb"
+  spec.homepage = "https://github.com/GayFurCity/GayFurCity/tree/master/lib/dtext_rb"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6.0"
   spec.extensions = ["ext/dtext/extconf.rb"]

@@ -53,9 +53,9 @@ class PostPresenter < Presenter
                              post.file_url(CurrentUser.user)
                            end
 
-    locals[:cropped_url] = FemboyFans.config.deleted_preview_url if post.deleteblocked?(CurrentUser.user)
+    locals[:cropped_url] = GayFurCity.config.deleted_preview_url if post.deleteblocked?(CurrentUser.user)
     locals[:preview_url] = if post.deleteblocked?(CurrentUser.user)
-                             FemboyFans.config.deleted_preview_url
+                             GayFurCity.config.deleted_preview_url
                            elsif post.has_preview?
                              post.preview_file_url(CurrentUser.user)
                            else

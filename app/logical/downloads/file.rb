@@ -29,7 +29,7 @@ module Downloads
       # default arguments are evaluated when the method is defined
       max_size ||= Config.instance.max_file_size * 1.megabyte
       file = Tempfile.new(binmode: true)
-      conn = Faraday.new(FemboyFans.config.faraday_options) do |f|
+      conn = Faraday.new(GayFurCity.config.faraday_options) do |f|
         f.response(:follow_redirects, callback: ->(_old_env, new_env) { validate_uri_allowed!(new_env.url) })
         f.request(:retry, max: 3, retry_block: ->(*) { file = Tempfile.new(binmode: true) })
       end

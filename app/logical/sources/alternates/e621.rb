@@ -37,7 +37,7 @@ module Sources
 
       def get_post_by_md5(md5)
         Cache.fetch("e6md5:#{md5}", expires_in: 1.day) do
-          response = Faraday.new(FemboyFans.config.faraday_options).get("https://e621.net/posts.json?md5=#{md5}")
+          response = Faraday.new(GayFurCity.config.faraday_options).get("https://e621.net/posts.json?md5=#{md5}")
           JSON.parse(response.body).dig("post", "id")
         end
       end

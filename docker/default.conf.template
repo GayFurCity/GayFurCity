@@ -14,7 +14,7 @@ server {
   location /data/posts/deleted/ {
     add_header Cache-Control "private";
     secure_link $arg_auth,$arg_expires;
-    secure_link_md5 "$secure_link_expires $uri $arg_uid ${FEMBOYFANS_PROTECTED_FILE_SECRET}";
+    secure_link_md5 "$secure_link_expires $uri $arg_uid ${GAYFURCITY_PROTECTED_FILE_SECRET}";
     if ($secure_link = "") {
       return 403;
     }
@@ -26,7 +26,7 @@ server {
   location /data/replacements/ {
     add_header Cache-Control "private";
     secure_link $arg_auth,$arg_expires;
-    secure_link_md5 "$secure_link_expires $uri $arg_uid ${FEMBOYFANS_REPLACEMENT_FILE_SECRET}";
+    secure_link_md5 "$secure_link_expires $uri $arg_uid ${GAYFURCITY_REPLACEMENT_FILE_SECRET}";
     if ($secure_link = "") {
       return 403;
     }
@@ -74,5 +74,5 @@ server {
 }
 
 upstream app_server {
-  server femboyfans:9000;
+  server gayfurcity:9000;
 }

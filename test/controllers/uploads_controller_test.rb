@@ -35,7 +35,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should("restrict access") do
-        FemboyFans.config.stubs(:disable_age_checks).returns(true)
+        GayFurCity.config.stubs(:disable_age_checks).returns(true)
         assert_access(User::Levels::MEMBER) { |user| get_auth(new_upload_path, user) }
       end
     end
@@ -155,7 +155,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
 
       should("restrict access") do
         file = fixture_file_upload("test.jpg")
-        FemboyFans.config.stubs(:disable_age_checks).returns(true)
+        GayFurCity.config.stubs(:disable_age_checks).returns(true)
         assert_access(User::Levels::MEMBER, anonymous_response: :forbidden) do |user|
           [Upload, PostVersion, Post, UploadMediaAsset].each(&:delete_all)
           post_auth(uploads_path, user, params: { upload: { file: file, tag_string: "aaa", rating: "q", source: "aaa" }, format: :json })

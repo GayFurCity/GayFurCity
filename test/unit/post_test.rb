@@ -164,11 +164,11 @@ class PostTest < ActiveSupport::TestCase
 
       should("generated the expected paths") do
         post = create(:post)
-        h = { prefix: FemboyFans.config.post_path_prefix, protected_prefix: FemboyFans.config.protected_path_prefix }
-        path = FemboyFans.config.storage_manager.instance.file_path(post.md5, post.file_ext, :original, protected: false, **h)
-        preview_path = FemboyFans.config.storage_manager.instance.file_path(post.md5, "webp", :preview, protected: false, **h)
-        new_path = FemboyFans.config.storage_manager.instance.file_path(post.md5, post.file_ext, :original, protected: true, **h)
-        new_preview_path = FemboyFans.config.storage_manager.instance.file_path(post.md5, "webp", :preview, protected: true, **h)
+        h = { prefix: GayFurCity.config.post_path_prefix, protected_prefix: GayFurCity.config.protected_path_prefix }
+        path = GayFurCity.config.storage_manager.instance.file_path(post.md5, post.file_ext, :original, protected: false, **h)
+        preview_path = GayFurCity.config.storage_manager.instance.file_path(post.md5, "webp", :preview, protected: false, **h)
+        new_path = GayFurCity.config.storage_manager.instance.file_path(post.md5, post.file_ext, :original, protected: true, **h)
+        new_preview_path = GayFurCity.config.storage_manager.instance.file_path(post.md5, "webp", :preview, protected: true, **h)
         assert_equal(post.file_path, path)
         assert_equal(post.preview_file_path, preview_path)
         post.delete!(@user, "test")
@@ -2268,8 +2268,8 @@ class PostTest < ActiveSupport::TestCase
     should("not count free tags against the user's search limit") do
       post1 = create(:post, tag_string: "aaa bbb rating:s")
 
-      FemboyFans.config.expects(:is_unlimited_tag).with("rating:s").once.returns(true)
-      FemboyFans.config.expects(:is_unlimited_tag).with(anything).twice.returns(false)
+      GayFurCity.config.expects(:is_unlimited_tag).with("rating:s").once.returns(true)
+      GayFurCity.config.expects(:is_unlimited_tag).with(anything).twice.returns(false)
       assert_tag_match([post1], "aaa bbb rating:s")
     end
 
@@ -2413,7 +2413,7 @@ class PostTest < ActiveSupport::TestCase
 
     context("Moving votes to a parent post") do
       setup do
-        FemboyFans.config.stubs(:disable_age_checks).returns(true)
+        GayFurCity.config.stubs(:disable_age_checks).returns(true)
         @parent = create(:post)
         @child = create(:post, parent: @parent)
 
@@ -2546,8 +2546,8 @@ class PostTest < ActiveSupport::TestCase
   #           post1 = create(:post, tag_string: "aaa bbb rating:s")
   #           post2 = create(:post, tag_string: "aaa bbb rating:e")
   #
-  #           FemboyFans.config.expects(:is_unlimited_tag).with("rating:s").once.returns(true)
-  #           FemboyFans.config.expects(:is_unlimited_tag).with(anything).twice.returns(false)
+  #           GayFurCity.config.expects(:is_unlimited_tag).with("rating:s").once.returns(true)
+  #           GayFurCity.config.expects(:is_unlimited_tag).with(anything).twice.returns(false)
   #           assert_equal(1, Post.fast_count("aaa bbb"))
   #         end
   #
@@ -2640,9 +2640,9 @@ class PostTest < ActiveSupport::TestCase
     should("generate the correct urls for animated gifs") do
       @post = build(:post, tag_string: "animated_gif", media_asset: build(:random_upload_media_asset, md5: "deadbeef", file_ext: "gif"))
 
-      assert_equal("#{FemboyFans.config.hostname}/data/posts/preview/deadbeef.webp", @post.preview_file_url(@user))
+      assert_equal("#{GayFurCity.config.hostname}/data/posts/preview/deadbeef.webp", @post.preview_file_url(@user))
       assert_raises(MediaAssetWithVariants::VariantNotFoundError) { @post.large_file_url(@user) }
-      assert_equal("#{FemboyFans.config.hostname}/data/posts/deadbeef.gif", @post.file_url(@user))
+      assert_equal("#{GayFurCity.config.hostname}/data/posts/deadbeef.gif", @post.file_url(@user))
     end
   end
 

@@ -16,7 +16,7 @@ module StorageManager
     end
 
     def default_base_url
-      FemboyFans.config.cdn_hostname
+      GayFurCity.config.cdn_hostname
     end
 
     # Store the given file at the given path. If a file already exists at that
@@ -47,7 +47,7 @@ module StorageManager
       raise(NotImplementedError, "#{self.class.name}#move_file not implemented")
     end
 
-    def protected_params(url, secret: FemboyFans.config.protected_file_secret, user: nil)
+    def protected_params(url, secret: GayFurCity.config.protected_file_secret, user: nil)
       raise(ArgumentError, "user is required for protected_params") if user.blank?
       user_id = user.id
       time = (Time.now + 15.minutes).to_i
@@ -68,7 +68,7 @@ module StorageManager
       clean_path("#{base_path}/#{prefix}#{protected_prefix if protected}#{subdir}#{file}")
     end
 
-    def url(md5, file_ext, type, protected: false, prefix: "", protected_prefix: "", hierarchical: :default, secret: FemboyFans.config.protected_file_secret, user: nil)
+    def url(md5, file_ext, type, protected: false, prefix: "", protected_prefix: "", hierarchical: :default, secret: GayFurCity.config.protected_file_secret, user: nil)
       path = url_path(md5, file_ext, type, protected: protected, prefix: prefix, protected_prefix: protected_prefix, hierarchical: hierarchical)
       url = "#{base_url}#{path}"
       url += protected_params(path, secret: secret, user: user) if protected
@@ -131,7 +131,7 @@ module StorageManager
     end
 
     def variant_location(...)
-      FemboyFans.config.variant_location(...)
+      GayFurCity.config.variant_location(...)
     end
   end
 end

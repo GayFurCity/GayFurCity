@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module FemboyFans
+module GayFurCity
   module Paginator
     class PaginatedArray < Array
       attr_reader(:pagination_mode, :max_numbered_pages, :orig_size, :current_page, :records_per_page, :total_count)

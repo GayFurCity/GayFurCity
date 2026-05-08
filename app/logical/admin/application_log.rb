@@ -27,7 +27,7 @@ module Admin
                   []
                 end
 
-      FemboyFans::Paginator::PaginatedArray.new(records, pagination_mode: :numbered, records_per_page: records_per_page, total_count: total_count, current_page: current_page)
+      GayFurCity::Paginator::PaginatedArray.new(records, pagination_mode: :numbered, records_per_page: records_per_page, total_count: total_count, current_page: current_page)
     end
 
     def exists?

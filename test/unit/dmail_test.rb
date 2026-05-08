@@ -77,7 +77,7 @@ class DmailTest < ActiveSupport::TestCase
     end
 
     should("not create a senders copy when validations fail") do
-      FemboyFans.config.stubs(:disable_throttles).returns(false)
+      GayFurCity.config.stubs(:disable_throttles).returns(false)
       @user = create(:user, created_at: 2.weeks.ago)
       @recipient = create(:user)
       (Config.instance.dmail_minute_limit + 1).times do

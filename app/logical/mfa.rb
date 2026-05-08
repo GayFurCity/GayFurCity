@@ -25,13 +25,13 @@ class MFA
 
   # Create a new TOTP verifier from a signed secret.
   def self.from_signed_secret(signed_secret, **)
-    secret = FemboyFans::MessageVerifier.new(:totp).verify(signed_secret)
+    secret = GayFurCity::MessageVerifier.new(:totp).verify(signed_secret)
     MFA.new(secret, **)
   end
 
   # The secret, cryptographically signed so it can't be modified by the user.
   def signed_secret
-    FemboyFans::MessageVerifier.new(:totp).generate(secret, expires_in: 1.hour)
+    GayFurCity::MessageVerifier.new(:totp).generate(secret, expires_in: 1.hour)
   end
 
   # Verify whether the given 6-digit code is correct.

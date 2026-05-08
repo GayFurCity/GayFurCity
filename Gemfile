@@ -13,7 +13,7 @@ gem("bcrypt", require: "bcrypt")
 gem("draper")
 gem("streamio-ffmpeg")
 gem("responders")
-# gem "dtext_rb", git: "https://github.com/FemboyFans/dtext_rb.git", branch: "master", require: "dtext"
+# gem "dtext_rb", git: "https://github.com/GayFurCity/dtext_rb.git", branch: "master", require: "dtext"
 gem("dtext_rb", require: "dtext")
 gem("bootsnap")
 gem("addressable")
@@ -59,6 +59,7 @@ group(:development) do
   gem("rack-mini-profiler")
   gem("memory_profiler")
   gem("stackprof")
+  gem("brakeman", "~> 8.0", require: false)
 end
 
 group(:test) do

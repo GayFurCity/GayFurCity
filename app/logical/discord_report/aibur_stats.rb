@@ -3,7 +3,7 @@
 module DiscordReport
   class AiburStats < Base
     def webhook_url
-      FemboyFans.config.discord.aibur_stats_webhook_url
+      GayFurCity.config.discord.aibur_stats_webhook_url
     end
 
     def report

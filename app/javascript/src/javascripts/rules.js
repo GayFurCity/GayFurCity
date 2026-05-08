@@ -38,7 +38,7 @@ Rules.initialize_listeners = function () {
   const $saveOrderLink = $(".save-order-link");
   const $sortableRules = $("#sortable-rules");
 
-  $editOrderLink.on("click.femboyfans.sorting", function (event) {
+  $editOrderLink.on("click.gayfurcity.sorting", function (event) {
     event.preventDefault();
     Rules.toggle_buttons();
     Rules.mode = "rules";
@@ -46,7 +46,7 @@ Rules.initialize_listeners = function () {
     Danbooru.notice("Drag and drop to reorder.");
   });
 
-  $editCategoryOrderLink.on("click.femboyfans.sorting", function (event) {
+  $editCategoryOrderLink.on("click.gayfurcity.sorting", function (event) {
     event.preventDefault();
     Rules.toggle_buttons();
     Rules.mode = "categories";
@@ -54,7 +54,7 @@ Rules.initialize_listeners = function () {
     Danbooru.notice("Drag and drop to reorder.");
   });
 
-  $editQuickOrderLink.on("click.femboyfans.sorting", function (event) {
+  $editQuickOrderLink.on("click.gayfurcity.sorting", function (event) {
     event.preventDefault();
     Rules.toggle_buttons();
     Rules.mode = "quick";
@@ -62,7 +62,7 @@ Rules.initialize_listeners = function () {
     Danbooru.notice("Drag and drop to reorder.");
   });
 
-  $saveOrderLink.on("click.femboyfans.sorting", function (event) {
+  $saveOrderLink.on("click.gayfurcity.sorting", function (event) {
     event.preventDefault();
     $saveOrderLink.hide();
     $sortableRules.sortable("disable");
@@ -128,10 +128,10 @@ Rules.sortable = function () {
 };
 
 Rules.reinitialize_listeners = function () {
-  $(".edit-order-link").off("click.femboyfans.sorting");
-  $(".edit-category-order-link").off("click.femboyfans.sorting");
-  $(".edit-quick-order-link").off("click.femboyfans.sorting");
-  $(".save-order-link").off("click.femboyfans.sorting");
+  $(".edit-order-link").off("click.gayfurcity.sorting");
+  $(".edit-category-order-link").off("click.gayfurcity.sorting");
+  $(".edit-quick-order-link").off("click.gayfurcity.sorting");
+  $(".save-order-link").off("click.gayfurcity.sorting");
   Rules.initialize_listeners();
 };
 

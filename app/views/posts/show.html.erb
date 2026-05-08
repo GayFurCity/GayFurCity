@@ -128,7 +128,7 @@
     <% unless @post.force_original_size? %>
       <div>
         | <select id="image-resize-selector" class="button btn-neutral">
-            <% FemboyFans.config.video.variants.keys.each do |size| %>
+            <% GayFurCity.config.video.variants.keys.each do |size| %>
               <% next unless @post.has_variant_size?(size) %>
               <option value="<%= size %>">Sample (<%= size %>)</option>
             <% end %>

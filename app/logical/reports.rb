@@ -6,14 +6,14 @@ module Reports
   LIMIT = 100
 
   def enabled?
-    !Rails.env.test? && FemboyFans.config.reports.enabled?
+    !Rails.env.test? && GayFurCity.config.reports.enabled?
   end
 
   def request(method, path, body = nil)
-    conn = Faraday.new(FemboyFans.config.faraday_options.deep_merge(headers: { authorization: "Bearer #{jwt_signature(path)}", content_type: "application/json" })) do |c|
+    conn = Faraday.new(GayFurCity.config.faraday_options.deep_merge(headers: { authorization: "Bearer #{jwt_signature(path)}", content_type: "application/json" })) do |c|
       c.use(Faraday::Response::RaiseError)
     end
-    response = conn.public_send(method, "#{FemboyFans.config.reports.server_internal}#{path}", body&.to_json)
+    response = conn.public_send(method, "#{GayFurCity.config.reports.server_internal}#{path}", body&.to_json)
     JSON.parse(response.body)
   end
 
@@ -181,16 +181,16 @@ module Reports
 
   def jwt_signature(url)
     JWT.encode({
-      iss: "FemboyFans",
+      iss: "GayFurCity",
       iat: Time.now.to_i,
       exp: 1.minute.from_now.to_i,
       aud: "Reports",
       sub: url.split("?").first,
-    }, FemboyFans.config.report_key, "HS256")
+    }, GayFurCity.config.report_key, "HS256")
   end
 
   def generate_body_signature(purpose:, ip_address:, **values)
-    verifier = ActiveSupport::MessageVerifier.new(FemboyFans.config.report_key, serializer: JSON, digest: "SHA256")
+    verifier = ActiveSupport::MessageVerifier.new(GayFurCity.config.report_key, serializer: JSON, digest: "SHA256")
     verifier.generate({ ip_address: ip_address, **values }, purpose: purpose)
   end
 

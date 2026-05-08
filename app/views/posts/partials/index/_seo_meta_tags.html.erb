@@ -9,7 +9,7 @@
   <meta name="rating" content="adult">
 <% end %>
 
-<%= tag.meta(name: "canonical", content: posts_url(tags: params[:tags], host: FemboyFans.config.hostname, protocol: "https")) %>
+<%= tag.meta(name: "canonical", content: posts_url(tags: params[:tags], host: GayFurCity.config.hostname, protocol: "https")) %>
 
 <% Config.instance.app_description.tap do |desc| %>
   <%= tag.meta(name: "description", content: desc) %>

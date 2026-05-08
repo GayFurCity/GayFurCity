@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module FemboyFans
+module GayFurCity
   class MessageVerifier
     attr_reader(:purpose, :secret, :verifier)
 

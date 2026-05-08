@@ -7,12 +7,12 @@ module SearchMethods
     include(AttributeMatchers)
 
     def paginate(page, options = {})
-      extending(FemboyFans::Paginator::ActiveRecordExtension).paginate(page, options)
+      extending(GayFurCity::Paginator::ActiveRecordExtension).paginate(page, options)
     end
 
     def paginate_posts(page, options = {})
       options[:user] ||= User.anonymous
-      extending(FemboyFans::Paginator::ActiveRecordExtension).paginate_posts(page, options)
+      extending(GayFurCity::Paginator::ActiveRecordExtension).paginate_posts(page, options)
     end
 
     def qualified_column_for(attr)

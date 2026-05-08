@@ -13,7 +13,7 @@ class PostFlagTest < ActiveSupport::TestCase
     end
 
     should("respect the throttle limit") do
-      FemboyFans.config.stubs(:disable_throttles).returns(false)
+      GayFurCity.config.stubs(:disable_throttles).returns(false)
       Config.any_instance.stubs(:post_flag_limit).returns(0)
 
       error = assert_raises(ActiveRecord::RecordInvalid) do
@@ -77,7 +77,7 @@ class PostFlagTest < ActiveSupport::TestCase
       end
 
       should("be required on reasons that require explanation") do
-        reasons = FemboyFans.config.flag_reasons.select { |r| r[:require_explanation] }
+        reasons = GayFurCity.config.flag_reasons.select { |r| r[:require_explanation] }
         reasons.each do |reason|
           flag = build(:post_flag, post: @post, creator: @user, reason_name: reason[:name], note: "")
           assert_not(flag.valid?, "note should be required for reason #{reason[:name]}")
@@ -86,7 +86,7 @@ class PostFlagTest < ActiveSupport::TestCase
       end
 
       should("not be required on reasons that do not require explanation") do
-        reasons = FemboyFans.config.flag_reasons.reject { |r| r[:require_explanation] }
+        reasons = GayFurCity.config.flag_reasons.reject { |r| r[:require_explanation] }
         reasons.each do |reason|
           flag = build(:post_flag, post: @post, creator: @user, reason_name: reason[:name], note: "")
           flag.valid?
@@ -95,7 +95,7 @@ class PostFlagTest < ActiveSupport::TestCase
       end
 
       should("be allowed") do
-        reasons = FemboyFans.config.flag_reasons.select { |r| r[:require_explanation] }
+        reasons = GayFurCity.config.flag_reasons.select { |r| r[:require_explanation] }
         reasons.each do |reason|
           flag = build(:post_flag, post: @post, creator: @user, reason_name: reason[:name], note: "Some explanation")
           flag.valid?

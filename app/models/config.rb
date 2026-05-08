@@ -81,7 +81,7 @@ class Config < ApplicationRecord
   end
 
   def self.config_id
-    FemboyFans.config.config_id
+    GayFurCity.config.config_id
   end
 
   def self.settable_columns(_user)
@@ -89,7 +89,7 @@ class Config < ApplicationRecord
   end
 
   def self.disabled_config_options
-    list = FemboyFans.config.disabled_config_options
+    list = GayFurCity.config.disabled_config_options
     list.each do |name|
       list << "#{name}_bypass" if column_names.include?("#{name}_bypass")
     end

@@ -106,7 +106,7 @@
         <%= f.input(:send_update_dmail, label: "Send update DMail", as: :boolean, hint: "A DMail is always sent if the status is changed") %>
       <% end %>
       <div class="ticket-responses">
-        <% FemboyFans.config.ticket_quick_response_buttons.each do |btn| %>
+        <% GayFurCity.config.ticket_quick_response_buttons.each do |btn| %>
         <%= button_tag(btn[:name], type: "button", data: { text: btn[:text] }) %>
         <% end %>
       </div>

@@ -9,7 +9,7 @@ module Sources
       end
 
       def self.match?(url)
-        url.domain == FemboyFans.config.domain
+        url.domain == GayFurCity.config.domain
       end
     end
   end

@@ -5,7 +5,7 @@ class ForumCategories {
     const $saveOrderLink = $(".save-order-link");
     const $editOrderLink = $(".edit-order-link");
     const $sortableCategories = $("#forum-categories-table tbody");
-    $editOrderLink.on("click.femboyfans.sorting", function (event) {
+    $editOrderLink.on("click.gayfurcity.sorting", function (event) {
       event.preventDefault();
       $saveOrderLink.show();
       $editOrderLink.hide();
@@ -13,7 +13,7 @@ class ForumCategories {
       Utility.notice("Drag and drop to reorder.");
     });
 
-    $saveOrderLink.on("click.femboyfans.sorting", function (event) {
+    $saveOrderLink.on("click.gayfurcity.sorting", function (event) {
       event.preventDefault();
       $saveOrderLink.hide();
       $editOrderLink.show();

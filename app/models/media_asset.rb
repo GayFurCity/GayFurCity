@@ -268,11 +268,11 @@ class MediaAsset < ApplicationRecord
     end
 
     def storage_manager
-      FemboyFans.config.storage_manager.instance
+      GayFurCity.config.storage_manager.instance
     end
 
     def backup_storage_manager
-      FemboyFans.config.backup_storage_manager.instance
+      GayFurCity.config.backup_storage_manager.instance
     end
 
     def path_prefix
@@ -284,7 +284,7 @@ class MediaAsset < ApplicationRecord
     end
 
     def protected_secret
-      FemboyFans.config.protected_file_secret
+      GayFurCity.config.protected_file_secret
     end
 
     def file_path(protected: is_protected?)

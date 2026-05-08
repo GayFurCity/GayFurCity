@@ -7,6 +7,6 @@
   <%= format_text(@dmail.body, base_url: root_url, max_thumbs: 0) %>
 </div>
 
-<p><%= link_to("View message", dmail_url(@dmail, host: FemboyFans.config.hostname, only_path: false)) %> | <%= link_to("Unsubscribe", users_email_notification_url(user_id: @dmail.owner.id, sig: email_sig(@dmail.owner, :unsubscribe), host: FemboyFans.config.hostname, only_path: false)) %></p>
+<p><%= link_to("View message", dmail_url(@dmail, host: GayFurCity.config.hostname, only_path: false)) %> | <%= link_to("Unsubscribe", users_email_notification_url(user_id: @dmail.owner.id, sig: email_sig(@dmail.owner, :unsubscribe), host: GayFurCity.config.hostname, only_path: false)) %></p>
 </body>
 </html>

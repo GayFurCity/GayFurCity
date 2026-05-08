@@ -10,11 +10,11 @@ module DocumentStore
     end
 
     teardown do
-      WebMock.disable_net_connect!(allow: [FemboyFans.config.elasticsearch_host])
+      WebMock.disable_net_connect!(allow: [GayFurCity.config.elasticsearch_host])
     end
 
     def stub_elasticsearch(method, path)
-      stub_request(method, "http://#{FemboyFans.config.elasticsearch_host}:9200#{path}")
+      stub_request(method, "http://#{GayFurCity.config.elasticsearch_host}:9200#{path}")
     end
 
     test("it deletes the index") do

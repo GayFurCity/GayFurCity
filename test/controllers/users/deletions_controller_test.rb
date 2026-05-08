@@ -28,7 +28,7 @@ module Users
         end
 
         should("restrict access") do
-          FemboyFans.config.stubs(:disable_age_checks).returns(true)
+          GayFurCity.config.stubs(:disable_age_checks).returns(true)
           assert_access([User::Levels::REJECTED, User::Levels::RESTRICTED, User::Levels::MEMBER, User::Levels::TRUSTED, User::Levels::FORMER_STAFF, User::Levels::JANITOR, User::Levels::MODERATOR, User::Levels::SYSTEM], success_response: :redirect, fail_response: :bad_request, anonymous_response: :redirect) { |user| delete_auth(users_deletion_path, user, params: { password: "password" }) }
         end
       end

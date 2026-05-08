@@ -17,14 +17,14 @@ Rails.application.configure do
       policy.connect_src(:self, "https://plausible.furry.computer")
     end
     policy.style_src(:self, :unsafe_inline, "https://cdnjs.cloudflare.com")
-    policy.object_src(:self, FemboyFans.config.cdn_domain)
-    policy.media_src(:self, FemboyFans.config.cdn_domain)
+    policy.object_src(:self, GayFurCity.config.cdn_domain)
+    policy.media_src(:self, GayFurCity.config.cdn_domain)
     policy.frame_ancestors(:self)
     policy.frame_src(:self, "https://www.google.com/recaptcha/", "https://www.recaptcha.net/")
     policy.font_src(:self)
-    policy.img_src(:self, :data, :blob, FemboyFans.config.cdn_domain)
+    policy.img_src(:self, :data, :blob, GayFurCity.config.cdn_domain)
     policy.child_src(:none)
-    policy.form_action(:self, "discord.femboy.fan", "discord.com")
+    policy.form_action(:self, "discord.gayfur.city", "discord.com")
     # Specify URI for violation reports
     # policy.report_uri "/csp-violation-report-endpoint"
   end

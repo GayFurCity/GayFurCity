@@ -9,6 +9,7 @@ jobs:
   update-todo:
     name: Update Todo
     runs-on: ubuntu-latest
+    if: github.repository_owner == 'gayfurcity'
     permissions:
       contents: write
     steps:

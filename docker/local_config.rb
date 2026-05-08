@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module FemboyFans
+module GayFurCity
   class Config < ::ConfigBuilder
     # config(:name) { "value" }
   end

@@ -5,7 +5,7 @@ class PostFlag < ApplicationRecord
   end
 
   COOLDOWN_PERIOD = 1.day
-  MAPPED_REASONS = FemboyFans.config.flag_reasons.to_h { |i| [i[:name], i[:reason]] }
+  MAPPED_REASONS = GayFurCity.config.flag_reasons.to_h { |i| [i[:name], i[:reason]] }
 
   belongs_to_user(:creator, ip: true, clones: :updater, counter_cache: "post_flag_count")
   resolvable(:updater)
@@ -129,7 +129,7 @@ class PostFlag < ApplicationRecord
 
   def validate_note_required_for_reason
     return if reason_name.blank?
-    reason = FemboyFans.config.flag_reasons.find { |r| r[:name].to_s == reason_name.to_s }
+    reason = GayFurCity.config.flag_reasons.find { |r| r[:name].to_s == reason_name.to_s }
     if reason && reason[:require_explanation] && note.to_s.strip.blank?
       errors.add(:note, "is required for the selected reason")
     end

@@ -4,11 +4,11 @@ class UserMailer < ApplicationMailer
   helper(ApplicationHelper)
   helper(UsersHelper)
   include(UsersHelper)
-  default(from: FemboyFans.config.email.from_addr, content_type: "text/html")
+  default(from: GayFurCity.config.email.from_addr, content_type: "text/html")
 
   def dmail_notice(dmail)
     @dmail = dmail
-    headers["List-Unsubscribe"] = "<#{Routes.users_email_notification_url(user_id: @dmail.from.id, sig: email_sig(@dmail.from, :unsubscribe), host: FemboyFans.config.hostname, only_path: false)}>"
+    headers["List-Unsubscribe"] = "<#{Routes.users_email_notification_url(user_id: @dmail.from.id, sig: email_sig(@dmail.from, :unsubscribe), host: GayFurCity.config.hostname, only_path: false)}>"
     mail(to: "#{dmail.to.name} <#{dmail.to.email}>", subject: "#{Config.instance.app_name} - Message received from #{dmail.from.name}")
   end
 
@@ -16,7 +16,7 @@ class UserMailer < ApplicationMailer
     @user = user
     @forum_topic = forum_topic
     @forum_posts = forum_posts
-    headers["List-Unsubscribe"] = "<#{Routes.users_email_notification_url(user_id: @user.id, sig: email_sig(@user, :unsubscribe), host: FemboyFans.config.hostname, only_path: false)}>"
+    headers["List-Unsubscribe"] = "<#{Routes.users_email_notification_url(user_id: @user.id, sig: email_sig(@user, :unsubscribe), host: GayFurCity.config.hostname, only_path: false)}>"
     mail(to: "#{user.name} <#{user.email}>", subject: "#{Config.instance.app_name} forum topic #{forum_topic.title} updated")
   end
 end

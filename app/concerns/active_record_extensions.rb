@@ -17,7 +17,7 @@ module ActiveRecordExtensions
       connection.execute("SET STATEMENT_TIMEOUT = #{time}") unless Rails.env.test?
       yield
     rescue ::ActiveRecord::StatementInvalid => e
-      FemboyFans::Logger.log(e, expected: true)
+      GayFurCity::Logger.log(e, expected: true)
       default_value
     ensure
       connection.execute("SET STATEMENT_TIMEOUT = #{original}") unless Rails.env.test?

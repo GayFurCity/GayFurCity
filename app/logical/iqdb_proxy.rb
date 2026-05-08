@@ -8,7 +8,7 @@ module IqdbProxy
   module_function
 
   def endpoint
-    FemboyFans.config.iqdb_server
+    GayFurCity.config.iqdb_server
   end
 
   def enabled?
@@ -16,7 +16,7 @@ module IqdbProxy
   end
 
   def make_request(path, request_type, body = nil)
-    conn = Faraday.new(FemboyFans.config.faraday_options)
+    conn = Faraday.new(GayFurCity.config.faraday_options)
     conn.send(request_type, endpoint + path, body&.to_json, { content_type: "application/json" })
   rescue Faraday::Error
     raise(Error, "This service is temporarily unavailable. Please try again later.")

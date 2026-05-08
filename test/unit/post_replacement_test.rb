@@ -27,7 +27,7 @@ class PostReplacementTest < ActiveSupport::TestCase
 
     should("fail if user has no remaining upload limit") do
       User.any_instance.stubs(:upload_limit).returns(0)
-      FemboyFans.config.stubs(:disable_throttles).returns(false)
+      GayFurCity.config.stubs(:disable_throttles).returns(false)
       @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       assert_equal(["Creator have reached your upload limit"], @replacement.errors.full_messages)
     end
@@ -168,7 +168,7 @@ class PostReplacementTest < ActiveSupport::TestCase
 
     should("work if the approver is above their upload limit") do
       User.any_instance.stubs(:upload_limit).returns(0)
-      FemboyFans.config.stubs(:disable_throttles).returns(false)
+      GayFurCity.config.stubs(:disable_throttles).returns(false)
 
       @replacement.approve!(@user, penalize_current_uploader: true)
       assert_equal(@replacement.md5, @post.md5)

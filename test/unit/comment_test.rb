@@ -11,7 +11,7 @@ class CommentTest < ActiveSupport::TestCase
 
     context("created by a limited user") do
       setup do
-        FemboyFans.config.stubs(:disable_throttles).returns(false)
+        GayFurCity.config.stubs(:disable_throttles).returns(false)
       end
 
       should("fail creation") do

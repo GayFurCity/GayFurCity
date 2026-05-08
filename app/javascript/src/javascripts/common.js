@@ -23,7 +23,7 @@ function initSearch () {
 }
 
 function initMarkAllAsRead () {
-  $("#subnav-mark-all-as-read-link").on("click.femboyfans", (event) => {
+  $("#subnav-mark-all-as-read-link").on("click.gayfurcity", (event) => {
     const link = $(event.currentTarget);
     return confirm(`Are you sure that you want to mark all ${link.attr("data-item")} as read?`);
   });

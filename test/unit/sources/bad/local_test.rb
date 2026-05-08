@@ -7,9 +7,9 @@ module Sources
     class LocalTest < ActiveSupport::TestCase
       context("Local sources") do
         setup do
-          @post1 = create(:post, source: FemboyFans.config.hostname)
-          @post2 = create(:post, source: "#{FemboyFans.config.hostname}/posts/1")
-          @post3 = create(:post, source: "#{FemboyFans.config.hostname}/artists/gaokun")
+          @post1 = create(:post, source: GayFurCity.config.hostname)
+          @post2 = create(:post, source: "#{GayFurCity.config.hostname}/posts/1")
+          @post3 = create(:post, source: "#{GayFurCity.config.hostname}/artists/gaokun")
         end
 
         should("always be bad") do

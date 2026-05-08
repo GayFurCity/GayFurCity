@@ -1,14 +1,14 @@
 openapi: "3.1.0"
 info:
-  title: "FemboyFans"
+  title: "GayFurCity"
   version: "1"
-  termsOfService: "https://femboy.fan/static/terms_of_service"
+  termsOfService: "https://gayfur.city/static/terms_of_service"
   license:
     name: MIT
     url: "https://opensource.org/licenses/MIT"
 
 servers:
-  - url: "https://femboy.fan"
+  - url: "https://gayfur.city"
     description: "Production Server"
   - url: "http://localhost:4000"
     description: "Development server"
@@ -4098,7 +4098,7 @@ paths:
                             - type: string
                             - type: number
                         examples:
-                          - [["femboy.fan", 1], ["furaffinity.net", 1]]
+                          - [["gayfur.city", 1], ["furaffinity.net", 1]]
         404:
           $ref: "#/components/responses/NotFound"
     patch:

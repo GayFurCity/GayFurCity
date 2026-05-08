@@ -84,7 +84,7 @@ module Pools
         end
 
         should("restrict access") do
-          FemboyFans.config.stubs(:disable_age_checks).returns(true)
+          GayFurCity.config.stubs(:disable_age_checks).returns(true)
           assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| put_auth(undo_pool_version_path(@pool.versions.second), user) }
         end
       end

@@ -9,19 +9,19 @@ class PostDeletionReasons {
     const $addSpacingLink = $(".add-spacing-link");
     const $removeSpacingLink = $(".remove-spacing-link");
     const $sortablePostDeletionReasons = $("#post-deletion-reasons-table tbody");
-    $addSpacingBelowLink.on("click.femboyfans.spacing", function (event) {
+    $addSpacingBelowLink.on("click.gayfurcity.spacing", function (event) {
       event.preventDefault();
       spacing.insertAfter($(this).closest("tr"));
       PostDeletionReasons.reinitRemoveListener();
     });
 
-    $addSpacingAboveLink.on("click.femboyfans.spacing", function (event) {
+    $addSpacingAboveLink.on("click.gayfurcity.spacing", function (event) {
       event.preventDefault();
       spacing.insertBefore($(this).closest("tr"));
       PostDeletionReasons.reinitRemoveListener();
     });
 
-    $editOrderLink.on("click.femboyfans.sorting", function (event) {
+    $editOrderLink.on("click.gayfurcity.sorting", function (event) {
       event.preventDefault();
       $saveOrderLink.show();
       $editOrderLink.hide();
@@ -31,7 +31,7 @@ class PostDeletionReasons {
       Utility.notice("Drag and drop to reorder.");
     });
 
-    $saveOrderLink.on("click.femboyfans.sorting", function (event) {
+    $saveOrderLink.on("click.gayfurcity.sorting", function (event) {
       event.preventDefault();
       $saveOrderLink.hide();
       $addSpacingLink.hide();
@@ -60,8 +60,8 @@ class PostDeletionReasons {
 
   static reinitRemoveListener () {
     const $removeSpacingLink = $(".remove-spacing-link");
-    $removeSpacingLink.off("click.femboyfans.spacing");
-    $removeSpacingLink.on("click.femboyfans.spacing", function (event) {
+    $removeSpacingLink.off("click.gayfurcity.spacing");
+    $removeSpacingLink.on("click.gayfurcity.spacing", function (event) {
       event.preventDefault();
       $(this).closest("tr").remove();
     });

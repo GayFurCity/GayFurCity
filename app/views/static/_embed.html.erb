@@ -5,8 +5,8 @@
   <meta name="<%= record.model_name.singular.tr("_", "-") %>-id" content="<%= record.id %>">
   <%= tag.meta(property: "og:site", content: Config.instance.app_name) %>
   <%= tag.meta(property: "og:title", content: "#{name} - #{Config.instance.app_name}") %>
-  <%= tag.meta(property: "og:url", content: polymorphic_url(record, host: FemboyFans.config.hostname, protocol: "https")) %>
-  <%= tag.meta(name: "canonical", content: polymorphic_url(record, host: FemboyFans.config.hostname, protocol: "https")) %>
+  <%= tag.meta(property: "og:url", content: polymorphic_url(record, host: GayFurCity.config.hostname, protocol: "https")) %>
+  <%= tag.meta(name: "canonical", content: polymorphic_url(record, host: GayFurCity.config.hostname, protocol: "https")) %>
 
   <% if post.present? %>
     <% if post.visible?(CurrentUser.user) %>

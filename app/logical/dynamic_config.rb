@@ -185,7 +185,7 @@ module DynamicConfig
     add_boolean_field(:enable_sock_puppet_validation)
     add_boolean_field(:enable_stale_forum_topics)
     add_boolean_field(:enable_autotagging, hint: "Enables automatic tagging of things like hi_res, large_file_size, long_playtime, etc")
-    add_boolean_field(:enable_bad_sources, hint: "Automatically tags \"bad\" sources (like #{FemboyFans.config.hostname}). Has no effect if autotagging is disabled")
+    add_boolean_field(:enable_bad_sources, hint: "Automatically tags \"bad\" sources (like #{GayFurCity.config.hostname}). Has no effect if autotagging is disabled")
     add_boolean_field(:enable_image_cropping, hint: "Enables generating a cropped 1:1 version of posts. Changing the option will not delete existing crops, or automatically regenerate them on old posts")
     add_boolean_field(:safe_mode, hint: "Enables safe mode, hiding all posts that are not safe.")
     add_text_field(:safeblocked_tags, large: true, hint: "separate by a comma and space", input_options: { size: "30x1" })

@@ -21,7 +21,7 @@ module StorageManager
     end
 
     def purge_cache(url)
-      conn = Faraday.new(FemboyFans.config.faraday_options) do |r|
+      conn = Faraday.new(GayFurCity.config.faraday_options) do |r|
         r.headers["AccessKey"] = api_key
       end
       conn.post("https://api.bunny.net/purge?async=false&url=#{CGI.escape(url)}").success?

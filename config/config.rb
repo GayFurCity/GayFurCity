@@ -2,7 +2,7 @@
 
 require_relative("../app/logical/config_builder")
 
-module FemboyFans
+module GayFurCity
   class Config < ::ConfigBuilder
     config(:version) { GitHelper.instance.origin.short_commit }
 
@@ -16,7 +16,7 @@ module FemboyFans
     config(:app_url) { hostname }
     config(:canonical_app_url) { app_url }
     config(:server_name) { `hostname`[..-2] }
-    config(:source_code_url) { "https://github.com/FemboyFans/FemboyFans" }
+    config(:source_code_url) { "https://github.com/GayFurCity/GayFurCity" }
     config(:local_source_code_url) { source_code_url }
     config(:custom_html_header_content) { nil }
     config(:user_agent) { "#{::Config.instance.safe_app_name}/#{version} (#{source_code_url})" }

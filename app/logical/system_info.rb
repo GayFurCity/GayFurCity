@@ -76,7 +76,7 @@ class SystemInfo
 
   def memcached
     @memcached ||= begin
-      client = Dalli::Client.new(FemboyFans.config.memcached_servers)
+      client = Dalli::Client.new(GayFurCity.config.memcached_servers)
       all_stats = client.stats
       all_stats.keys.to_h do |server|
         stats = all_stats[server]
@@ -109,7 +109,7 @@ class SystemInfo
   end
 
   def main
-    @main ||= OpenHash.from(ruby_version: RUBY_VERSION, rails_version: Rails.version, node_version: `node --version`.strip, alpine_version: File.read("/etc/alpine-release").strip, environment: Rails.env, hostname: FemboyFans.config.hostname, name: Config.instance.app_name, url: FemboyFans.config.app_url, description: Config.instance.app_description, safe_mode: Config.instance.safe_mode?, version: FemboyFans.config.version, date: Time.now.utc.iso8601, timezone: Time.zone.name, timezone_sys: `date +%Z`[..-1])
+    @main ||= OpenHash.from(ruby_version: RUBY_VERSION, rails_version: Rails.version, node_version: `node --version`.strip, alpine_version: File.read("/etc/alpine-release").strip, environment: Rails.env, hostname: GayFurCity.config.hostname, name: Config.instance.app_name, url: GayFurCity.config.app_url, description: Config.instance.app_description, safe_mode: Config.instance.safe_mode?, version: GayFurCity.config.version, date: Time.now.utc.iso8601, timezone: Time.zone.name, timezone_sys: `date +%Z`[..-1])
   end
 
   def gems

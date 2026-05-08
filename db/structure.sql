@@ -1,7 +1,7 @@
-\restrict 09AzrRALx8zm6go3HHsoydZkmVPiFU7bdJeVAeMgz3WD9KdQxQ2sMTjocPNeHBG
+\restrict gKdBJqbZT0miwnS4298ZYS1CJ5cGomr1seUjXIcgtbfMPM02HZ1wNTHQwLJhYE6
 
 -- Dumped from database version 17.5
--- Dumped by pg_dump version 17.7
+-- Dumped by pg_dump version 17.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -628,8 +628,8 @@ CREATE TABLE public.config (
     tag_type_edit_implicit_limit jsonb DEFAULT '{"10": 100, "15": 1000}'::jsonb NOT NULL,
     alias_category_change_cutoff integer DEFAULT 10000 NOT NULL,
     max_multi_count integer DEFAULT 100 NOT NULL,
-    takedown_email character varying DEFAULT 'admin@femboy.fan'::character varying NOT NULL,
-    contact_email character varying DEFAULT 'admin@femboy.fan'::character varying NOT NULL,
+    takedown_email character varying DEFAULT 'admin@gayfur.city'::character varying NOT NULL,
+    contact_email character varying DEFAULT 'admin@gayfur.city'::character varying NOT NULL,
     default_user_timezone character varying DEFAULT 'Central Time (US & Canada)'::character varying,
     alias_and_implication_forum_category integer DEFAULT 1 NOT NULL,
     default_forum_category integer DEFAULT 1 NOT NULL,
@@ -655,9 +655,9 @@ CREATE TABLE public.config (
     show_tag_scripting integer DEFAULT 15 NOT NULL,
     show_backtrace integer DEFAULT 20 NOT NULL,
     bur_nuke integer DEFAULT 40 NOT NULL,
-    app_name character varying DEFAULT 'Femboy Fans'::character varying NOT NULL,
-    canonical_app_name character varying DEFAULT 'Femboy Fans'::character varying NOT NULL,
-    app_description character varying DEFAULT 'Your one-stop shop for femboy furries.'::character varying NOT NULL,
+    app_name character varying DEFAULT 'GayFur City'::character varying NOT NULL,
+    canonical_app_name character varying DEFAULT 'GayFur City'::character varying NOT NULL,
+    app_description character varying DEFAULT 'Your one-stop shop for gay furries.'::character varying NOT NULL,
     anonymous_user_name character varying DEFAULT 'Anonymous'::character varying NOT NULL,
     system_user_name character varying DEFAULT 'System'::character varying NOT NULL,
     image_width jsonb DEFAULT '{"max": 40000, "min": 300}'::jsonb NOT NULL,
@@ -7847,11 +7847,12 @@ ALTER TABLE ONLY public.help_pages
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 09AzrRALx8zm6go3HHsoydZkmVPiFU7bdJeVAeMgz3WD9KdQxQ2sMTjocPNeHBG
+\unrestrict gKdBJqbZT0miwnS4298ZYS1CJ5cGomr1seUjXIcgtbfMPM02HZ1wNTHQwLJhYE6
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260508155823'),
 ('20260217212220'),
 ('20251227053741'),
 ('20251027050630'),

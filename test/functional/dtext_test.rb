@@ -177,15 +177,15 @@ class DtextTest < ActiveSupport::TestCase
       end
 
       should("parse issue #") do
-        assert_parse_id_link("issue #123", "issue #123", "dtext-github-id-link", "#{FemboyFans.config.source_code_url}/issues/123")
+        assert_parse_id_link("issue #123", "issue #123", "dtext-github-id-link", "#{GayFurCity.config.source_code_url}/issues/123")
       end
 
       should("parse pull #") do
-        assert_parse_id_link("pull #123", "pull #123", "dtext-github-pull-id-link", "#{FemboyFans.config.source_code_url}/pull/123")
+        assert_parse_id_link("pull #123", "pull #123", "dtext-github-pull-id-link", "#{GayFurCity.config.source_code_url}/pull/123")
       end
 
       should("parse commit #") do
-        assert_parse_id_link("commit #123", "commit #123", "dtext-github-commit-id-link", "#{FemboyFans.config.source_code_url}/commit/123")
+        assert_parse_id_link("commit #123", "commit #123", "dtext-github-commit-id-link", "#{GayFurCity.config.source_code_url}/commit/123")
       end
     end
 

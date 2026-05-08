@@ -2,7 +2,7 @@
 
 module LinkHelper
   DECORATABLE_DOMAINS = [
-    "femboy.fan",
+    "gayfur.city",
     #
     # Aggregators
     "linktr.ee",

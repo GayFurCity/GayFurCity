@@ -46,7 +46,7 @@ COPY --from=node-builder /usr/local/include /usr/local/include
 COPY --from=node-builder /usr/local/bin /usr/local/bin
 # Copy yarn to both root and the user created below to support running as both
 COPY --from=node-builder /root/.cache/node /root/.cache/node
-COPY --from=node-builder /root/.cache/node /home/femboyfans/.cache/node
+COPY --from=node-builder /root/.cache/node /home/gayfurcity/.cache/node
 
 # Copy gems and js packages
 COPY --from=node-builder /app/node_modules node_modules
@@ -55,10 +55,10 @@ COPY --from=ruby-builder /usr/local/bundle /usr/local/bundle
 # Create a user with (potentially) the same id as on the host
 ARG HOST_UID=1000
 ARG HOST_GID=1000
-RUN addgroup --gid ${HOST_GID} femboyfans && \
-  adduser -S --shell /bin/sh --uid ${HOST_UID} femboyfans && \
-  addgroup femboyfans wheel && \
-  echo "femboyfans ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN addgroup --gid ${HOST_GID} gayfurcity && \
+  adduser -S --shell /bin/sh --uid ${HOST_UID} gayfurcity && \
+  addgroup gayfurcity wheel && \
+  echo "gayfurcity ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Ignore warnings from git about .git permission differences when running as root
 RUN git config --global --add safe.directory $(pwd)

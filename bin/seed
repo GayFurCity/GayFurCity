@@ -11,5 +11,5 @@ end
 
 FileUtils.chdir(APP_ROOT) do
   env = ENV.fetch("RAILS_ENV")
-  system!("RAILS_ENV=#{env} FEMBOYFANS_DISABLE_THROTTLES=true bin/rails db:seed")
+  system!("RAILS_ENV=#{env} GAYFURCITY_DISABLE_THROTTLES=true bin/rails db:seed")
 end

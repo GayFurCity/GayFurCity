@@ -13,7 +13,7 @@
   <%= custom_form_for(post_flag) do |f| %>
     <%= f.hidden_field(:post_id) %>
     <div class="flag-reason">
-      <% FemboyFans.config.flag_reasons.each do |flag_reason| %>
+      <% GayFurCity.config.flag_reasons.each do |flag_reason| %>
         <% if flag_reason[:name] == "uploading_guidelines" && !@post.flaggable_for_guidelines?(CurrentUser.user) %>
           <% next %>
         <% end %>

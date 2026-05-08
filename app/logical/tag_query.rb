@@ -130,7 +130,7 @@ class TagQuery
 
   def parse_query(query)
     TagQuery.scan(query).each do |token| # rubocop:disable Metrics/BlockLength
-      @tag_count += 1 unless FemboyFans.config.is_unlimited_tag?(token)
+      @tag_count += 1 unless GayFurCity.config.is_unlimited_tag?(token)
       metatag_name, g2 = token.split(":", 2)
 
       # Short-circuit when there is no metatag or the metatag has no value

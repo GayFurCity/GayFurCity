@@ -97,7 +97,7 @@ class ApplicationController < ActionController::Base
       render_error_page(405, exception)
     when ActionController::UnknownFormat, ActionView::MissingTemplate
       render_unsupported_format
-    when FemboyFans::Paginator::PaginationError
+    when GayFurCity::Paginator::PaginationError
       render_expected_error(410, exception.message)
     when TagQuery::CountExceededError
       render_expected_error(422, exception.message)
@@ -149,7 +149,7 @@ class ApplicationController < ActionController::Base
       @message = "An unexpected error occurred."
     end
 
-    FemboyFans::Logger.log(@exception, expected: @expected)
+    GayFurCity::Logger.log(@exception, expected: @expected)
     log = ExceptionLog.add!(exception, user_id: CurrentUser.user.id, request: request) unless @expected
     @log_code = log&.code
     render("static/error", status: status, formats: format)

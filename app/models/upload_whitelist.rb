@@ -62,7 +62,7 @@ class UploadWhitelist < ApplicationRecord
       all
     end
 
-    if FemboyFans.config.bypass_upload_whitelist?(user)
+    if GayFurCity.config.bypass_upload_whitelist?(user)
       return [true, "bypassed"]
     end
 

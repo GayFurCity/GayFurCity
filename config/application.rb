@@ -25,7 +25,7 @@ require_relative("local_config")
 require_relative("../lib/middleware/json_log")
 require_relative("../lib/middleware/silence_healthcheck_logging")
 
-module FemboyFans
+module GayFurCity
   # Config.ensure_required_set!
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
@@ -45,8 +45,8 @@ module FemboyFans
     config.force_ssl = true
     config.active_job.queue_adapter = :sidekiq
 
-    if Rails.env.production? && FemboyFans.config.ssl_options.present?
-      config.ssl_options = FemboyFans.config.ssl_options
+    if Rails.env.production? && GayFurCity.config.ssl_options.present?
+      config.ssl_options = GayFurCity.config.ssl_options
     else
       config.ssl_options = {
         hsts:           false,
@@ -57,7 +57,7 @@ module FemboyFans
 
     config.after_initialize do
       Rails.application.routes.default_url_options = {
-        host: FemboyFans.config.hostname,
+        host: GayFurCity.config.hostname,
       }
     end
 

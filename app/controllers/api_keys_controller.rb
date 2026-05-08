@@ -50,7 +50,7 @@ class ApiKeysController < ApplicationController
     limit = (params[:limit] || 100).to_i
     page = (params[:page] || 1).to_i
     usage = Reports.get_api_key_usages(@api_key.id, date: date, limit: limit, page: page)
-    @usages = FemboyFans::Paginator::PaginatedArray.new(usage.data.to_a, { pagination_mode: :numbered, records_per_page: limit, total_count: usage.count, current_page: page })
+    @usages = GayFurCity::Paginator::PaginatedArray.new(usage.data.to_a, { pagination_mode: :numbered, records_per_page: limit, total_count: usage.count, current_page: page })
     respond_with(@usages)
   end
 

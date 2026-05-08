@@ -59,7 +59,7 @@ RecordBuilder.process_form = function (form) {
 RecordBuilder.process_source = function (source) {
   return decodeURI(source)
     .trim()
-    .replace(/https?:\/\/femboy\.fan\//g, "/") // Make links relative
+    .replace(/https?:\/\/gayfur\.city\//g, "/") // Make links relative
     .replace(/\/posts\/(\d+)#comment-(\d+)/g, "/comments/$2") // Convert comment links
     .replace(/\/forums\/topics\/(\d+)(?:\?page=\d+)?#forum_post_(\d+)/g, "/forums/posts/$2") // Convert forum post links
     .replace(/\?lr=\d+&/, "?") // Trim the tag history links

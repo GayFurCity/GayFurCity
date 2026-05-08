@@ -386,9 +386,9 @@ inline := |*
   'dnp #'i id                                  => { append_id_link("avoid posting", "avoid-posting", "/avoid_postings/", { a1, a2 }); };
   'avoid posting #'i id                        => { append_id_link("avoid posting", "avoid-posting", "/avoid_postings/", { a1, a2 }); };
 
-  'issue #'i id                                => { append_id_link("issue", "github", "https://github.com/FemboyFans/FemboyFans/issues/", { a1, a2 }); };
-  'pull #'i id                                 => { append_id_link("pull", "github-pull", "https://github.com/FemboyFans/FemboyFans/pull/", { a1, a2 }); };
-  'commit #'i id                               => { append_id_link("commit", "github-commit", "https://github.com/FemboyFans/FemboyFans/commit/", { a1, a2 }); };
+  'issue #'i id                                => { append_id_link("issue", "github", "https://github.com/GayFurCity/GayFurCity/issues/", { a1, a2 }); };
+  'pull #'i id                                 => { append_id_link("pull", "github-pull", "https://github.com/GayFurCity/GayFurCity/pull/", { a1, a2 }); };
+  'commit #'i id                               => { append_id_link("commit", "github-commit", "https://github.com/GayFurCity/GayFurCity/commit/", { a1, a2 }); };
 
 
   basic_post_search_link => {

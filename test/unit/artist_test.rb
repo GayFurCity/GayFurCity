@@ -311,12 +311,12 @@ class ArtistTest < ActiveSupport::TestCase
       end
 
       should("fail if the user is limited") do
-        @artist.update_with(@user, url_string: "https://femboy.fan")
+        @artist.update_with(@user, url_string: "https://gayfur.city")
 
         @artist.reload
-        assert_equal("https://femboy.fan", @artist.url_string)
+        assert_equal("https://gayfur.city", @artist.url_string)
 
-        FemboyFans.config.stubs(:disable_throttles).returns(false)
+        GayFurCity.config.stubs(:disable_throttles).returns(false)
         Config.any_instance.stubs(:artist_edit_limit).returns(0)
 
         assert_no_difference("ArtistVersion.count") do
@@ -324,23 +324,23 @@ class ArtistTest < ActiveSupport::TestCase
         end
 
         @artist.reload
-        assert_equal("https://femboy.fan", @artist.url_string)
+        assert_equal("https://gayfur.city", @artist.url_string)
       end
 
       should("not change urls when locked") do
-        @artist.update_with(@user, url_string: "https://femboy.fan")
+        @artist.update_with(@user, url_string: "https://gayfur.city")
 
         @artist.reload
-        assert_equal("https://femboy.fan", @artist.url_string)
+        assert_equal("https://gayfur.city", @artist.url_string)
 
         @artist.update_column(:is_locked, true)
 
         assert_no_difference(-> { ArtistVersion.count }) do
-          @artist.update_with(@user, url_string: "https://sfw.femboy.fan")
+          @artist.update_with(@user, url_string: "https://sfw.gayfur.city")
         end
 
         @artist.reload
-        assert_equal("https://femboy.fan", @artist.url_string)
+        assert_equal("https://gayfur.city", @artist.url_string)
       end
 
       should("not change notes when locked") do

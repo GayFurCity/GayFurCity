@@ -3,7 +3,7 @@
 module DiscordReport
   class ModeratorStats < Base
     def webhook_url
-      FemboyFans.config.discord.moderator_stats_webhook_url
+      GayFurCity.config.discord.moderator_stats_webhook_url
     end
 
     def report

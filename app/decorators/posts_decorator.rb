@@ -34,7 +34,7 @@ class PostsDecorator < ApplicationDecorator
                     post.preview_file_url(user)
                   end
 
-    cropped_url = FemboyFans.config.deleted_preview_url if post.deleteblocked?(user)
+    cropped_url = GayFurCity.config.deleted_preview_url if post.deleteblocked?(user)
     cropped_url
   end
 
@@ -90,9 +90,9 @@ class PostsDecorator < ApplicationDecorator
                     post.file_url(user)
                   end
 
-    cropped_url = FemboyFans.config.deleted_preview_url if post.deleteblocked?(user)
+    cropped_url = GayFurCity.config.deleted_preview_url if post.deleteblocked?(user)
     preview_url = if post.deleteblocked?(user)
-                    FemboyFans.config.deleted_preview_url
+                    GayFurCity.config.deleted_preview_url
                   elsif post.has_preview?
                     post.preview_file_url(user)
                   else

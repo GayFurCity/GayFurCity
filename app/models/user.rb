@@ -467,7 +467,7 @@ class User < ApplicationRecord
             user.name = Config.instance.anonymous_user_name
             user.level = Levels::ANONYMOUS
             user.created_at = Time.now
-            user.email = "anonymous@#{FemboyFans.config.domain}"
+            user.email = "anonymous@#{GayFurCity.config.domain}"
           end
           user.readonly!
           wrap_user(user.freeze)
@@ -477,7 +477,7 @@ class User < ApplicationRecord
       def system(update: true)
         @system ||= begin
           user = User.find_or_initialize_by(level: Levels::SYSTEM).tap do |user|
-            user.email = "system@#{FemboyFans.config.domain}"
+            user.email = "system@#{GayFurCity.config.domain}"
             user.name = Config.instance.system_user_name
             user.can_approve_posts    = true
             user.unrestricted_uploads = true
@@ -725,7 +725,7 @@ class User < ApplicationRecord
 
   module LimitMethods
     def younger_than(duration)
-      return false if FemboyFans.config.disable_age_checks?
+      return false if GayFurCity.config.disable_age_checks?
       younger_than!(duration)
     end
 
@@ -734,7 +734,7 @@ class User < ApplicationRecord
     end
 
     def older_than(duration)
-      return true if FemboyFans.config.disable_age_checks?
+      return true if GayFurCity.config.disable_age_checks?
       older_than!(duration)
     end
 
@@ -787,7 +787,7 @@ class User < ApplicationRecord
       define_method(:"#{name}_limit", -> { throttle.limit(self) })
 
       define_method(:"can_#{name}_with_reason") do
-        return true if FemboyFans.config.disable_throttles? || throttle.bypass?(self)
+        return true if GayFurCity.config.disable_throttles? || throttle.bypass?(self)
         return :REJ_NEWBIE if throttle.newbie?(self)
         return :REJ_LIMITED if throttle.limited?(self)
         true
@@ -868,11 +868,11 @@ class User < ApplicationRecord
 
     def can_upload_with_reason
       return true if is_owner?
-      return :REJ_UPLOAD_HOURLY if hourly_upload_limit <= 0 && !FemboyFans.config.disable_throttles?
+      return :REJ_UPLOAD_HOURLY if hourly_upload_limit <= 0 && !GayFurCity.config.disable_throttles?
       return true if unrestricted_uploads? || is_admin?
       return :REJ_UPLOAD_NEWBIE if younger_than(3.days)
-      return :REJ_UPLOAD_EDIT if !is_trusted? && post_edit_limit <= 0 && !FemboyFans.config.disable_throttles?
-      return :REJ_UPLOAD_LIMIT if upload_limit <= 0 && !FemboyFans.config.disable_throttles?
+      return :REJ_UPLOAD_EDIT if !is_trusted? && post_edit_limit <= 0 && !GayFurCity.config.disable_throttles?
+      return :REJ_UPLOAD_LIMIT if upload_limit <= 0 && !GayFurCity.config.disable_throttles?
       true
     end
 
@@ -1308,7 +1308,7 @@ class User < ApplicationRecord
 
   def initialize_attributes
     return if Rails.env.test?
-    FemboyFans.config.customize_new_user(self)
+    GayFurCity.config.customize_new_user(self)
   end
 
   def presenter(view = nil)

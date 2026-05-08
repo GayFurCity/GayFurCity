@@ -18,7 +18,7 @@ class EmailBlacklistTest < ActiveSupport::TestCase
     should("detect email by mx") do
       EmailBlacklist.create(creator: @user, domain: "google.com", reason: "test")
       EmailBlacklist.stubs(:get_mx_records).returns(["google.com"])
-      assert(EmailBlacklist.is_banned?("spam@femboy.fan"))
+      assert(EmailBlacklist.is_banned?("spam@gayfur.city"))
 
       EmailBlacklist.unstub(:get_mx_records)
       assert_equal(false, EmailBlacklist.is_banned?("what@me.xynzs"))

@@ -25,7 +25,7 @@ module Seeds
 
   def self.api_request(path)
     puts("-> GET #{base_url}#{path}")
-    response = Faraday.get("#{base_url}#{path}", nil, user_agent: "femboyfans/seeding")
+    response = Faraday.get("#{base_url}#{path}", nil, user_agent: "gayfurcity/seeding")
     JSON.parse(response.body)
   end
 

@@ -99,7 +99,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
     context("new action") do
       setup do
-        FemboyFans.config.stubs(:recaptcha_enabled).returns(false)
+        GayFurCity.config.stubs(:recaptcha_enabled).returns(false)
       end
 
       should("render") do
@@ -161,10 +161,10 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         end
 
         should("reject duplicate emails") do
-          create(:user, email: "valid@femboy.fan")
+          create(:user, email: "valid@gayfur.city")
 
           assert_no_difference(-> { User.count }) do
-            post(users_path, params: { user: { name: "test2", password: "xxxxxx", password_confirmation: "xxxxxx", email: "VaLid@femboy.fan" } })
+            post(users_path, params: { user: { name: "test2", password: "xxxxxx", password_confirmation: "xxxxxx", email: "VaLid@gayfur.city" } })
             assert_match(/Email has already been taken/, flash[:notice])
           end
         end

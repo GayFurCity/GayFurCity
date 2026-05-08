@@ -23,12 +23,12 @@ class GitHelper
     @enabled = true
     @local = LocalRef.new
     if Rails.env.production?
-      @origin = Ref.new("internal", "master", FemboyFans.config.local_source_code_url)
-      @upstream = Ref.new("upstream", "master", FemboyFans.config.source_code_url)
+      @origin = Ref.new("internal", "master", GayFurCity.config.local_source_code_url)
+      @upstream = Ref.new("upstream", "master", GayFurCity.config.source_code_url)
     else
       branch = `git rev-parse --abbrev-ref HEAD`.strip
       remote = `git config branch.#{branch}.remote`.strip
-      @origin = Ref.new(remote, branch, FemboyFans.config.source_code_url)
+      @origin = Ref.new(remote, branch, GayFurCity.config.source_code_url)
       @upstream = nil
     end
   end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_17_212220) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_08_155823) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -297,8 +297,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_17_212220) do
     t.jsonb "tag_type_edit_implicit_limit", default: {"10"=>100, "15"=>1000}, null: false
     t.integer "alias_category_change_cutoff", default: 10000, null: false
     t.integer "max_multi_count", default: 100, null: false
-    t.string "takedown_email", default: "admin@femboy.fan", null: false
-    t.string "contact_email", default: "admin@femboy.fan", null: false
+    t.string "takedown_email", default: "admin@gayfur.city", null: false
+    t.string "contact_email", default: "admin@gayfur.city", null: false
     t.string "default_user_timezone", default: "Central Time (US & Canada)"
     t.integer "alias_and_implication_forum_category", default: 1, null: false
     t.integer "default_forum_category", default: 1, null: false
@@ -324,9 +324,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_17_212220) do
     t.integer "show_tag_scripting", default: 15, null: false
     t.integer "show_backtrace", default: 20, null: false
     t.integer "bur_nuke", default: 40, null: false
-    t.string "app_name", default: "Femboy Fans", null: false
-    t.string "canonical_app_name", default: "Femboy Fans", null: false
-    t.string "app_description", default: "Your one-stop shop for femboy furries.", null: false
+    t.string "app_name", default: "GayFur City", null: false
+    t.string "canonical_app_name", default: "GayFur City", null: false
+    t.string "app_description", default: "Your one-stop shop for gay furries.", null: false
     t.string "anonymous_user_name", default: "Anonymous", null: false
     t.string "system_user_name", default: "System", null: false
     t.jsonb "image_width", default: {"max"=>40000, "min"=>300}, null: false

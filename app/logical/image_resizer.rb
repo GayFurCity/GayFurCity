@@ -39,9 +39,9 @@ module ImageResizer
 
   def replacement_thumbnail(file, type, frame: nil)
     if type == :video
-      preview_file = VideoResizer.sample(file.path, width: FemboyFans.config.replacement_thumbnail_width, frame: frame)
+      preview_file = VideoResizer.sample(file.path, width: GayFurCity.config.replacement_thumbnail_width, frame: frame)
     elsif type == :image
-      preview_file = resize(file, FemboyFans.config.replacement_thumbnail_width, FemboyFans.config.replacement_thumbnail_width, 87)
+      preview_file = resize(file, GayFurCity.config.replacement_thumbnail_width, GayFurCity.config.replacement_thumbnail_width, 87)
     end
 
     preview_file

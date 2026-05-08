@@ -26,7 +26,7 @@ module PostSets
 
     def posts
       new_opts = { pagination_mode: :numbered, records_per_page: favorites.records_per_page, total_count: @post_count, current_page: current_page }
-      FemboyFans::Paginator::PaginatedArray.new(favorites.map(&:post), new_opts)
+      GayFurCity::Paginator::PaginatedArray.new(favorites.map(&:post), new_opts)
     end
 
     def api_posts

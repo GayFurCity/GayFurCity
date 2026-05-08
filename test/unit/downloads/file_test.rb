@@ -20,11 +20,11 @@ module Downloads
       end
 
       should("not follow redirects to non-whitelisted domains") do
-        stub_request(:get, "https://example.com/file.png").to_return(status: 301, headers: { location: "https://femboy.fan/abc" })
+        stub_request(:get, "https://example.com/file.png").to_return(status: 301, headers: { location: "https://gayfur.city/abc" })
         error = assert_raises(Downloads::File::Error) do
           Downloads::File.new("https://example.com/file.png").download!
         end
-        assert_match("'https://femboy.fan/abc' is not whitelisted", error.message)
+        assert_match("'https://gayfur.city/abc' is not whitelisted", error.message)
       end
     end
 

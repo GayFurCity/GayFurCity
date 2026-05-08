@@ -31,6 +31,6 @@ module DocumentStore
   end
 
   def self.client
-    @client ||= Elasticsearch::Client.new(host: FemboyFans.config.elasticsearch_host, request_timeout: 120)
+    @client ||= Elasticsearch::Client.new(host: GayFurCity.config.elasticsearch_host, request_timeout: 120)
   end
 end

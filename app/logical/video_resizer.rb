@@ -14,7 +14,7 @@ module VideoResizer
 
   def extract_frame(file_path, frame)
     output_file = Tempfile.new(%w[video-preview .webp], binmode: true)
-    stdout, stderr, status = Open3.capture3(FemboyFans.config.ffmpeg_path, "-y", "-i", file_path, "-vf", "select=eq(n\\,#{frame - 1})", "-frames:v", "1", output_file.path)
+    stdout, stderr, status = Open3.capture3(GayFurCity.config.ffmpeg_path, "-y", "-i", file_path, "-vf", "select=eq(n\\,#{frame - 1})", "-frames:v", "1", output_file.path)
 
     unless status == 0
       Rails.logger.warn("[FFMPEG FRAME STDOUT] #{stdout.chomp!}")
@@ -42,7 +42,7 @@ module VideoResizer
       o = opt.pop
       opt.push("#{o},scale=-1:#{height}")
     end
-    stdout, stderr, status = Open3.capture3(FemboyFans.config.ffmpeg_path, "-y", "-i", file_path, *opt, "-frames:v", "1", output_file.path)
+    stdout, stderr, status = Open3.capture3(GayFurCity.config.ffmpeg_path, "-y", "-i", file_path, *opt, "-frames:v", "1", output_file.path)
 
     unless status == 0
       Rails.logger.warn("[FFMPEG SAMPLE STDOUT] #{stdout.chomp!}")

@@ -123,7 +123,7 @@
 
     // Remove post
     $("body").on("click", ".takedown-post-remove", function () {
-      FemboyFans.Takedown.remove_post(<%= @takedown.id %>, $(this).parent().data("post-id"));
+      GayFurCity.Takedown.remove_post(<%= @takedown.id %>, $(this).parent().data("post-id"));
     });
 
     // Enable/disable add-post input submit buttons if input is filled/blank

@@ -7,7 +7,7 @@ module CloudflareService
 
   def self.ips
     text, status = Cache.fetch("cloudflare_ips", expires_in: 24.hours) do
-      resp = Faraday.new(FemboyFans.config.faraday_options).get(endpoint)
+      resp = Faraday.new(GayFurCity.config.faraday_options).get(endpoint)
       [resp.body, resp.status]
     end
     return [] if status != 200

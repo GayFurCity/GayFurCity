@@ -1,18 +1,18 @@
 <div align="center">
   <img src="public/images/github-logo.png" width="150" height="150" align="left">
   <div align="left">
-    <h3>Femboy Fans</h3>
-    <a href="https://github.com/FemboyFans/FemboyFans/releases">
-      <img src="https://img.shields.io/github/v/release/FemboyFans/FemboyFans?label=version&style=flat-square" alt="Releases" />
+    <h3>GayFur City</h3>
+    <a href="https://github.com/GayFurCity/GayFurCity/releases">
+      <img src="https://img.shields.io/github/v/release/GayFurCity/GayFurCity?label=version&style=flat-square" alt="Releases" />
     </a><br />
-    <a href="https://github.com/FemboyFans/FemboyFans/issues">
-      <img src="https://img.shields.io/github/issues/FemboyFans/FemboyFans?label=open issues&style=flat-square" alt="Issues" />
+    <a href="https://github.com/GayFurCity/GayFurCity/issues">
+      <img src="https://img.shields.io/github/issues/GayFurCity/GayFurCity?label=open issues&style=flat-square" alt="Issues" />
     </a><br />
-    <a href="https://github.com/FemboyFans/FemboyFans/pulls">
-      <img src="https://img.shields.io/github/issues-pr/FemboyFans/FemboyFans?style=flat-square" alt="Pull Requests" />
+    <a href="https://github.com/GayFurCity/GayFurCity/pulls">
+      <img src="https://img.shields.io/github/issues-pr/GayFurCity/GayFurCity?style=flat-square" alt="Pull Requests" />
     </a><br />
-    <a href="https://github.com/FemboyFans/FemboyFans/commits/master/">
-      <img src="https://img.shields.io/github/check-runs/FemboyFans/FemboyFans/master?style=flat-square" alt="GitHub branch check runs" />
+    <a href="https://github.com/GayFurCity/GayFurCity/commits/master/">
+      <img src="https://img.shields.io/github/check-runs/GayFurCity/GayFurCity/master?style=flat-square" alt="GitHub branch check runs" />
     </a><br />
   </div>
 </div>
@@ -33,13 +33,13 @@
 ### Installation
 
 1. Download and install the [prerequisites](#prerequisites).
-2. Clone the repo with `git clone https://github.com/FemboyFans/FemboyFans.git`.
+2. Clone the repo with `git clone https://github.com/GayFurCity/GayFurCity.git`.
 3. `cd` into the repo.
 4. Copy the sample environment file with `cp .env.sample .env`.
 5. Run the following commands:
     ```
-    docker compose run --rm --no-deps femboyfans /app/bin/presetup
-    docker compose run --rm -e SEED_POST_COUNT=100 femboyfans /app/bin/setup
+    docker compose run --rm --no-deps gayfurcity /app/bin/presetup
+    docker compose run --rm -e SEED_POST_COUNT=100 gayfurcity /app/bin/setup
     docker compose run --rm reports npm run migrate
     docker compose up
     ```
@@ -68,7 +68,7 @@ You're most likely using Windows. Give this a shot, it tells Git to stop trackin
 
 `docker compose run --rm rubocop` to run the linter.
 
-The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34518` to connect to a database named `femboyfans_development` with the user `femboyfans`. Leave the password blank, anything will work.
+The postgres server accepts outside connections which you can use to access it with a local client. Use `localhost:34518` to connect to a database named `gayfurcity_development` with the user `gayfurcity`. Leave the password blank, anything will work.
 
 ## Production Setup
 

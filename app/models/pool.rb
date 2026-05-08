@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Pool < ApplicationRecord
-  array_attribute(:post_ids, parse: %r{(?:#{FemboyFans.config.hostname}/posts/)?(\d+)}i, cast: :to_i)
+  array_attribute(:post_ids, parse: %r{(?:#{GayFurCity.config.hostname}/posts/)?(\d+)}i, cast: :to_i)
   belongs_to_user(:creator, ip: true, clones: :updater)
   resolvable(:updater)
   resolvable(:destroyer)

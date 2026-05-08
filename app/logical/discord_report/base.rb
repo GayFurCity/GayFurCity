@@ -18,7 +18,7 @@ module DiscordReport
     end
 
     def post_webhook
-      conn = Faraday.new(FemboyFans.config.faraday_options)
+      conn = Faraday.new(GayFurCity.config.faraday_options)
       conn.post(webhook_url, {
         content: report,
         flags:   4096,

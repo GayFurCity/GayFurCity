@@ -1,29 +1,29 @@
 x-environment: &common-env
-  FEMBOYFANS_DOMAIN: localhost:${EXPOSED_SERVER_PORT:-4000}
-  FEMBOYFANS_HOSTNAME: http://localhost:${EXPOSED_SERVER_PORT:-4000}
-  FEMBOYFANS_CDN_DOMAIN: localhost:${EXPOSED_SERVER_PORT:-4000}
-  FEMBOYFANS_CDN_HOSTNAME: http://localhost:${EXPOSED_SERVER_PORT:-4000}
-  FEMBOYFANS_REDIS_URL: redis://redis/0
-  FEMBOYFANS_ELASTICSEARCH_HOST: elasticsearch
-  FEMBOYFANS_MEMCACHED_SERVERS: memcached
-  FEMBOYFANS_IQDB_SERVER: http://iqdb:5588
-  FEMBOYFANS_RECOMMENDER_SERVER: http://recommender:5000
+  GAYFURCITY_DOMAIN: localhost:${EXPOSED_SERVER_PORT:-4000}
+  GAYFURCITY_HOSTNAME: http://localhost:${EXPOSED_SERVER_PORT:-4000}
+  GAYFURCITY_CDN_DOMAIN: localhost:${EXPOSED_SERVER_PORT:-4000}
+  GAYFURCITY_CDN_HOSTNAME: http://localhost:${EXPOSED_SERVER_PORT:-4000}
+  GAYFURCITY_REDIS_URL: redis://redis/0
+  GAYFURCITY_ELASTICSEARCH_HOST: elasticsearch
+  GAYFURCITY_MEMCACHED_SERVERS: memcached
+  GAYFURCITY_IQDB_SERVER: http://iqdb:5588
+  GAYFURCITY_RECOMMENDER_SERVER: http://recommender:5000
   # Must be externally accessible
-  FEMBOYFANS_REPORTS_SERVER: http://localhost:${EXPOSED_SERVER_PORT:-4000}/reports
+  GAYFURCITY_REPORTS_SERVER: http://localhost:${EXPOSED_SERVER_PORT:-4000}/reports
   # Must be internally accessible
-  FEMBOYFANS_REPORTS_SERVER_INTERNAL: http://reports:3000
-  FEMBOYFANS_CLICKHOUSE_URL: http://clickhouse:8123
-  FEMBOYFANS_REPORTS_ENABLED: 1
-  FEMBOYFANS_DISCORD_SITE: http://localhost:4002
-  FEMBOYFANS_DISCORD_SECRET: super_secret_for_url_discord
-  FEMBOYFANS_REPORT_KEY: super_secret_key_for_reports_signature
+  GAYFURCITY_REPORTS_SERVER_INTERNAL: http://reports:3000
+  GAYFURCITY_CLICKHOUSE_URL: http://clickhouse:8123
+  GAYFURCITY_REPORTS_ENABLED: 1
+  GAYFURCITY_DISCORD_SITE: http://localhost:4002
+  GAYFURCITY_DISCORD_SECRET: super_secret_for_url_discord
+  GAYFURCITY_REPORT_KEY: super_secret_key_for_reports_signature
   # These are just development secrets, do not use them in production
-  FEMBOYFANS_PROTECTED_FILE_SECRET: 6686a6413d90c43d5e82403ef271ec25d13cc24e3bfcdd094e73d1eff22a3567
-  FEMBOYFANS_REPLACEMENT_FILE_SECRET: b35bc54cdc0d0436fc5867c7ef88f9b10a37ae20a06b37e67614fe60019d7bb1
+  GAYFURCITY_PROTECTED_FILE_SECRET: 6686a6413d90c43d5e82403ef271ec25d13cc24e3bfcdd094e73d1eff22a3567
+  GAYFURCITY_REPLACEMENT_FILE_SECRET: b35bc54cdc0d0436fc5867c7ef88f9b10a37ae20a06b37e67614fe60019d7bb1
   SECRET_TOKEN: 1c58518a891eff4520cadc59afa9e378a9325f1247544ff258096e497f095f45
   SESSION_SECRET_KEY: 44b4f44e9f253c406cbe727d403d500c1cecff943e4d2aea8f5447f28846fffe
-  FEMBOYFANS_REMEMBER_KEY: abc123
-  FEMBOYFANS_EMAIL_KEY: zDMSATq0W3hmA5p3rKTgD
+  GAYFURCITY_REMEMBER_KEY: abc123
+  GAYFURCITY_EMAIL_KEY: zDMSATq0W3hmA5p3rKTgD
    # Hide annoying output from libvips on corrupt files
   VIPS_WARNING: "0"
   EXPOSED_WEBPACKER_PORT: ${EXPOSED_WEBPACKER_PORT:-4003}
@@ -39,14 +39,14 @@ x-depends-on: &common-depends-on
     condition: service_healthy
 
 services:
-  femboyfans:
+  gayfurcity:
     build:
       context: .
       args:
         HOST_UID: ${HOST_UID:-1000}
         HOST_GID: ${HOST_GID:-1000}
     user: ${DOCKER_USER:-root}
-    image: femboyfans
+    image: gayfurcity
     healthcheck:
       # this healthcheck is only for the rails app, sidekiq needs to be separated to be healthchecked
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:9000/up || exit 1
@@ -63,8 +63,8 @@ services:
     environment:
       <<: *common-env
       RAILS_ENV: development
-      FEMBOYFANS_DB_USER: femboyfans
-      FEMBOYFANS_DB_NAME: femboyfans_development
+      GAYFURCITY_DB_USER: gayfurcity
+      GAYFURCITY_DB_NAME: gayfurcity_development
     ports:
       - "${EXPOSED_WEBPACKER_PORT:-4003}:${EXPOSED_WEBPACKER_PORT:-4003}"
     depends_on:
@@ -84,7 +84,7 @@ services:
 
   # For this service to work properly, it must be accessible from /tags/autocomplete.json on the same url as the primary app
   autocompleted:
-    image: ghcr.io/femboyfans/autocompleted:e0d4fcb099ae2d47888ab95d372cba46e02f717f
+    image: ghcr.io/gayfurcity/autocompleted:2e01ef9d9aa36c897c46ddc63d4c407bb7e57cf2
     command: /app/autocompleted
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://$$SERVER_ADDR/up || exit 1
@@ -93,10 +93,10 @@ services:
       retries: 5
     environment:
       SERVER_ADDR: autocompleted:8118
-      PG__USER: femboyfans
+      PG__USER: gayfurcity
       PG__HOST: postgres
       PG__PORT: 5432
-      PG__DBNAME: femboyfans_development
+      PG__DBNAME: gayfurcity_development
       PG__POOL__MAX_SIZE: 1
 
   nginx:
@@ -114,13 +114,13 @@ services:
       <<: *common-env
       NGINX_PORT: ${NGINX_EXPOSED_PORT:-4000}
       # port must be present here in dev, all requests that require CSRF tokens will break
-      NGINX_PROXY_HOST: ${NGINX_PROXY_HOST:-${FEMBOYFANS_DOMAIN:-localhost:${EXPOSED_PROXY_PORT:-4000}}}
+      NGINX_PROXY_HOST: ${NGINX_PROXY_HOST:-${GAYFURCITY_DOMAIN:-localhost:${EXPOSED_PROXY_PORT:-4000}}}
       NGINX_PROXY_PORT: ${NGINX_PROXY_PORT:-4000}
       NGINX_PROXY_SCHEME: ${NGINX_PROXY_SCHEME:-http}
     depends_on:
       autocompleted:
         condition: service_healthy
-      femboyfans:
+      gayfurcity:
         condition: service_healthy
       reports:
         condition: service_healthy
@@ -130,13 +130,13 @@ services:
   postgres:
     image: postgres:17.5-alpine3.20
     environment:
-      - POSTGRES_USER=femboyfans
-      - POSTGRES_DB=femboyfans_development
+      - POSTGRES_USER=gayfurcity
+      - POSTGRES_DB=gayfurcity_development
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: pg_isready -U femboyfans -d postgres
+      test: pg_isready -U gayfurcity -d postgres
       interval: 20s
       timeout: 2s
       retries: 10
@@ -217,7 +217,7 @@ services:
       - iqdb_data:/iqdb
 
   recommender:
-    image: ghcr.io/femboyfans/recommender:077270aa9703a45de32b840422e5110915fea3f3
+    image: ghcr.io/gayfurcity/recommender:355686b8b73fa3902dcfff8426eb6091a2896356
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:5000/metrics || exit 1
       interval: 30s
@@ -226,15 +226,15 @@ services:
     volumes:
       - recommender_data:/recommender/data
     environment:
-      - DATABASE_URL=postgres://femboyfans:@postgres/femboyfans_development
+      - DATABASE_URL=postgres://gayfurcity:@postgres/gayfurcity_development
       - OPENBLAS_NUM_THREADS=1
       - TRAINING_THREADS=4
 
   # By default, this is bound to /reports on the same url as the primary app for external access
-  # To change this, set the FEMBOYFANS_REPORTS_SERVER env variable
-  # For internal access, change the FEMBOYFANS_REPORTS_SERVER_INTERNAL env varable (defaults to http://reports:3000)
+  # To change this, set the GAYFURCITY_REPORTS_SERVER env variable
+  # For internal access, change the GAYFURCITY_REPORTS_SERVER_INTERNAL env varable (defaults to http://reports:3000)
   reports:
-    image: ghcr.io/femboyfans/reports:33a8e54171fdff53bfeaeecc53b4788a721a808e
+    image: ghcr.io/gayfurcity/reports:ec47a4c460e2f778c744ace95f37bf15902d38a2
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/up || exit 1
       interval: 30s
@@ -243,7 +243,7 @@ services:
     environment:
       - CLICKHOUSE_URL=http://clickhouse:8123
       - REDIS_URL=redis://redis/1
-      - SECRET_KEY=${FEMBOYFANS_REPORT_KEY:-super_secret_key_for_reports_signature}
+      - SECRET_KEY=${GAYFURCITY_REPORT_KEY:-super_secret_key_for_reports_signature}
     ports:
       - "${EXPOSED_REPORTS_PORT:-4001}:3000"
     depends_on:
@@ -255,7 +255,7 @@ services:
   # Discord integration
 
   discordbot:
-    image: ghcr.io/femboyfans/discordbot:8b12e4861d6da64e70ec482b41001fddca8a1a18
+    image: ghcr.io/gayfurcity/discordbot:6ea993036367c5ff55b865018300032c37d16e4d
     environment:
       DISCORD_TOKEN: ${DISCORDBOT_DISCORD_TOKEN-}
       DISCORD_ID: ${DISCORDBOT_DISCORD_ID-}
@@ -266,7 +266,7 @@ services:
       ADMIN_ROLE: ${DISCORDBOT_ADMIN_ROLE-}
       JOINER_PORT: ${JOINER_PORT:-4002}
       JOINER_URL: ${DISCORDBOT_JOINER_URL:-http://localhost:${EXPOSED_JOINER_PORT:-4002}}
-      JOINER_SECRET: ${FEMBOYFANS_DISCORD_SECRET:-super_secret_for_url_discord}
+      JOINER_SECRET: ${GAYFURCITY_DISCORD_SECRET:-super_secret_for_url_discord}
       JOINER_CHANNEL_ID: ${DISCORDBOT_JOINER_CHANNEL_ID-}
       AUDIT_LOG_CHANNEL_ID: ${DISCORDBOT_AUDIT_LOG_CHANNEL_ID-}
       EVENT_CHANNEL_ID: ${DISCORDBOT_EVENT_CHANNEL_ID-}
@@ -289,7 +289,7 @@ services:
   # Useful for development
 
   tests:
-    image: femboyfans
+    image: gayfurcity
     environment:
       <<: *common-env
       RAILS_ENV: test
@@ -311,7 +311,7 @@ services:
       - tests
 
   rubocop:
-    image: femboyfans
+    image: gayfurcity
     volumes:
       - .:/app
       - rubocop_cache:/rubocop_cache
@@ -320,7 +320,7 @@ services:
       - rubocop
 
   linter:
-    image: femboyfans
+    image: gayfurcity
     volumes:
       - .:/app
       - node_modules:/app/node_modules
@@ -345,4 +345,4 @@ networks:
     ipam:
       driver: default
     driver_opts:
-      com.docker.network.bridge.name: br-femboyfans
+      com.docker.network.bridge.name: br-gayfurcity

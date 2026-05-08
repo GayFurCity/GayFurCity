@@ -23,7 +23,7 @@ class SessionLoader
     @session = request.session
     @cookies = request.cookie_jar
     @params = request.parameters
-    @remember_validator = ActiveSupport::MessageVerifier.new(FemboyFans.config.remember_key, serializer: JSON, digest: "SHA256")
+    @remember_validator = ActiveSupport::MessageVerifier.new(GayFurCity.config.remember_key, serializer: JSON, digest: "SHA256")
   end
 
   def load
@@ -47,7 +47,7 @@ class SessionLoader
     set_time_zone
     set_safe_mode
     refresh_old_remember_token
-    FemboyFans::Logger.initialize(CurrentUser.user)
+    GayFurCity::Logger.initialize(CurrentUser.user)
   end
 
   def has_api_authentication?

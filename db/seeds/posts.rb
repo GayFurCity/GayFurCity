@@ -145,7 +145,7 @@ module Seeds
       return post["file"]["url"] unless post["file"]["url"].nil?
       Seeds.log("post #{post['id']} returned a nil url, attempting to reconstruct url.")
       return "https://static1.e621.net/data/#{post['file']['md5'][0..1]}/#{post['file']['md5'][2..3]}/#{post['file']['md5']}.#{post['file']['ext']}" if e621?
-      "https://static.femboy.fan/posts/#{post['file']['md5'][0..1]}/#{post['file']['md5'][2..3]}/#{post['file']['md5']}.#{post['file']['ext']}"
+      "https://static.gayfur.city/posts/#{post['file']['md5'][0..1]}/#{post['file']['md5'][2..3]}/#{post['file']['md5']}.#{post['file']['ext']}"
     end
 
     def randseed

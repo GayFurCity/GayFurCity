@@ -66,8 +66,8 @@ module Admin
 
         context("on a user with duplicate email") do
           setup do
-            @user1 = create(:user, email: "test@femboy.fan")
-            @user2 = create(:user, email: "test@femboy.fan")
+            @user1 = create(:user, email: "test@gayfur.city")
+            @user2 = create(:user, email: "test@gayfur.city")
             Config.any_instance.stubs(:enable_email_verification).returns(true)
           end
 
@@ -78,9 +78,9 @@ module Admin
           end
 
           should("allow changing the email") do
-            put_auth(admin_user_path(@user1), @admin, params: { user: { email: "abc@femboy.fan" } })
+            put_auth(admin_user_path(@user1), @admin, params: { user: { email: "abc@gayfur.city" } })
             @user1.reload
-            assert_equal("abc@femboy.fan", @user1.email)
+            assert_equal("abc@gayfur.city", @user1.email)
           end
         end
 

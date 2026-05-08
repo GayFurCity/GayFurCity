@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module FemboyFans
+module GayFurCity
   module Paginator
     module BaseExtension
       attr_reader(:current_page, :pagination_mode)
@@ -41,7 +41,7 @@ module FemboyFans
           [1, :numbered]
         elsif page =~ /\A\d+\z/
           if page.to_i > max_numbered_pages
-            raise(FemboyFans::Paginator::PaginationError, "You cannot go beyond page #{max_numbered_pages}. Please narrow your search terms.")
+            raise(GayFurCity::Paginator::PaginationError, "You cannot go beyond page #{max_numbered_pages}. Please narrow your search terms.")
           end
           [[page.to_i, 1].max, :numbered]
         elsif page =~ /b(\d+)/
@@ -49,7 +49,7 @@ module FemboyFans
         elsif page =~ /a(\d+)/
           [$1.to_i, :sequential_after]
         else
-          raise(FemboyFans::Paginator::PaginationError, "Invalid page number.")
+          raise(GayFurCity::Paginator::PaginationError, "Invalid page number.")
         end
       end
 

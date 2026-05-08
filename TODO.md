@@ -1,13 +1,13 @@
 ### XXXs
-| Filename | line # | XXX |
-|:------|:------:|:------|
-| [app/concerns/api_methods.rb](app/concerns/api_methods.rb#L27) | 27 | deprecated, shouldn't expose this as an instance method. |
-| [app/concerns/api_methods.rb](app/concerns/api_methods.rb#L33) | 33 | deprecated, shouldn't expose this as an instance method. |
-| [app/concerns/concurrency_methods.rb](app/concerns/concurrency_methods.rb#L8) | 8 | We may deadlock if a transaction is open; do a non-parallel each. |
-| [app/models/pool.rb](app/models/pool.rb#L308) | 308 | finds wrong post when the pool contains multiple copies of the same post (#2042). |
-| [app/models/post.rb](app/models/post.rb#L1621) | 1621 | This must happen *after* the `is_deleted` flag is set to true (issue #3419). |
-| [app/logical/femboy_fans/paginator/active_record_extension.rb](app/logical/femboy_fans/paginator/active_record_extension.rb#L48) | 48 | Hack: in sequential pagination we fetch one more record than we need |
-| [test/test_helper.rb](test/test_helper.rb#L276) | 276 | Testing modules should not have a say in if we can or cannot use assert_equal with nil |
+| Filename                                                                                                                          | line # | XXX |
+|:----------------------------------------------------------------------------------------------------------------------------------|:------:|:------|
+| [app/concerns/api_methods.rb](app/concerns/api_methods.rb#L27)                                                                    | 27 | deprecated, shouldn't expose this as an instance method. |
+| [app/concerns/api_methods.rb](app/concerns/api_methods.rb#L33)                                                                    | 33 | deprecated, shouldn't expose this as an instance method. |
+| [app/concerns/concurrency_methods.rb](app/concerns/concurrency_methods.rb#L8)                                                     | 8 | We may deadlock if a transaction is open; do a non-parallel each. |
+| [app/models/pool.rb](app/models/pool.rb#L308)                                                                                     | 308 | finds wrong post when the pool contains multiple copies of the same post (#2042). |
+| [app/models/post.rb](app/models/post.rb#L1621)                                                                                    | 1621 | This must happen *after* the `is_deleted` flag is set to true (issue #3419). |
+| [app/logical/gay_fur_city/paginator/active_record_extension.rb](app/logical/gay_fur_city/paginator/active_record_extension.rb#L48) | 48 | Hack: in sequential pagination we fetch one more record than we need |
+| [test/test_helper.rb](test/test_helper.rb#L276)                                                                                   | 276 | Testing modules should not have a say in if we can or cannot use assert_equal with nil |
 
 ### FIXMEs
 | Filename | line # | FIXME |

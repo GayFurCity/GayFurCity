@@ -33,7 +33,7 @@ Shoulda::Matchers.configure do |config|
 end
 
 WebMock.disable_net_connect!(allow: [
-  FemboyFans.config.elasticsearch_host,
+  GayFurCity.config.elasticsearch_host,
 ])
 
 FactoryBot::SyntaxRunner.class_eval do
@@ -59,7 +59,7 @@ module CommonTestHelpers
   end
 
   def stub_env_config(name, value)
-    FemboyFans::Config.any_instance.stubs(name).returns(value)
+    GayFurCity::Config.any_instance.stubs(name).returns(value)
   end
 end
 
@@ -73,12 +73,12 @@ class ActiveSupport::TestCase # rubocop:disable Style/ClassAndModuleChildren
     host = "example.com"
     Socket.stubs(:gethostname).returns(host)
     Config.any_instance.stubs(:enable_sock_puppet_validation).returns(false)
-    FemboyFans.config.stubs(:disable_throttles).returns(true)
-    FemboyFans.config.stubs(:reports_enabled).returns(false)
-    FemboyFans.config.stubs(:cdn_domain).returns(host)
-    FemboyFans.config.stubs(:domain).returns(host)
-    FemboyFans.config.stubs(:hostname).returns("https://#{host}")
-    FemboyFans.config.stubs(:cdn_hostname).returns("https://#{host}")
+    GayFurCity.config.stubs(:disable_throttles).returns(true)
+    GayFurCity.config.stubs(:reports_enabled).returns(false)
+    GayFurCity.config.stubs(:cdn_domain).returns(host)
+    GayFurCity.config.stubs(:domain).returns(host)
+    GayFurCity.config.stubs(:hostname).returns("https://#{host}")
+    GayFurCity.config.stubs(:cdn_hostname).returns("https://#{host}")
     Rails.application.routes.default_url_options = {
       host: host,
     }
@@ -88,8 +88,8 @@ class ActiveSupport::TestCase # rubocop:disable Style/ClassAndModuleChildren
       FileUtils.mkdir_p(File.join(storage_root, dir))
     end
     storage_manager = StorageManager::Local.new(base_dir: storage_root)
-    FemboyFans.config.stubs(:storage_manager_instance).returns(storage_manager)
-    FemboyFans.config.stubs(:backup_storage_manager_instance).returns(StorageManager::Null.new)
+    GayFurCity.config.stubs(:storage_manager_instance).returns(storage_manager)
+    GayFurCity.config.stubs(:backup_storage_manager_instance).returns(StorageManager::Null.new)
     Config.any_instance.stubs(:flag_ai_posts).returns(false)
     Config.any_instance.stubs(:tag_ai_posts).returns(false)
     Config.any_instance.stubs(:enable_email_verification).returns(false)

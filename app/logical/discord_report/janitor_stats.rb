@@ -3,7 +3,7 @@
 module DiscordReport
   class JanitorStats < Base
     def webhook_url
-      FemboyFans.config.discord.janitor_stats_webhook_url
+      GayFurCity.config.discord.janitor_stats_webhook_url
     end
 
     def report

@@ -58,7 +58,7 @@ class ConfigBuilder
   end
 
   def env(name)
-    ENV.fetch("FEMBOYFANS_#{name.to_s.upcase}", nil)
+    ENV.fetch("GAYFURCITY_#{name.to_s.upcase}", nil)
   end
 
   def self.reviver(name, type = nil, &block)

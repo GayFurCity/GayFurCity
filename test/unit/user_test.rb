@@ -6,7 +6,7 @@ class UserTest < ActiveSupport::TestCase
   context("A user") do
     setup do
       # stubbed to true in test_helper.rb
-      FemboyFans.config.stubs(:disable_throttles).returns(false)
+      GayFurCity.config.stubs(:disable_throttles).returns(false)
       @user = create(:user)
       @admin = create(:admin_user)
     end

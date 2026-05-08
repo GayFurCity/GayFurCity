@@ -18,7 +18,7 @@ module WikiPages
 
     def diff
       if params[:thispage].blank? || params[:otherpage].blank?
-        redirect_back(fallback_location: wiki_pages_path, notice: "You must select two versions to diff")
+        redirect_back_or_to(wiki_pages_path, notice: "You must select two versions to diff")
         return
       end
 

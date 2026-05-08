@@ -12,6 +12,7 @@ class NewsUpdatesControllerTest < ActionDispatch::IntegrationTest
     context("index action") do
       should("render") do
         get_auth(news_updates_path, @admin)
+
         assert_response(:success)
       end
 
@@ -23,6 +24,7 @@ class NewsUpdatesControllerTest < ActionDispatch::IntegrationTest
     context("new action") do
       should("render") do
         get_auth(new_news_update_path, @admin)
+
         assert_response(:success)
       end
 
@@ -34,6 +36,7 @@ class NewsUpdatesControllerTest < ActionDispatch::IntegrationTest
     context("edit action") do
       should("render") do
         get_auth(edit_news_update_path(@news_update), @admin)
+
         assert_response(:success)
       end
 
@@ -45,6 +48,7 @@ class NewsUpdatesControllerTest < ActionDispatch::IntegrationTest
     context("update action") do
       should("work") do
         put_auth(news_update_path(@news_update), @admin, params: { news_update: { message: "zzz" } })
+
         assert_redirected_to(news_updates_path)
       end
 

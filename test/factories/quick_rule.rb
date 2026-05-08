@@ -2,8 +2,8 @@
 
 FactoryBot.define do
   factory(:quick_rule) do
-    association(:creator, factory: :user)
-    association(:rule)
+    creator(factory: %i[user])
+    rule
     sequence(:reason) { |n| "quick_rule_#{n}" }
   end
 end

@@ -21,12 +21,13 @@ class ForumTopicTest < ActiveSupport::TestCase
           end
 
           should("return false") do
-            assert_equal(false, @topic.read_by?(@user))
+            assert_not(@topic.read_by?(@user))
           end
 
           should("return true if muted") do
             create(:forum_topic_status, user: @user, forum_topic: @topic, mute: true)
-            assert_equal(true, @topic.read_by?(@user))
+
+            assert(@topic.read_by?(@user))
           end
         end
 
@@ -41,12 +42,13 @@ class ForumTopicTest < ActiveSupport::TestCase
             end
 
             should("return false") do
-              assert_equal(false, @topic.read_by?(@user))
+              assert_not(@topic.read_by?(@user))
             end
 
             should("return true if muted") do
               create(:forum_topic_status, user: @user, forum_topic: @topic, mute: true)
-              assert_equal(true, @topic.read_by?(@user))
+
+              assert(@topic.read_by?(@user))
             end
           end
 
@@ -56,7 +58,7 @@ class ForumTopicTest < ActiveSupport::TestCase
             end
 
             should("return true") do
-              assert_equal(true, @topic.read_by?(@user))
+              assert(@topic.read_by?(@user))
             end
           end
         end
@@ -65,12 +67,13 @@ class ForumTopicTest < ActiveSupport::TestCase
       context("with no existing visit") do
         context("and last_post_created_at in the future") do
           should("return false") do
-            assert_equal(false, @topic.read_by?(@user))
+            assert_not(@topic.read_by?(@user))
           end
 
           should("return true if muted") do
             create(:forum_topic_status, user: @user, forum_topic: @topic, mute: true)
-            assert_equal(true, @topic.read_by?(@user))
+
+            assert(@topic.read_by?(@user))
           end
         end
 
@@ -81,12 +84,13 @@ class ForumTopicTest < ActiveSupport::TestCase
             end
 
             should("return false") do
-              assert_equal(false, @topic.read_by?(@user))
+              assert_not(@topic.read_by?(@user))
             end
 
             should("return true if muted") do
               create(:forum_topic_status, user: @user, forum_topic: @topic, mute: true)
-              assert_equal(true, @topic.read_by?(@user))
+
+              assert(@topic.read_by?(@user))
             end
           end
 
@@ -96,7 +100,7 @@ class ForumTopicTest < ActiveSupport::TestCase
             end
 
             should("return true") do
-              assert_equal(true, @topic.read_by?(@user))
+              assert(@topic.read_by?(@user))
             end
           end
         end
@@ -108,6 +112,7 @@ class ForumTopicTest < ActiveSupport::TestCase
         should("create a new visit") do
           @topic.mark_as_read!(@user)
           visit = @user.forum_category_visits.find_by(forum_category: @topic.category)
+
           assert(visit)
           assert_in_delta(@topic.updated_at.to_i, visit.last_read_at.to_i, 1)
         end
@@ -121,6 +126,7 @@ class ForumTopicTest < ActiveSupport::TestCase
         should("update the visit") do
           @topic.mark_as_read!(@user)
           visit = @user.forum_category_visits.find_by(forum_category: @topic.category)
+
           assert(visit)
           assert_in_delta(@topic.updated_at.to_i, visit.last_read_at.to_i, 1)
         end
@@ -141,8 +147,8 @@ class ForumTopicTest < ActiveSupport::TestCase
     end
 
     should("be searchable by category id") do
-      assert_equal(0, ForumTopic.search_current(category_id: 0).count)
-      assert_equal(1, ForumTopic.search_current(category_id: Config.instance.alias_and_implication_forum_category).count)
+      assert_equal(0, ForumTopic.search_current({ category_id: 0 }).count)
+      assert_equal(1, ForumTopic.search_current({ category_id: Config.instance.alias_and_implication_forum_category }).count)
     end
 
     should("initialize its creator") do
@@ -156,6 +162,7 @@ class ForumTopicTest < ActiveSupport::TestCase
 
       should("record its updater") do
         @topic.update_with(@second_user, title: "abc")
+
         assert_equal(@second_user.id, @topic.updater_id)
       end
     end
@@ -183,12 +190,12 @@ class ForumTopicTest < ActiveSupport::TestCase
         @topic.hide!(@user)
 
         assert_equal(["Topic is for an alias, implication, or bulk update request. It cannot be hidden"], @topic.errors.full_messages)
-        assert_equal(@topic.reload.is_hidden, false)
+        assert_not(@topic.reload.is_hidden)
 
         @topic.hide!(@mod)
 
         assert_equal([], @topic.errors.full_messages)
-        assert_equal(@topic.reload.is_hidden, true)
+        assert(@topic.reload.is_hidden)
       end
     end
 

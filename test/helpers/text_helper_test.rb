@@ -19,6 +19,7 @@ class TextHelperTest < ActionView::TestCase
 
     HTML
     actual = text_diff("abc", "def")
+
     assert_equal(expected, actual)
   end
 
@@ -33,6 +34,7 @@ class TextHelperTest < ActionView::TestCase
 
     HTML
     actual = text_diff("<s></s>", "<b></b>")
+
     assert_equal(expected, actual)
   end
 end

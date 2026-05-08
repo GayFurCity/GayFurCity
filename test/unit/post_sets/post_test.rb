@@ -63,12 +63,15 @@ module PostSets
       context("#limit method") do
         should("take the limit from the params first, then the limit:<n> metatag") do
           set = PostSets::Post.new("a limit:23 b", 1, limit: "42", current_user: @user)
+
           assert_equal("42", set.limit)
 
           set = PostSets::Post.new("a limit:23 b", 1, current_user: @user)
+
           assert_equal("23", set.limit)
 
           set = PostSets::Post.new("a", 1, current_user: @user)
+
           assert_nil(set.limit)
         end
       end

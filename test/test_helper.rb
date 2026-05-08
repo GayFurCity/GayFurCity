@@ -39,6 +39,7 @@ WebMock.disable_net_connect!(allow: [
 FactoryBot::SyntaxRunner.class_eval do
   include(ActiveSupport::Testing::FileFixtures)
   include(ActionDispatch::TestProcess::FixtureFile)
+
   self.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
 end
 
@@ -185,6 +186,7 @@ class ActionDispatch::IntegrationTest # rubocop:disable Style/ClassAndModuleChil
       user = createuser.call(level)
       ApplicationRecord.transaction do
         yield(user)
+
         assert_response(success_response, "Success: #{User::Levels.id_to_name(level)} (expected: #{success_response}, actual: #{@response.status})")
         raise(ActiveRecord::Rollback)
       end
@@ -194,6 +196,7 @@ class ActionDispatch::IntegrationTest # rubocop:disable Style/ClassAndModuleChil
       user = createuser.call(level)
       ApplicationRecord.transaction do
         yield(user)
+
         assert_response(fail_response, "Fail: #{User::Levels.id_to_name(level)} (expected: #{fail_response}, actual: #{@response.status})")
         raise(ActiveRecord::Rollback)
       end
@@ -220,6 +223,7 @@ class ActionDispatch::IntegrationTest # rubocop:disable Style/ClassAndModuleChil
         admin = create(:admin_user)
         create(:ban, user: user, reason: "test", creator: admin)
         yield(user)
+
         assert_response(:forbidden, "Fail: #{User::Levels.id_to_name(level)} (expected: forbidden, actual: #{@response.status})")
         raise(ActiveRecord::Rollback)
       end
@@ -240,10 +244,11 @@ class ActionDispatch::IntegrationTest # rubocop:disable Style/ClassAndModuleChil
       user_getter ||= -> { create(:user) }
       user = instance_exec(&user_getter)
       get_auth(subject, user, params: { search: { param => value }, format: :json })
-      expected = records.map { |r| CurrentUser.scoped(user) { r.as_json(user: user, include: include) } } # rubocop:disable Local/CurrentUserOutsideOfRequests
+      expected = records.map { |r| CurrentUser.scoped(user) { r.as_json(user: user, include: include) } } # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
       expected = expected.map { |r| r.without(*ignore) } if ignore&.any?
       actual = @response.parsed_body.map { |r| r.try(:without, *ignore) }
       actual = actual.map { |r| r.without(*ignore) } if ignore&.any?
+
       assert_equal(expected, actual)
     end
   end
@@ -279,7 +284,7 @@ end
 module Minitest
   module Assertions
     def assert_equal(exp, act, msg = nil)
-      assert(exp == act, message(msg, E) { diff(exp, act) })
+      assert(exp == act, message(msg, E) { diff(exp, act) }) # rubocop:disable Minitest/AssertOperator, Minitest/AssertEqual, Minitest/AssertWithExpectedArgument
     end
   end
 end

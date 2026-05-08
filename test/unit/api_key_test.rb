@@ -44,11 +44,11 @@ class ApiKeyTest < ActiveSupport::TestCase
     end
 
     should("not authenticate with the wrong api key") do
-      assert_equal(false, @user.authenticate_api_key("xxx"))
+      assert_not(@user.authenticate_api_key("xxx"))
     end
 
     should("not authenticate with the wrong name") do
-      assert_equal(false, create(:user).authenticate_api_key(@api_key.key))
+      assert_not(create(:user).authenticate_api_key(@api_key.key))
     end
   end
 end

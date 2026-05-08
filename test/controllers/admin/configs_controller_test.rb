@@ -12,6 +12,7 @@ module Admin
       context("show action") do
         should("render") do
           get_auth(admin_config_path, @owner)
+
           assert_response(:success)
         end
 
@@ -23,6 +24,7 @@ module Admin
       context("update action") do
         should("render") do
           put_auth(admin_config_path, @owner, params: { config: { comment_limit: 1 }, format: :json })
+
           assert_response(:success)
         end
 

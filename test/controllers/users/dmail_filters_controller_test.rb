@@ -17,6 +17,7 @@ module Users
 
         should("work") do
           put_auth(users_dmail_filter_path, @user1, params: { dmail_filter: { words: "owned" } })
+
           assert_equal("owned", @user1.reload.dmail_filter.try(&:words))
         end
 
@@ -30,6 +31,7 @@ module Users
           }
 
           put_auth(users_dmail_filter_path, @user1, params: params)
+
           assert_not_equal("owned", @user2.reload.dmail_filter.try(&:words))
         end
 

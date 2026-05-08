@@ -16,7 +16,7 @@ module Sources
         end
 
         should("be bad if only a profile link is provided") do
-          assert(@post1.bad_source?)
+          assert_predicate(@post1, :bad_source?)
         end
 
         should("not be bad if only a tweet link is provided") do
@@ -28,15 +28,15 @@ module Sources
         end
 
         should("be bad if a direct link is provided") do
-          assert(@post4.bad_source?)
+          assert_predicate(@post4, :bad_source?)
         end
 
         should("be bad if a only a user intent link is provided (user_id)") do
-          assert(@post5.bad_source?)
+          assert_predicate(@post5, :bad_source?)
         end
 
         should("be bad if a only a user intent link is provided (screen_name)") do
-          assert(@post6.bad_source?)
+          assert_predicate(@post6, :bad_source?)
         end
       end
     end

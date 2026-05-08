@@ -28,6 +28,7 @@ module Posts
 
           assert_difference("@post.reload.replacements.size", 1) do
             post_auth(post_replacements_path, @user, params: params)
+
             assert_response(:success)
             assert_equal(@response.parsed_body["location"], post_path(@post))
           end
@@ -50,6 +51,7 @@ module Posts
 
           assert_difference("@post.reload.replacements.size", 1) do
             post_auth(post_replacements_path, @user, params: params)
+
             assert_response(:success)
             assert_equal(@response.parsed_body["location"], post_path(@post))
           end
@@ -70,12 +72,13 @@ module Posts
 
           assert_difference("@post.reload.replacements.size", 2) do
             post_auth(post_replacements_path, @user, params: params)
+
             assert_response(:success)
             assert_equal(post_path(@post), @response.parsed_body["location"])
           end
 
           assert_equal(%w[approved original], @post.replacements.last(2).pluck(:status))
-          assert_equal(false, @user.notifications.replacement_approve.exists?)
+          assert_not(@user.notifications.replacement_approve.exists?)
         end
 
         should("not automatically approve replacements by approvers if as_pending=true") do
@@ -93,6 +96,7 @@ module Posts
 
           assert_difference("@post.replacements.size") do
             post_auth(post_replacements_path, @user, params: params)
+
             assert_response(:success)
             @post.reload
           end
@@ -117,6 +121,7 @@ module Posts
               assert_enqueued_jobs(1, only: NotifyExpungedMediaAssetReuploadJob) do
                 file = fixture_file_upload("test.png")
                 post_auth(post_replacements_path, @user, params: { post_id: @post.id, post_replacement: { file: file, reason: "test replacement" }, format: :json })
+
                 assert_response(:precondition_failed)
                 assert_equal("That image has been deleted and cannot be reuploaded", @response.parsed_body["message"])
                 assert_equal("expunged", PostReplacementMediaAsset.last.status)
@@ -151,21 +156,25 @@ module Posts
         should("reject replacement") do
           janitor = create(:janitor_user)
           put_auth(reject_post_replacement_path(@replacement), janitor)
+
           assert_redirected_to(post_path(@post))
 
           @replacement.reload
           @post.reload
+
           assert_equal("rejected", @replacement.status)
           assert_equal(janitor.id, @replacement.rejector_id)
           assert_not_equal(@replacement.md5, @post.md5)
-          assert_equal(true, @replacement.creator.notifications.replacement_reject.exists?)
+          assert_predicate(@replacement.creator.notifications.replacement_reject, :exists?)
         end
 
         should("reject replacement with a reason") do
           put_auth(reject_post_replacement_path(@replacement), @user, params: { post_replacement: { reason: "test" } })
+
           assert_redirected_to(post_path(@post))
           @replacement.reload
           @post.reload
+
           assert_equal("rejected", @replacement.status)
           assert_equal(@user.id, @replacement.rejector_id)
           assert_equal("test", @replacement.rejection_reason)
@@ -184,6 +193,7 @@ module Posts
       context("reject_with_reason action") do
         should("render") do
           get_auth(reject_with_reason_post_replacement_path(@replacement), @user)
+
           assert_response(:success)
         end
 
@@ -207,12 +217,14 @@ module Posts
       context("approve action") do
         should("replace post") do
           put_auth(approve_post_replacement_path(@replacement), create(:janitor_user))
+
           assert_redirected_to(post_path(@post))
           @replacement.reload
           @post.reload
+
           assert_equal(@replacement.md5, @post.md5)
-          assert_equal(@replacement.status, "approved")
-          assert_equal(true, @replacement.creator.notifications.replacement_approve.exists?)
+          assert_equal("approved", @replacement.status)
+          assert_predicate(@replacement.creator.notifications.replacement_approve, :exists?)
         end
 
         should("restrict access") do
@@ -230,12 +242,14 @@ module Posts
         should("create post") do
           post_auth(promote_post_replacement_path(@replacement), create(:janitor_user))
           last_post = Post.last
+
           assert_redirected_to(post_path(last_post))
           @replacement.reload
           @post.reload
+
           assert_equal(last_post.md5, @replacement.md5)
           assert_equal("promoted", @replacement.status)
-          assert_equal(true, @replacement.creator.notifications.replacement_promote.exists?)
+          assert_predicate(@replacement.creator.notifications.replacement_promote, :exists?)
         end
 
         should("restrict access") do
@@ -253,10 +267,13 @@ module Posts
         should("change penalize_uploader flag") do
           put_auth(approve_post_replacement_path(@replacement, penalize_current_uploader: true), @user)
           @replacement.reload
+
           assert(@replacement.penalize_uploader_on_approve)
           put_auth(toggle_penalize_post_replacement_path(@replacement), @user)
+
           assert_redirected_to(post_replacement_path(@replacement))
           @replacement.reload
+
           assert_not(@replacement.penalize_uploader_on_approve)
         end
 
@@ -269,6 +286,7 @@ module Posts
       context("index action") do
         should("render") do
           get(post_replacements_path)
+
           assert_response(:success)
         end
 
@@ -280,6 +298,7 @@ module Posts
       context("new action") do
         should("render") do
           get_auth(new_post_replacement_path, @user, params: { post_id: @post.id })
+
           assert_response(:success)
         end
 
@@ -320,8 +339,9 @@ module Posts
       context("destroy action") do
         should("work") do
           delete_auth(post_replacement_path(@replacement), @admin)
+
           assert_redirected_to(post_path(@post))
-          assert_equal(false, ::PostReplacement.exists?(@replacement.id))
+          assert_not(::PostReplacement.exists?(@replacement.id))
           assert_equal("expunged", @replacement.media_asset.reload.status)
         end
 

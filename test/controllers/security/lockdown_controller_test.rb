@@ -20,6 +20,7 @@ module Security
       context("index action") do
         should("render") do
           get_auth(security_root_path, @admin)
+
           assert_response(:success)
         end
       end
@@ -27,8 +28,9 @@ module Security
       context("panic action") do
         should("work") do
           put_auth(panic_security_lockdown_index_path, @admin)
+
           Security::Lockdown::BOOLEAN_TYPES.each do |type|
-            assert_equal(Security::Lockdown.public_send("#{type}_disabled?"), true, type)
+            assert(Security::Lockdown.public_send("#{type}_disabled?"), type) # rubocop:disable Minitest/AssertWithExpectedArgument -- type is being used as the message
           end
         end
       end
@@ -36,8 +38,9 @@ module Security
       context("enact action") do
         should("work") do
           put_auth(enact_security_lockdown_index_path, @admin, params: { lockdown: Security::Lockdown::BOOLEAN_TYPES.index_with { |_type| true } })
+
           Security::Lockdown::BOOLEAN_TYPES.each do |type|
-            assert_equal(Security::Lockdown.public_send("#{type}_disabled?"), true, type)
+            assert(Security::Lockdown.public_send("#{type}_disabled?"), type) # rubocop:disable Minitest/AssertWithExpectedArgument -- type is being used as the message
           end
         end
       end
@@ -45,6 +48,7 @@ module Security
       context("uploading limits action") do
         should("work") do
           put_auth(uploads_min_level_security_lockdown_index_path, @admin, params: { uploads_min_level: { min_level: User::Levels::TRUSTED } })
+
           assert_equal(Security::Lockdown.uploads_min_level, User::Levels::TRUSTED)
         end
       end
@@ -52,7 +56,8 @@ module Security
       context("hide pending posts action") do
         should("work") do
           put_auth(uploads_hide_pending_security_lockdown_index_path, @admin, params: { uploads_hide_pending: { duration: 24 } })
-          assert_equal(Security::Lockdown.hide_pending_posts_for, 24)
+
+          assert_equal(24, Security::Lockdown.hide_pending_posts_for)
         end
       end
     end

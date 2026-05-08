@@ -2,6 +2,7 @@
 
 module Revertible
   extend(ActiveSupport::Concern)
+
   class RevertError < StandardError; end
 
   module ClassMethods

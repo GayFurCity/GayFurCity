@@ -9,10 +9,10 @@ module CurrentMethods
     end
 
     def with_current(instance, method, *args, **, &)
-      attr = args.select { |arg| arg.is_a?(Symbol) }
+      attr = args.grep(Symbol)
       other = args - attr
-      hashes = other.select { |o| o.is_a?(Hash) }
-      params = other.select { |o| o.is_a?(ActionController::Parameters) }
+      hashes = other.grep(Hash)
+      params = other.grep(ActionController::Parameters)
       other -= hashes + params
       other.compact_blank!
       options = [attr.index_with(CurrentUser.user), *hashes, *params.map(&:to_hash)].inject(:merge)

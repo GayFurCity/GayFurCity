@@ -7,7 +7,7 @@ module PostSets
     def initialize(parent_id, current_user:, **options)
       @want_parent = options[:want_parent]
       @parent = ::Post.where("id = ?", parent_id)
-      @children = ::Post.where("parent_id = ?", parent_id).order("id ASC")
+      @children = ::Post.where("parent_id = ?", parent_id).order(:id)
       if options[:include_deleted]
         super("parent:#{parent_id} status:any", current_user: current_user)
       else

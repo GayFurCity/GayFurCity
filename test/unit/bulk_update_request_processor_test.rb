@@ -87,6 +87,7 @@ class BulkUpdateRequestProcessorTest < ActiveSupport::TestCase
 
       should("process correctly") do
         @processor.process!(@user)
+
         assert(TagAlias.active.exists?(antecedent_name: "aaa", consequent_name: "bbb"))
         assert(TagImplication.active.exists?(antecedent_name: "bbb", consequent_name: "ccc"))
       end

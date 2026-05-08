@@ -7,6 +7,7 @@ class DtextPreviewsControllerTest < ActionDispatch::IntegrationTest
     context("create action") do
       should("render") do
         post(dtext_preview_path, params: { body: "h1. Touhou\n\n* [[touhou]]" })
+
         assert_response(:success)
       end
     end

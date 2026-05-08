@@ -12,6 +12,7 @@ module Users
       context("show action") do
         should("render") do
           get_auth(users_deletion_path, @user)
+
           assert_response(:success)
         end
 
@@ -23,8 +24,9 @@ module Users
       context("destroy action") do
         should("work") do
           delete_auth(users_deletion_path, @user, params: { password: "password" })
+
           assert_redirected_to(posts_path)
-          assert_equal(true, @user.user_events.user_deletion.exists?)
+          assert_predicate(@user.user_events.user_deletion, :exists?)
         end
 
         should("restrict access") do

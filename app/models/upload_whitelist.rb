@@ -12,7 +12,7 @@ class UploadWhitelist < ApplicationRecord
 
   validates(:pattern, presence: true)
   validates(:pattern, uniqueness: true)
-  validates(:pattern, format: { with: %r{\A[a-zA-Z0-9.%:_\-*\/?&]+\z} })
+  validates(:pattern, format: { with: %r{\A[a-zA-Z0-9.%:_\-*/?&]+\z} })
 
   def clean_pattern
     self.pattern = pattern.downcase.tr("%", "*")

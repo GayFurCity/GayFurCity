@@ -14,6 +14,7 @@ module Posts
       context("new action") do
         should("render") do
           get_auth(new_post_flag_path, @user, params: { post_flag: { post_id: @post.id } })
+
           assert_response(:success)
         end
 
@@ -25,12 +26,14 @@ module Posts
       context("index action") do
         should("render") do
           get_auth(post_flags_path, @user)
+
           assert_response(:success)
         end
 
         context("with search parameters") do
           should("render") do
             get_auth(post_flags_path, @user, params: { search: { post_id: @post_flag.post_id } })
+
             assert_response(:success)
           end
         end

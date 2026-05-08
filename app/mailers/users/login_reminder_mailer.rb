@@ -3,6 +3,7 @@
 module Users
   class LoginReminderMailer < ApplicationMailer
     include(UsersHelper)
+
     default(from: GayFurCity.config.email.from_addr, content_type: "text/html")
 
     def notice(user)

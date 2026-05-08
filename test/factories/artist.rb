@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:artist) do
-    association(:creator, factory: :user)
+    creator(factory: %i[user])
     sequence(:name) { |n| "artist_#{n}" }
   end
 end

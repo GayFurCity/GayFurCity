@@ -15,6 +15,7 @@ module Forums
       context("show action") do
         should("render") do
           get(forum_category_path(@category))
+
           assert_redirected_to(forum_topics_path(search: { category_id: @category.id }))
         end
 
@@ -27,11 +28,13 @@ module Forums
       context("index action") do
         should("render") do
           get(forum_categories_path)
+
           assert_response(:success)
         end
 
         should("only list visible categories") do
           get(forum_categories_path(format: :json))
+
           assert_response(:success)
           assert_equal([@category.id], @response.parsed_body.pluck("id"))
         end
@@ -44,6 +47,7 @@ module Forums
       context("edit action") do
         should("work") do
           get_auth(edit_forum_category_path(@category), @admin)
+
           assert_response(:success)
         end
 
@@ -55,6 +59,7 @@ module Forums
       context("update action") do
         should("work") do
           put_auth(forum_category_path(@category), @admin, params: { forum_category: { name: "foobar" } })
+
           assert_redirected_to(forum_categories_path)
           assert_equal("foobar", @category.reload.name)
         end
@@ -67,6 +72,7 @@ module Forums
       context("new action") do
         should("work") do
           get_auth(new_forum_category_path, @admin)
+
           assert_response(:success)
         end
 
@@ -79,6 +85,7 @@ module Forums
         should("work") do
           assert_difference("ForumCategory.count", 1) do
             post_auth(forum_categories_path, @admin, params: { forum_category: { name: "foobar" } })
+
             assert_redirected_to(forum_categories_path)
             assert_equal("foobar", ForumCategory.last.name)
           end
@@ -94,6 +101,7 @@ module Forums
           should("work") do
             assert_difference("ForumCategory.count", -1) do
               delete_auth(forum_category_path(@category), @admin)
+
               assert_redirected_to(forum_categories_path)
             end
           end
@@ -112,6 +120,7 @@ module Forums
           should("fail") do
             assert_no_difference(%w[ForumCategory.count ForumTopic.count]) do
               delete_auth(forum_category_path(@category), @admin, params: { format: :json })
+
               assert_response(:unprocessable_entity)
               assert_equal(["Forum category cannot be deleted because it has topics"], @response.parsed_body.dig("errors", "base"))
             end
@@ -130,8 +139,10 @@ module Forums
           assert_equal(@category3.id, @topic.category_id)
           assert_difference({ "@category3.topics.count" => -1, "@category4.topics.count" => 1 }) do
             post_auth(move_all_topics_forum_category_path(@category3), @admin, params: { forum_category: { new_category_id: @category4.id } })
+
             assert_redirected_to(forum_categories_path)
             perform_enqueued_jobs(only: MoveForumCategoryTopicsJob)
+
             assert_equal(@category4.id, @topic.reload.category_id)
           end
         end
@@ -140,6 +151,7 @@ module Forums
           stub_const(ForumCategory, :MAX_TOPIC_MOVE_COUNT, 0) do
             assert_no_difference(%w[@category3.topics.count @category4.topics.count]) do
               post_auth(move_all_topics_forum_category_path(@category3), @admin, params: { forum_category: { new_category_id: @category4.id } })
+
               assert_response(:bad_request)
             end
           end
@@ -154,6 +166,7 @@ module Forums
         should("work") do
           assert_difference("ForumCategoryVisit.count", 1) do
             put_auth(mark_as_read_forum_category_path(@category), @admin)
+
             assert_redirected_to(forum_category_path(@category))
           end
           assert(@admin.forum_category_visits.exists?(forum_category: @category))
@@ -168,6 +181,7 @@ module Forums
         should("work") do
           assert_difference("ForumCategoryVisit.count", ForumCategory.count) do
             put_auth(mark_all_as_read_forum_categories_path, @admin)
+
             assert_redirected_to(forums_path)
           end
           ForumCategory.find_each do |category|

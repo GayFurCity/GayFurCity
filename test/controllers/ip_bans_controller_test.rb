@@ -11,6 +11,7 @@ class IpBansControllerTest < ActionDispatch::IntegrationTest
     context("new action") do
       should("render") do
         get_auth(new_ip_ban_path, @admin)
+
         assert_response(:success)
       end
 
@@ -38,11 +39,13 @@ class IpBansControllerTest < ActionDispatch::IntegrationTest
 
       should("render") do
         get_auth(ip_bans_path, @admin)
+
         assert_response(:success)
       end
 
       should("render with search parameters") do
         get_auth(ip_bans_path, @admin, params: { search: { ip_addr: "1.2.3.4" } })
+
         assert_response(:success)
       end
 

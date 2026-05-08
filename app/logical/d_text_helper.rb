@@ -57,7 +57,7 @@ module DTextHelper
   def postprocess(html, wiki_pages, tags, artists)
     fragment = parse_html(html)
 
-    fragment.css("a.dtext-wiki-link").each do |node| # rubocop:disable Metrics/BlockLength
+    fragment.css("a.dtext-wiki-link").each do |node|
       parsed = Addressable::URI.parse(node["href"])
       path = parsed.path
       if path.include?("show_or_new")

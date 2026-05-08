@@ -13,9 +13,9 @@ module Sources
         end
 
         should("always be bad") do
-          assert_equal(true, @post1.bad_source?)
-          assert_equal(true, @post2.bad_source?)
-          assert_equal(true, @post3.bad_source?)
+          assert_predicate(@post1, :bad_source?)
+          assert_predicate(@post2, :bad_source?)
+          assert_predicate(@post3, :bad_source?)
         end
       end
     end

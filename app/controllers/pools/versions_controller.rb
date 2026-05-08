@@ -34,7 +34,7 @@ module Pools
       return render_expected_error(422, text) if text.present?
       notice("Pool version undone")
       respond_with(@pool_version) do |format|
-        format.html { redirect_back(fallback_location: pool_versions_path) }
+        format.html { redirect_back_or_to(pool_versions_path) }
       end
     end
   end

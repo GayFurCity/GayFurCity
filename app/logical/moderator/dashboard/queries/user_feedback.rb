@@ -7,7 +7,7 @@ module Moderator
         def self.all(min_date, _max_level)
           ::UserFeedback.includes(:user)
                         .where("user_feedbacks.created_at > ?", min_date)
-                        .order("id desc")
+                        .order(id: :desc)
                         .limit(10)
         end
       end

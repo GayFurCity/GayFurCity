@@ -26,7 +26,7 @@ module MediaAssets
       @asset = authorize(asset_class.find(params[:id]))
       @asset.cancel!
       respond_with(@asset) do |format|
-        format.html { redirect_back(fallback_location: send("#{asset_class.model_name.route_key}_path"), notice: "Upload canceled") }
+        format.html { redirect_back_or_to(send("#{asset_class.model_name.route_key}_path"), notice: "Upload canceled") }
       end
     end
 

@@ -15,6 +15,7 @@ module Posts
         should("render") do
           assert_difference("PostDisapproval.count", 1) do
             post_auth(post_disapprovals_path, @admin, params: { post_disapproval: { post_id: @post.id, reason: "borderline_quality" }, format: :json })
+
             assert_response(:success)
           end
         end

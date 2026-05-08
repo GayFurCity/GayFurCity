@@ -17,12 +17,14 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
       context("with a specified tags parameter") do
         should("redirect to the posts controller") do
           get_auth(favorites_path, @user, params: { tags: "fav:#{@user.name} abc" })
+
           assert_redirected_to(posts_path(tags: "fav:#{@user.name} abc"))
         end
       end
 
       should("display the current user's favorites") do
         get_auth(favorites_path, @user)
+
         assert_response(:success)
       end
 
@@ -79,6 +81,7 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
       should("work") do
         assert_difference("Favorite.count", -1) do
           put_auth(clear_favorites_path, @user)
+
           assert_redirected_to(favorites_path)
           perform_enqueued_jobs(only: ClearUserFavoritesJob)
         end
@@ -86,8 +89,10 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
 
       should("limit to once a week") do
         put_auth(clear_favorites_path, @user)
+
         assert_redirected_to(favorites_path)
         put_auth(clear_favorites_path, @user)
+
         assert_response(:too_many_requests)
       end
 

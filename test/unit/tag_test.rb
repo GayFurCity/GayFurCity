@@ -10,11 +10,13 @@ class TagTest < ActiveSupport::TestCase
   context("A tag category fetcher") do
     should("fetch for a single tag") do
       create(:artist_tag, name: "test")
+
       assert_equal(TagCategory.artist, Tag.category_for("test"))
     end
 
     should("fetch for a single tag with strange markup") do
       create(:artist_tag, name: "!@ab")
+
       assert_equal(TagCategory.artist, Tag.category_for("!@ab"))
     end
 
@@ -26,6 +28,7 @@ class TagTest < ActiveSupport::TestCase
       create(:artist_tag, name: "aaa")
       create(:copyright_tag, name: "bbb")
       categories = Tag.categories_for(%w[aaa bbb ccc])
+
       assert_equal(TagCategory.artist, categories["aaa"])
       assert_equal(TagCategory.copyright, categories["bbb"])
       assert_nil(categories["ccc"])
@@ -92,14 +95,17 @@ class TagTest < ActiveSupport::TestCase
   context("A tag") do
     should("know its category name") do
       @tag = create(:artist_tag)
+
       assert_equal("Artist", @tag.category_name)
     end
 
     should("reset its category after updating") do
       tag = create(:artist_tag)
+
       assert_equal(TagCategory.artist, Cache.fetch("tc:#{tag.name}"))
 
       tag.update_attribute(:category, TagCategory.copyright)
+
       assert_equal(TagCategory.copyright, Cache.fetch("tc:#{tag.name}"))
     end
 
@@ -146,15 +152,18 @@ class TagTest < ActiveSupport::TestCase
         assert_equal(TagCategory.general, tag.category)
         Tag.find_or_create_by_name("artist:#{tag.name}", user: @janitor)
         tag.reload
+
         assert_equal(TagCategory.artist, tag.category)
       end
     end
 
     should("not change the category is the tag is locked") do
       tag = create(:tag, is_locked: true)
-      assert_equal(true, tag.is_locked?)
+
+      assert_predicate(tag, :is_locked?)
       Tag.find_or_create_by_name("artist:#{tag.name}", user: @janitor)
       tag.reload
+
       assert_equal(0, tag.category)
     end
 
@@ -174,13 +183,16 @@ class TagTest < ActiveSupport::TestCase
 
     should("update post tag counts when the category is changed") do
       post = create(:post, tag_string: "test")
+
       assert_equal(1, post.tag_count_general)
       assert_equal(0, post.tag_count_character)
 
       tag = Tag.find_by_normalized_name("test")
       with_inline_jobs { tag.update_attribute(:category, 4) }
-      assert_equal(tag.errors.full_messages, [])
+
+      assert_equal([], tag.errors.full_messages)
       post.reload
+
       assert_equal(0, post.tag_count_general)
       assert_equal(1, post.tag_count_character)
     end
@@ -188,6 +200,7 @@ class TagTest < ActiveSupport::TestCase
     should("be created when one doesn't exist") do
       assert_difference("Tag.count", 1) do
         tag = Tag.find_or_create_by_name("hoge", user: @janitor)
+
         assert_equal("hoge", tag.name)
         assert_equal(TagCategory.general, tag.category)
       end
@@ -196,6 +209,7 @@ class TagTest < ActiveSupport::TestCase
     should("be created with the type when one doesn't exist") do
       assert_difference("Tag.count", 1) do
         tag = Tag.find_or_create_by_name("artist:hoge", user: @janitor)
+
         assert_equal("hoge", tag.name)
         assert_equal(TagCategory.artist, tag.category)
       end
@@ -273,6 +287,7 @@ class TagTest < ActiveSupport::TestCase
       create(:post, tag_string: "touhou")
 
       Tag.clean_up_negative_post_counts!
+
       assert_equal(1, tag.reload.post_count)
     end
   end
@@ -282,13 +297,16 @@ class TagTest < ActiveSupport::TestCase
       reset_post_index
       tag = create(:tag, name: "foo", post_count: 1)
       create(:post, tag_string: "foo")
+
       assert_equal(2, tag.reload.post_count)
       ta = create(:tag_alias, antecedent_name: "foo", consequent_name: "bar")
       with_inline_jobs { ta.approve!(@janitor) }
       tag.update_column(:post_count, 1)
+
       assert_equal(1, tag.reload.post_count)
 
       TagAlias.fix_nonzero_post_counts!
+
       assert_equal(0, tag.reload.post_count)
     end
 
@@ -296,14 +314,17 @@ class TagTest < ActiveSupport::TestCase
       reset_post_index
       tag = create(:tag, name: "foo", post_count: 1)
       create(:post, tag_string: "foo")
+
       assert_equal(2, tag.reload.post_count)
       ta = create(:tag_alias, antecedent_name: "foo", consequent_name: "bar")
       with_inline_jobs { ta.approve!(@janitor) }
       tag.update_column(:post_count, 1)
       with_inline_jobs { ta.reject!(@janitor) }
+
       assert_equal(1, tag.reload.post_count)
 
       TagAlias.fix_nonzero_post_counts!
+
       assert_equal(1, tag.reload.post_count)
     end
   end

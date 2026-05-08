@@ -47,7 +47,8 @@ class ChangeSeqTest < ActiveSupport::TestCase
       missed.each do |column|
         TraceLogger.error("ValidateChangeSeq", "Column #{column} not checked or ignored in function")
       end
-      assert(missed.empty?, "The posts_trigger_change_seq function does not check or ignore: #{missed.join(', ')}")
+
+      assert_empty(missed, "The posts_trigger_change_seq function does not check or ignore: #{missed.join(', ')}")
     end
 
     context("change_seq") do
@@ -71,6 +72,7 @@ class ChangeSeqTest < ActiveSupport::TestCase
           @post.reload
           new_value = @post.send(column)
           new_seq = @post.change_seq
+
           assert_not_equal(old_value, new_value, "The #{column} (#{type}) column did not change (#{old_value} -> #{set_value})")
           assert_equal(set_value, new_value, "The #{column} (#{type}) column did not update to the new value")
           assert_not_equal(old_seq, new_seq, "The change_seq did not change when the #{column} (#{type}) column changed (#{old_value} -> #{new_value})")

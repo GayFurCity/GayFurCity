@@ -2,8 +2,8 @@
 
 FactoryBot.define do
   factory(:tag_follower) do
-    association(:user)
-    association(:tag)
-    association(:last_post, factory: :post)
+    user
+    tag
+    last_post(factory: %i[post])
   end
 end

@@ -25,6 +25,7 @@ module Pools
         should("list all versions") do
           assert_equal(@posts.pluck(:id), @pool.reload.post_ids)
           get_auth(pool_versions_path, @user)
+
           assert_response(:success)
           assert_select("#pool-version-#{@versions[0].id}")
           assert_select("#pool-version-#{@versions[1].id}")
@@ -33,6 +34,7 @@ module Pools
 
         should("list all versions that match the search criteria") do
           get_auth(pool_versions_path, @user, params: { search: { updater_id: @user2.id } })
+
           assert_response(:success)
           assert_select("#pool-version-#{@versions[0].id}", false)
           assert_select("#pool-version-#{@versions[1].id}")
@@ -72,14 +74,17 @@ module Pools
 
         should("work") do
           version = @pool.versions.first
+
           assert_equal([@posts.first.id], version.post_ids)
           put_auth(undo_pool_version_path(@pool.versions.second), @user)
           @pool.reload
+
           assert_equal([@posts.first.id], @pool.post_ids)
         end
 
         should("not allow undoing version 1") do
           put_auth(undo_pool_version_path(@pool.versions.first), @user)
+
           assert_response(:bad_request)
         end
 

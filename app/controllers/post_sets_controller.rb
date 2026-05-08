@@ -63,7 +63,7 @@ class PostSetsController < ApplicationController
     @post_set.update_with_current(:updater, update_posts_params)
     notice(@post_set.valid? ? "Set posts updated" : @post_set.errors.full_messages.join("; "))
     respond_with(@post_set, status: 200) do |format|
-      format.html { redirect_back(fallback_location: post_list_post_set_path(@post_set)) }
+      format.html { redirect_back_or_to(post_list_post_set_path(@post_set)) }
     end
   end
 

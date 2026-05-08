@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:user_block) do
-    association(:user)
-    association(:target, factory: :user)
+    user
+    target(factory: %i[user])
   end
 end

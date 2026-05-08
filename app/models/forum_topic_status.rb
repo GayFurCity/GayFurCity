@@ -15,7 +15,7 @@ class ForumTopicStatus < ApplicationRecord
     ForumTopicStatus.subscriptions.find_each do |subscription|
       forum_topic = subscription.forum_topic
       if forum_topic.updated_at > subscription.subscription_last_read_at
-        forum_posts = forum_topic.posts.where("created_at > ?", subscription.subscription_last_read_at).order("id desc")
+        forum_posts = forum_topic.posts.where("created_at > ?", subscription.subscription_last_read_at).order(id: :desc)
         begin
           UserMailer.forum_notice(subscription.user, forum_topic, forum_posts).deliver_now
         rescue Net::SMTPSyntaxError

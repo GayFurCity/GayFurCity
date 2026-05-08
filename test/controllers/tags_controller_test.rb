@@ -12,6 +12,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
     context("edit action") do
       should("render") do
         get_auth(tag_path(@tag), @user, params: { id: @tag.id })
+
         assert_response(:success)
       end
 
@@ -23,12 +24,14 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
     context("index action") do
       should("render") do
         get(tags_path)
+
         assert_response(:success)
       end
 
       context("with search parameters") do
         should("render") do
           get(tags_path, params: { search: { name_matches: "touhou" } })
+
           assert_response(:success)
         end
       end
@@ -36,6 +39,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
       context("with blank search parameters") do
         should("strip the blank parameters with a redirect") do
           get(tags_path, params: { search: { name: "touhou", category: "" } })
+
           assert_redirected_to(tags_path(search: { name: "touhou" }))
         end
       end
@@ -76,6 +80,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
     context("show action") do
       should("render") do
         get(tag_path(@tag))
+
         assert_response(:success)
       end
 
@@ -91,6 +96,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
 
       should("update the tag") do
         put_auth(tag_path(@tag), @user, params: { tag: { category: TagCategory.general } })
+
         assert_redirected_to(tag_path(@tag))
         assert_equal(TagCategory.general, @tag.reload.category)
       end
@@ -99,13 +105,13 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         put_auth(tag_path(@tag), create(:admin_user), params: { tag: { is_locked: true } })
 
         assert_redirected_to(@tag)
-        assert_equal(true, @tag.reload.is_locked)
+        assert(@tag.reload.is_locked)
       end
 
       should("not lock the tag for a user") do
         put_auth(tag_path(@tag), @user, params: { tag: { is_locked: true } })
 
-        assert_equal(false, @tag.reload.is_locked)
+        assert_not(@tag.reload.is_locked)
       end
 
       context("for a tag with >1000 posts") do
@@ -165,9 +171,10 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
       should("work") do
         assert_equal(0, @tag.reload.follower_count)
         put_auth(follow_tag_path(@tag), @user)
+
         assert_redirected_to(tag_path(@tag))
         assert_equal(1, @tag.reload.follower_count)
-        assert_equal(true, @user.followed_tags.exists?(tag: @tag))
+        assert(@user.followed_tags.exists?(tag: @tag))
       end
 
       should("not allow following aliased tags") do
@@ -175,18 +182,20 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         @ta = create(:tag_alias, antecedent_name: @tag.name, consequent_name: @tag2.name)
         with_inline_jobs { @ta.approve!(@user) }
         put_auth(follow_tag_path(@tag), @user, params: { format: :json })
+
         assert_response(:bad_request)
         assert_equal(0, @tag.reload.follower_count)
-        assert_equal(false, @user.followed_tags.exists?(tag: @tag))
+        assert_not(@user.followed_tags.exists?(tag: @tag))
         assert_equal("You cannot follow aliased tags.", response.parsed_body["message"])
       end
 
       should("not allow following more than the user's limit") do
         Config.stubs(:get_user).with(:followed_tag_limit, @user).returns(0)
         put_auth(follow_tag_path(@tag), @user, params: { format: :json })
+
         assert_response(:unprocessable_entity)
         assert_equal(0, @tag.reload.follower_count)
-        assert_equal(false, @user.followed_tags.exists?(tag: @tag))
+        assert_not(@user.followed_tags.exists?(tag: @tag))
         assert_equal("cannot follow more than 0 tags", response.parsed_body.dig("errors", "user").first)
       end
 
@@ -198,11 +207,13 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
     context("unfollow action") do
       should("work") do
         @tag.follow!(@user)
+
         assert_equal(1, @tag.reload.follower_count)
         put_auth(unfollow_tag_path(@tag), @user)
+
         assert_redirected_to(tag_path(@tag))
         assert_equal(0, @tag.reload.follower_count)
-        assert_equal(false, @user.followed_tags.exists?(tag: @tag))
+        assert_not(@user.followed_tags.exists?(tag: @tag))
       end
 
       should("restrict access") do
@@ -217,6 +228,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
       should("render") do
         create(:tag_follower, tag: @tag, user: @user)
         get_auth(followers_tag_path(@tag), @user)
+
         assert_response(:success)
       end
 
@@ -229,6 +241,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
       should("render") do
         create(:tag_follower, tag: @tag, user: @user)
         get_auth(followed_tags_path, @user)
+
         assert_response(:success)
       end
 
@@ -236,6 +249,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         @user2 = create(:user)
         create(:tag_follower, tag: @tag, user: @user2)
         get_auth(followed_tags_path, @user, params: { user_id: @user2.id })
+
         assert_response(:success)
       end
 
@@ -243,6 +257,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         @user2 = create(:user, enable_privacy_mode: true)
         create(:tag_follower, tag: @tag, user: @user2)
         get_auth(followed_tags_path, @user, params: { user_id: @user2.id })
+
         assert_response(:forbidden)
       end
 
@@ -254,6 +269,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
     context("meta_search action") do
       should("work") do
         get(meta_search_tags_path, params: { name: "long_hair" })
+
         assert_response(:success)
       end
 

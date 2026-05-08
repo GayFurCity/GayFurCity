@@ -12,6 +12,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
     context("new action") do
       should("render") do
         get_auth(new_bulk_update_request_path, @user)
+
         assert_response(:success)
       end
 
@@ -41,6 +42,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
         create(:tag, name: "zzz")
         put_auth(bulk_update_request_path(@bulk_update_request.id), @user, params: { bulk_update_request: { script: "alias zzz -> 222" } })
         @bulk_update_request.reload
+
         assert_equal("alias zzz -> 222", @bulk_update_request.script)
       end
 
@@ -56,6 +58,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
 
       should("render") do
         get(bulk_update_requests_path)
+
         assert_response(:success)
       end
 
@@ -103,6 +106,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
         should("succeed") do
           delete_auth(bulk_update_request_path(@bulk_update_request), @user)
           @bulk_update_request.reload
+
           assert_equal("rejected", @bulk_update_request.status)
         end
       end
@@ -123,6 +127,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
         should("succeed") do
           delete_auth(bulk_update_request_path(@bulk_update_request), @admin)
           @bulk_update_request.reload
+
           assert_equal("rejected", @bulk_update_request.status)
         end
       end
@@ -140,8 +145,10 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
       context("for a member") do
         should("fail") do
           post_auth(approve_bulk_update_request_path(@bulk_update_request), @user, params: { format: :json })
+
           assert_response(:forbidden)
           @bulk_update_request.reload
+
           assert_equal("pending", @bulk_update_request.status)
         end
       end
@@ -149,11 +156,14 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
       context("for an admin") do
         should("succeed") do
           post_auth(approve_bulk_update_request_path(@bulk_update_request), @admin, params: { format: :json })
+
           assert_response(:success)
           @bulk_update_request.reload
+
           assert_equal("queued", @bulk_update_request.status)
           perform_enqueued_jobs(only: ProcessBulkUpdateRequestJob)
           @bulk_update_request.reload
+
           assert_equal("approved", @bulk_update_request.status)
         end
 
@@ -161,8 +171,10 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
           Config.stubs(:get_user).with(:tag_change_request_update_limit, @admin).returns(1)
           create_list(:post, 2, tag_string: "aaa")
           post_auth(approve_bulk_update_request_path(@bulk_update_request), @admin, params: { format: :json })
+
           assert_response(:forbidden)
           @bulk_update_request.reload
+
           assert_equal("pending", @bulk_update_request.status)
         end
       end
@@ -180,8 +192,10 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
 
       should("revert to a previous version") do
         version = @bulk_update_request.versions.first
+
         assert_match(/\Aalias aaa -> bbb/, version.script)
         put_auth(revert_bulk_update_request_path(@bulk_update_request), @user, params: { version_id: version.id })
+
         assert_match(/\Aalias aaa -> bbb/, @bulk_update_request.reload.script)
       end
 
@@ -189,6 +203,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
         @bulk_update_request2 = create(:bulk_update_request)
         put_auth(revert_bulk_update_request_path(@bulk_update_request), @user, params: { version_id: @bulk_update_request2.versions.first.id })
         @bulk_update_request.reload
+
         assert_not_equal(@bulk_update_request.title, @bulk_update_request2.title)
         assert_response(:missing)
       end

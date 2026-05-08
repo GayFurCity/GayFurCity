@@ -446,7 +446,7 @@ class TagQuery
   end
 
   def pull_wildcard_tags(tag)
-    matches = Tag.name_matches(tag).limit(Config.instance.tag_query_limit).order("post_count DESC").pluck(:name)
+    matches = Tag.name_matches(tag).limit(Config.instance.tag_query_limit).order(post_count: :desc).pluck(:name)
     matches = ["~~not_found~~"] if matches.empty?
     matches
   end

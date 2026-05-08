@@ -22,6 +22,7 @@ module Tags
 
         should("list all versions") do
           get(tag_versions_path)
+
           assert_response(:success)
           assert_select("#tag-version-#{@versions[0].id}")
           assert_select("#tag-version-#{@versions[1].id}")
@@ -30,6 +31,7 @@ module Tags
 
         should("list all versions that match the search criteria") do
           get(tag_versions_path, params: { search: { updater_id: @user2.id } })
+
           assert_response(:success)
           assert_select("#tag-version-#{@versions[0].id}", false)
           assert_select("#tag-version-#{@versions[1].id}")

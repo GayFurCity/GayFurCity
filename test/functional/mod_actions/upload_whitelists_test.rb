@@ -16,7 +16,7 @@ module ModActions
           end
 
           should("format correctly for users") do
-            CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[upload_whitelist_create],
                 text:    "Created whitelist entry '[nodtext]#{@whitelist.note}[/nodtext]'",
@@ -29,7 +29,7 @@ module ModActions
           end
 
           should("format correctly for admins") do
-            CurrentUser.scoped(@admin) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@admin) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[upload_whitelist_create],
                 text:    "Created whitelist entry '[nodtext]#{@whitelist.pattern}[/nodtext]'",
@@ -48,7 +48,7 @@ module ModActions
           end
 
           should("format correctly for users") do
-            CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[upload_whitelist_create],
                 text:    "Created whitelist entry",
@@ -59,7 +59,7 @@ module ModActions
           end
 
           should("format correctly for admins") do
-            CurrentUser.scoped(@admin) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@admin) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[upload_whitelist_create],
                 text:    "Created whitelist entry '[nodtext]#{@whitelist.pattern}[/nodtext]'",
@@ -83,7 +83,7 @@ module ModActions
           end
 
           should("format correctly for users") do
-            CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions:     %w[upload_whitelist_update],
                 text:        "Updated whitelist entry '[nodtext]#{@whitelist.note}[/nodtext]'",
@@ -97,7 +97,7 @@ module ModActions
           end
 
           should("format correctly for admins") do
-            CurrentUser.scoped(@admin) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@admin) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions:     %w[upload_whitelist_update],
                 text:        "Updated whitelist entry '[nodtext]#{@original.pattern}[/nodtext]' -> '[nodtext]#{@whitelist.pattern}[/nodtext]'",
@@ -120,7 +120,7 @@ module ModActions
           end
 
           should("format correctly for users") do
-            CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[upload_whitelist_update],
                 text:    "Updated whitelist entry",
@@ -131,7 +131,7 @@ module ModActions
           end
 
           should("format correctly for admins") do
-            CurrentUser.scoped(@admin) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@admin) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions:     %w[upload_whitelist_update],
                 text:        "Updated whitelist entry '[nodtext]#{@original.pattern}[/nodtext]' -> '[nodtext]#{@whitelist.pattern}[/nodtext]'",
@@ -155,7 +155,7 @@ module ModActions
           end
 
           should("format correctly for users") do
-            CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[upload_whitelist_delete],
                 text:    "Deleted whitelist entry '[nodtext]#{@whitelist.note}[/nodtext]'",
@@ -168,7 +168,7 @@ module ModActions
           end
 
           should("format correctly for admins") do
-            CurrentUser.scoped(@admin) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@admin) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[upload_whitelist_delete],
                 text:    "Deleted whitelist entry '[nodtext]#{@whitelist.pattern}[/nodtext]'",
@@ -189,7 +189,7 @@ module ModActions
           end
 
           should("format correctly for users") do
-            CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[upload_whitelist_delete],
                 text:    "Deleted whitelist entry",
@@ -200,7 +200,7 @@ module ModActions
           end
 
           should("format correctly for admins") do
-            CurrentUser.scoped(@admin) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@admin) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[upload_whitelist_delete],
                 text:    "Deleted whitelist entry '[nodtext]#{@whitelist.pattern}[/nodtext]'",

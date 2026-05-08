@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:avoid_posting) do
-    association(:creator, factory: :owner_user)
-    association(:artist)
+    creator(factory: %i[owner_user])
+    artist
   end
 end

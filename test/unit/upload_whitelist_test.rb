@@ -21,6 +21,7 @@ class UploadWhitelistTest < ActiveSupport::TestCase
 
     should("bypass for admins") do
       @user.update_columns(level: User::Levels::ADMIN)
+
       assert_equal([true, "bypassed"], UploadWhitelist.is_whitelisted?(Addressable::URI.parse("https://123.com/what.png"), @user))
     end
   end

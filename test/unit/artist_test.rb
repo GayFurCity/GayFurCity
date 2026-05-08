@@ -12,6 +12,7 @@ class ArtistTest < ActiveSupport::TestCase
 
   def assert_artist_not_found(source_url)
     artists = Artist.find_artists(source_url).to_a
+
     assert_equal(0, artists.size, "Testing URL: #{source_url}")
   end
 
@@ -22,12 +23,14 @@ class ArtistTest < ActiveSupport::TestCase
 
     should("parse inactive urls") do
       @artist = create(:artist, name: "blah", url_string: "-http://monet.com")
+
       assert_equal(["-http://monet.com"], @artist.urls.map(&:to_s))
       assert_not(@artist.urls[0].is_active?)
     end
 
     should("not allow duplicate active+inactive urls") do
       @artist = create(:artist, name: "blah", url_string: "-http://monet.com\nhttp://monet.com")
+
       assert_equal(1, @artist.urls.count)
       assert_equal(["-http://monet.com"], @artist.urls.map(&:to_s))
       assert_not(@artist.urls[0].is_active?)
@@ -36,6 +39,7 @@ class ArtistTest < ActiveSupport::TestCase
     should("allow deactivating a url") do
       @artist = create(:artist, name: "blah", url_string: "http://monet.com")
       @artist.update_with(@user, url_string: "-http://monet.com")
+
       assert_equal(1, @artist.urls.count)
       assert_not(@artist.urls[0].is_active?)
     end
@@ -43,8 +47,9 @@ class ArtistTest < ActiveSupport::TestCase
     should("allow activating a url") do
       @artist = create(:artist, name: "blah", url_string: "-http://monet.com")
       @artist.update_with(@user, url_string: "http://monet.com")
+
       assert_equal(1, @artist.urls.count)
-      assert(@artist.urls[0].is_active?)
+      assert_predicate(@artist.urls[0], :is_active?)
     end
 
     context("with an invalid name") do
@@ -69,30 +74,35 @@ class ArtistTest < ActiveSupport::TestCase
       artist = create(:artist, name: "aaa", notes: "testing")
       artist.update_attribute(:notes, "kokoko")
       artist.reload
+
       assert_equal("kokoko", artist.notes)
       assert_equal("kokoko", artist.wiki_page.body)
     end
 
     should("normalize its name") do
       artist = create(:artist, name: "  AAA BBB  ")
+
       assert_equal("aaa_bbb", artist.name)
     end
 
     should("resolve ambiguous urls") do
       create(:artist, name: "bob_ross", url_string: "http://artists.com/bobross/image.jpg")
       create(:artist, name: "bob", url_string: "http://artists.com/bob/image.jpg")
+
       assert_artist_found("bob", "http://artists.com/bob/test.jpg")
     end
 
     should("parse urls") do
       artist = create(:artist, name: "rembrandt", url_string: "http://rembrandt.com/test.jpg http://aaa.com")
       artist.reload
+
       assert_equal(["http://aaa.com", "http://rembrandt.com/test.jpg"], artist.urls.map(&:to_s).sort)
     end
 
     should("not allow invalid urls") do
       artist = build(:artist, url_string: "blah")
-      assert_equal(false, artist.valid?)
+
+      assert_not(artist.valid?)
       assert_equal(["'blah' must begin with http:// or https:// "], artist.errors["urls.url"])
     end
 
@@ -102,8 +112,9 @@ class ArtistTest < ActiveSupport::TestCase
       artist.save(validate: false)
 
       artist.update(url_string: "http://www.example.com")
-      assert_equal(true, artist.valid?)
-      assert_equal("http://www.example.com", artist.urls.map(&:to_s).join)
+
+      assert_predicate(artist, :valid?)
+      assert_equal("http://www.example.com", artist.urls.join)
     end
 
     should("make sure old urls are deleted") do
@@ -111,20 +122,23 @@ class ArtistTest < ActiveSupport::TestCase
       artist.url_string = "http://not.rembrandt.com/test.jpg"
       artist.save
       artist.reload
+
       assert_equal(["http://not.rembrandt.com/test.jpg"], artist.urls.map(&:to_s).sort)
     end
 
     should("not delete urls that have not changed") do
       artist = create(:artist, name: "rembrandt", url_string: "http://rembrandt.com/test.jpg")
-      old_url_ids = ArtistUrl.order("id").pluck(&:id)
+      old_url_ids = ArtistUrl.order(:id).pluck(&:id)
       artist.url_string = "http://rembrandt.com/test.jpg"
       artist.save
-      assert_equal(old_url_ids, ArtistUrl.order("id").pluck(&:id))
+
+      assert_equal(old_url_ids, ArtistUrl.order(:id).pluck(&:id))
     end
 
     should("ignore pixiv.net/ and pixiv.net/img/ url matches") do
       create(:artist, name: "yomosaka", url_string: "http://i2.pixiv.net/img18/img/evazion/14901720.png")
       create(:artist, name: "niwatazumi_bf", url_string: "http://i2.pixiv.net/img18/img/evazion/14901720_big_p0.png")
+
       assert_artist_not_found("http://i2.pixiv.net/img28/img/kyang692/35563903.jpg")
     end
 
@@ -146,16 +160,19 @@ class ArtistTest < ActiveSupport::TestCase
 
     should("be case-insensitive to domains when finding matches by url") do
       a1 = create(:artist, name: "bkub", url_string: "http://BKUB.example.com")
+
       assert_artist_found(a1.name, "http://bkub.example.com")
     end
 
     should("not find duplicates") do
       create(:artist, name: "warhol", url_string: "http://warhol.com/x/a/image.jpg\nhttp://warhol.com/x/b/image.jpg")
+
       assert_artist_found("warhol", "http://warhol.com/x/test.jpg")
     end
 
     should("not include duplicate urls") do
       artist = create(:artist, url_string: "http://foo.com http://foo.com")
+
       assert_equal(["http://foo.com"], artist.url_array)
     end
 
@@ -177,6 +194,7 @@ class ArtistTest < ActiveSupport::TestCase
 
     should("normalize its other names") do
       artist = create(:artist, name: "a1", other_names: "a1 aaa aaa AAA bbb ccc_ddd")
+
       assert_equal("aaa bbb ccc_ddd", artist.other_names_string)
     end
 
@@ -231,9 +249,11 @@ class ArtistTest < ActiveSupport::TestCase
       end
 
       first_version = ArtistVersion.first
+
       assert_equal(%w[yyy], first_version.other_names)
       artist.revert_to!(first_version, @user)
       artist.reload
+
       assert_equal(%w[yyy], artist.other_names)
     end
 
@@ -241,6 +261,7 @@ class ArtistTest < ActiveSupport::TestCase
       tag = create(:tag, name: "abc")
       create(:artist, name: "abc")
       tag.reload
+
       assert_equal(TagCategory.artist, tag.category)
       assert_equal("artist creation", TagVersion.last.reason)
     end
@@ -253,6 +274,7 @@ class ArtistTest < ActiveSupport::TestCase
       should("create a new version when a url is added") do
         assert_difference("ArtistVersion.count") do
           @artist.update(url_string: "http://foo.com http://bar.com")
+
           assert_equal(%w[http://bar.com http://foo.com], @artist.versions.last.urls)
         end
       end
@@ -260,6 +282,7 @@ class ArtistTest < ActiveSupport::TestCase
       should("create a new version when a url is removed") do
         assert_difference("ArtistVersion.count") do
           @artist.update(url_string: "")
+
           assert_equal(%w[], @artist.versions.last.urls)
         end
       end
@@ -267,6 +290,7 @@ class ArtistTest < ActiveSupport::TestCase
       should("create a new version when a url is marked inactive") do
         assert_difference("ArtistVersion.count") do
           @artist.update(url_string: "-http://foo.com")
+
           assert_equal(%w[-http://foo.com], @artist.versions.last.urls)
         end
       end
@@ -274,6 +298,7 @@ class ArtistTest < ActiveSupport::TestCase
       should("not create a new version when nothing has changed") do
         assert_no_difference("ArtistVersion.count") do
           @artist.save
+
           assert_equal(%w[http://foo.com], @artist.versions.last.urls)
         end
       end
@@ -281,6 +306,7 @@ class ArtistTest < ActiveSupport::TestCase
       should("not save invalid urls") do
         assert_no_difference("ArtistVersion.count") do
           @artist.update(url_string: "http://foo.com www.example.com")
+
           assert_equal(%w[http://foo.com], @artist.versions.last.urls)
         end
       end
@@ -293,6 +319,7 @@ class ArtistTest < ActiveSupport::TestCase
 
       should("log the correct data when renamed") do
         @artist.update_with(@user, name: "new_name")
+
         assert_equal({ "new_name" => "new_name", "old_name" => "test" }, ModAction.last.values)
       end
 
@@ -301,11 +328,13 @@ class ArtistTest < ActiveSupport::TestCase
 
         @artist.update_with(@user, linked_user: user)
         mod_action = ModAction.last
+
         assert_equal("artist_user_link", mod_action.action)
         assert_equal({ "user_id" => user.id }, mod_action.values)
 
         @artist.update_with(@user, linked_user: nil)
         mod_action = ModAction.last
+
         assert_equal("artist_user_unlink", mod_action.action)
         assert_equal({ "user_id" => user.id }, mod_action.values)
       end
@@ -314,6 +343,7 @@ class ArtistTest < ActiveSupport::TestCase
         @artist.update_with(@user, url_string: "https://gayfur.city")
 
         @artist.reload
+
         assert_equal("https://gayfur.city", @artist.url_string)
 
         GayFurCity.config.stubs(:disable_throttles).returns(false)
@@ -324,6 +354,7 @@ class ArtistTest < ActiveSupport::TestCase
         end
 
         @artist.reload
+
         assert_equal("https://gayfur.city", @artist.url_string)
       end
 
@@ -331,6 +362,7 @@ class ArtistTest < ActiveSupport::TestCase
         @artist.update_with(@user, url_string: "https://gayfur.city")
 
         @artist.reload
+
         assert_equal("https://gayfur.city", @artist.url_string)
 
         @artist.update_column(:is_locked, true)
@@ -340,6 +372,7 @@ class ArtistTest < ActiveSupport::TestCase
         end
 
         @artist.reload
+
         assert_equal("https://gayfur.city", @artist.url_string)
       end
 

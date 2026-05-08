@@ -3,7 +3,7 @@
 
 require_relative("base")
 
-users = User.where(level: User::Levels::MEMBER, forum_post_vote_count: ..10).order("id asc").limit(50)
+users = User.where(level: User::Levels::MEMBER, forum_post_vote_count: ..10).order(:id).limit(50)
 
 CATEGORY = 2
 IP_ADDR = "127.0.0.1"

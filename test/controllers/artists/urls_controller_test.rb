@@ -8,6 +8,7 @@ module Artists
       context("index page") do
         should("render") do
           get(artist_urls_path)
+
           assert_response(:success)
         end
 

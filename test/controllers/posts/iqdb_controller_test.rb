@@ -27,6 +27,7 @@ module Posts
           should("render a response") do
             IqdbProxy.expects(:query_url).with(@user, @url, nil).returns(@mocked_response)
             get_auth(posts_iqdb_path, @user, params: @params)
+
             assert_select("#post_#{@posts[0].id}")
           end
         end
@@ -45,6 +46,7 @@ module Posts
           should("redirect to iqdb") do
             IqdbProxy.expects(:query_post).with(@posts[0], nil).returns(@mocked_response)
             get_auth(posts_iqdb_path, @user, params: @params)
+
             assert_select("#post_#{@posts[0].id}")
           end
         end
@@ -57,6 +59,7 @@ module Posts
 
           should("render with matches") do
             get_auth(posts_iqdb_path, @user, params: @params)
+
             assert_response(:success)
           end
         end

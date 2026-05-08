@@ -13,7 +13,7 @@ class PostApprovalTest < ActiveSupport::TestCase
     end
 
     should("allow approval") do
-      assert_equal(false, @post.approved_by?(@approver))
+      assert_not(@post.approved_by?(@approver))
     end
 
     context("That is approved") do
@@ -33,7 +33,7 @@ class PostApprovalTest < ActiveSupport::TestCase
     context("#search method") do
       should("work") do
         @post.approve!(@approver)
-        @approvals = PostApproval.search_current(user_name: @approver.name, post_tags_match: "touhou", post_id: @post.id.to_s)
+        @approvals = PostApproval.search_current({ user_name: @approver.name, post_tags_match: "touhou", post_id: @post.id.to_s })
 
         assert_equal([@post.id], @approvals.map(&:post_id))
       end

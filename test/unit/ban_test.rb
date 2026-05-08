@@ -14,28 +14,33 @@ class BanTest < ActiveSupport::TestCase
         ban = build(:ban, user: user, banner: @banner)
         ban.save
         user.reload
-        assert(user.is_banned?)
+
+        assert_predicate(user, :is_banned?)
       end
 
       should("not be valid against another admin") do
         user = create(:admin_user)
         ban = build(:ban, user: user, banner: @banner)
         ban.save
-        assert(ban.errors.any?)
+
+        assert_predicate(ban.errors, :any?)
       end
 
       should("be valid against anyone who is not an admin") do
         user = create(:moderator_user)
         ban = create(:ban, user: user, banner: @banner)
-        assert(ban.errors.empty?)
+
+        assert_empty(ban.errors)
 
         user = create(:trusted_user)
         ban = create(:ban, user: user, banner: @banner)
-        assert(ban.errors.empty?)
+
+        assert_empty(ban.errors)
 
         user = create(:user)
         ban = create(:ban, user: user, banner: @banner)
-        assert(ban.errors.empty?)
+
+        assert_empty(ban.errors)
       end
     end
 
@@ -48,22 +53,26 @@ class BanTest < ActiveSupport::TestCase
         user = create(:admin_user)
         ban = build(:ban, user: user, banner: @banner)
         ban.save
-        assert(ban.errors.any?)
+
+        assert_predicate(ban.errors, :any?)
 
         user = create(:moderator_user)
         ban = build(:ban, user: user, banner: @banner)
         ban.save
-        assert(ban.errors.any?)
+
+        assert_predicate(ban.errors, :any?)
       end
 
       should("be valid against anyone who is not an admin or a moderator") do
         user = create(:trusted_user)
         ban = create(:ban, user: user, banner: @banner)
-        assert(ban.errors.empty?)
+
+        assert_empty(ban.errors)
 
         user = create(:user)
         ban = create(:ban, user: user, banner: @banner)
-        assert(ban.errors.empty?)
+
+        assert_empty(ban.errors)
       end
     end
 
@@ -71,14 +80,17 @@ class BanTest < ActiveSupport::TestCase
       user = create(:user)
       admin = create(:admin_user)
       ban = create(:ban, user: user, banner: admin)
+
       assert_not_nil(ban.expires_at)
     end
 
     should("update the user's feedback") do
       user = create(:user)
       admin = create(:admin_user)
-      assert(user.feedback.empty?)
+
+      assert_empty(user.feedback)
       create(:ban, user: user, banner: admin)
+
       assert_not(user.feedback.empty?)
       assert_equal("negative", user.feedback.last.category)
     end

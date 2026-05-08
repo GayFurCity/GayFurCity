@@ -11,6 +11,7 @@ class DtextTest < ActiveSupport::TestCase
 
   def assert_parse_id_link(parse, text, clazz, url, **)
     rel = %(rel="external nofollow noreferrer" ) unless url.starts_with?("/")
+
     assert_parse_dtext(%(<p><a #{rel}class="dtext-link dtext-id-link #{clazz}" href="#{url}">#{text}</a></p>), parse, **)
   end
 

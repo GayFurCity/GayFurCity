@@ -52,12 +52,14 @@ class PoolTest < ActiveSupport::TestCase
         assert_equal(@posts.map(&:id), @pool.post_ids)
 
         @posts.each(&:reload)
+
         assert_equal(["pool:#{@pool.id}"] * @posts.size, @posts.map(&:pool_string))
       end
 
       should("remove invalid post ids") do
         invalid = Post.maximum(:id) + 1
         @pool = create(:pool, post_ids: @posts.map(&:id) + [invalid])
+
         assert_equal(@posts.size, @pool.post_count)
         assert_equal(@posts.map(&:id), @pool.post_ids)
       end
@@ -101,11 +103,13 @@ class PoolTest < ActiveSupport::TestCase
 
       should("update any old posts that were removed") do
         @p2.reload
+
         assert_equal("", @p2.pool_string)
       end
 
       should("update any new posts that were added") do
         @p1.reload
+
         assert_equal("pool:#{@pool.id}", @p1.pool_string)
       end
     end
@@ -152,6 +156,7 @@ class PoolTest < ActiveSupport::TestCase
           @pool.post_ids << invalid
           @pool.updater = @user
           @pool.save
+
           assert_equal(1, @pool.post_count)
           assert_equal([@p1.id], @pool.post_ids)
         end
@@ -226,6 +231,7 @@ class PoolTest < ActiveSupport::TestCase
 
         should("not allow members to change the category of large pools") do
           @pool.update_with(@user, category: "collection")
+
           assert_equal(["You cannot change the category of pools with more than 1 posts"], @pool.errors[:base])
           assert_equal("series", @pool.reload.category)
         end
@@ -233,7 +239,8 @@ class PoolTest < ActiveSupport::TestCase
         should("allow janitors to changer the category of large pools") do
           @janitor = create(:janitor_user)
           @pool.update_with(@janitor, category: "collection")
-          assert(@pool.errors.none?)
+
+          assert_predicate(@pool.errors, :none?)
           assert_equal("collection", @pool.reload.category)
         end
       end
@@ -247,6 +254,7 @@ class PoolTest < ActiveSupport::TestCase
         @pool.save
 
         @pool.reload
+
         assert_equal(2, @pool.versions.size)
         assert_equal(user2.id, @pool.versions.last.updater_id)
         assert_equal("127.0.0.2", @pool.versions.last.updater_ip_addr.to_s)
@@ -256,6 +264,7 @@ class PoolTest < ActiveSupport::TestCase
         @pool.save
 
         @pool.reload
+
         assert_equal(3, @pool.versions.size)
         assert_equal(user2.id, @pool.versions.last.updater_id)
         assert_equal("127.0.0.3", @pool.versions.last.updater_ip_addr.to_s)
@@ -264,6 +273,7 @@ class PoolTest < ActiveSupport::TestCase
       should("should create a version if the name changes") do
         assert_difference("@pool.versions.size", 1) do
           @pool.update(name: "blah")
+
           assert_equal("blah", @pool.versions.last.name)
         end
         assert_equal(2, @pool.versions.size)
@@ -271,19 +281,23 @@ class PoolTest < ActiveSupport::TestCase
 
       should("know what its post ids were previously") do
         @pool.post_ids = [@p1.id]
+
         assert_equal([], @pool.post_ids_was)
       end
 
       should("normalize its name") do
         @pool.update_with(@user, name: "  A  B  ")
+
         assert_equal("A_B", @pool.name)
 
         @pool.update_with(@user, name: "__A__B__")
+
         assert_equal("A_B", @pool.name)
       end
 
       should("normalize its post ids") do
         @pool.update_with(@user, post_ids: [@p1.id, @p2.id, @p1.id])
+
         assert_equal([@p1.id, @p2.id], @pool.post_ids)
       end
 
@@ -323,6 +337,7 @@ class PoolTest < ActiveSupport::TestCase
 
         should("update the pool") do
           @pool.reload
+
           assert_equal(1, @pool.post_count)
           assert_equal([@p2.id], @pool.post_ids)
         end
@@ -331,6 +346,7 @@ class PoolTest < ActiveSupport::TestCase
           @p1.reload
           @p2.reload
           @p3.reload
+
           assert_equal("", @p1.pool_string)
           assert_equal("pool:#{@pool.id}", @p2.pool_string)
           assert_equal("", @p3.pool_string)
@@ -366,27 +382,33 @@ class PoolTest < ActiveSupport::TestCase
 
       should("update when an artist is added/removed") do
         with_inline_jobs { @post.update_with(@user, tag_string_diff: "artist:bar") }
+
         assert_same_elements(%w[foo bar], @pool.reload.artist_names)
 
         with_inline_jobs { @post.update_with(@user, tag_string_diff: "-foo") }
+
         assert_same_elements(%w[bar], @pool.reload.artist_names)
       end
 
       should("update when a post is added/removed (via add!/remove!)") do
         @post2 = create(:post, tag_string: "artist:baz")
         @pool.add!(@post2, @user)
+
         assert_same_elements(%w[foo baz], @pool.artist_names)
 
         @pool.remove!(@post, @user)
+
         assert_same_elements(%w[baz], @pool.artist_names)
       end
 
       should("update when a post is added/removed (via post_ids=)") do
         @post2 = create(:post, tag_string: "artist:baz")
         @pool.update_with(@user, post_ids: [@post.id, @post2.id])
+
         assert_same_elements(%w[foo baz], @pool.artist_names)
 
         @pool.update_with(@user, post_ids: [@post2.id])
+
         assert_same_elements(%w[baz], @pool.artist_names)
       end
     end

@@ -21,6 +21,7 @@ class AvoidPostingTest < ActiveSupport::TestCase
       end
 
       @mod = ModAction.last
+
       assert_equal("avoid_posting_create", @mod.action)
       assert_equal(@owner_user.id, @mod.creator_id)
     end
@@ -31,6 +32,7 @@ class AvoidPostingTest < ActiveSupport::TestCase
       end
 
       @mod = ModAction.last
+
       assert_equal("avoid_posting_update", @mod.action)
       assert_equal(@owner_user.id, @mod.creator_id)
     end
@@ -41,6 +43,7 @@ class AvoidPostingTest < ActiveSupport::TestCase
       end
 
       @mod = ModAction.last
+
       assert_equal("avoid_posting_delete", @mod.action)
       assert_equal(@owner_user.id, @mod.creator_id)
     end
@@ -53,6 +56,7 @@ class AvoidPostingTest < ActiveSupport::TestCase
       end
 
       @mod = ModAction.last
+
       assert_equal("avoid_posting_undelete", @mod.action)
       assert_equal(@owner_user.id, @mod.creator_id)
     end
@@ -63,6 +67,7 @@ class AvoidPostingTest < ActiveSupport::TestCase
       end
 
       @mod = ModAction.last
+
       assert_equal("avoid_posting_destroy", @mod.action)
       assert_equal(@owner_user.id, @mod.creator_id)
     end
@@ -73,6 +78,7 @@ class AvoidPostingTest < ActiveSupport::TestCase
       end
 
       @apv = AvoidPostingVersion.last
+
       assert_equal("test", @apv.details)
       assert_equal(@owner_user.id, @apv.updater_id)
     end

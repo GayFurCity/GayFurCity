@@ -61,9 +61,11 @@ class TakedownsControllerTest < ActionDispatch::IntegrationTest
     should("allow creation") do
       takedown_post = create(:post)
       post(takedowns_path, params: { takedown: { email: "dummy@example.com", reason: "foo", post_ids: "#{takedown_post.id} #{takedown_post.id + 1}" }, format: :json })
+
       assert_response(:redirect)
 
       takedown = Takedown.last
+
       assert_redirected_to(takedown_path(takedown, code: takedown.vericode))
       assert_equal(takedown_post.id.to_s, takedown.post_ids)
       assert_operator(takedown.vericode.length, :>, 8)

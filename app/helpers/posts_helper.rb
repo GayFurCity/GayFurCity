@@ -200,7 +200,7 @@ module PostsHelper
   end
 
   def post_ribbons(post, user = CurrentUser.user)
-    tag.div(class: "ribbons") do # rubocop:disable Metrics/BlockLength
+    tag.div(class: "ribbons") do
       safe_join([if post.parent_id.present?
                    if post.has_visible_children?(user)
                      tag.div(class: "ribbon left has-parent has-children", title: "Has Parent\nHas Children") do

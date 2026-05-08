@@ -14,9 +14,10 @@ class EmailsControllerTest < ActionDispatch::IntegrationTest
       should("work") do
         assert_difference("UserEvent.count", 2) do
           get_auth(activate_user_email_url(sig: email_sig(@user, :activate, 48.hours)), @user)
+
           assert_redirected_to(home_users_path)
         end
-        assert_equal(true, @user.user_events.email_verify.exists?)
+        assert_predicate(@user.user_events.email_verify, :exists?)
       end
     end
   end

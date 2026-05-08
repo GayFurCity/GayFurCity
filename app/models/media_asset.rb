@@ -18,6 +18,7 @@ class MediaAsset < ApplicationRecord
     end
   end
   include(ChunkedUpload) # must be near the top due to callbacks
+
   self.abstract_class = true
 
   belongs_to_user(:creator, ip: true, clones: :updater)

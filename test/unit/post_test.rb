@@ -66,6 +66,7 @@ class PostTest < ActiveSupport::TestCase
       should("remove the post from iqdb") do
         request_stub = stub_request(:delete, "#{IqdbProxy.endpoint}/images/#{@post.id}")
         with_inline_jobs { @post.expunge!(@user) }
+
         assert_requested(request_stub)
       end
 
@@ -76,6 +77,7 @@ class PostTest < ActiveSupport::TestCase
 
         should("not destroy the record") do
           @post.expunge!(@user)
+
           assert_equal(1, Post.where("id = ?", @post.id).count)
         end
       end
@@ -108,6 +110,7 @@ class PostTest < ActiveSupport::TestCase
 
         should("fail") do
           @post.delete!(@user, "test")
+
           assert_equal(["Is status locked ; cannot delete post"], @post.errors.full_messages)
           assert_equal(1, Post.where("id = ?", @post.id).count)
         end
@@ -121,7 +124,7 @@ class PostTest < ActiveSupport::TestCase
         should("succeed") do
           @post.delete!(@user, "test")
 
-          assert_equal(true, @post.is_deleted?)
+          assert_predicate(@post, :is_deleted?)
           assert_equal(1, @post.flags.size)
           assert_match(/test/, @post.flags.last.reason)
         end
@@ -130,19 +133,22 @@ class PostTest < ActiveSupport::TestCase
       context("that is still in cooldown after being flagged") do
         should("succeed") do
           flag = create(:post_flag)
+
           assert_equal([], flag.errors.full_messages)
           flag.post.delete!(@user, "test deletion")
 
-          assert_equal(true, flag.post.is_deleted)
+          assert(flag.post.is_deleted)
           assert_equal(2, flag.post.flags.size)
         end
       end
 
       should("toggle the is_deleted flag") do
         post = create(:post)
-        assert_equal(false, post.is_deleted?)
+
+        assert_not(post.is_deleted?)
         post.delete!(@user, "test")
-        assert_equal(true, post.is_deleted?)
+
+        assert_predicate(post, :is_deleted?)
       end
 
       should("move the files") do
@@ -152,12 +158,15 @@ class PostTest < ActiveSupport::TestCase
         preview = post.media_asset.find_variant!(:preview)
         preview_path = preview.file_path(protected: false)
         new_preview_path = preview.file_path(protected: true)
+
         assert_equal(post.file_path, path)
         assert_equal(post.preview_file_path, preview_path)
         post.delete!(@user, "test")
+
         assert_equal(post.file_path, new_path)
         assert_equal(post.preview_file_path, new_preview_path)
         post.undelete!(@user)
+
         assert_equal(post.file_path, path)
         assert_equal(post.preview_file_path, preview_path)
       end
@@ -169,12 +178,15 @@ class PostTest < ActiveSupport::TestCase
         preview_path = GayFurCity.config.storage_manager.instance.file_path(post.md5, "webp", :preview, protected: false, **h)
         new_path = GayFurCity.config.storage_manager.instance.file_path(post.md5, post.file_ext, :original, protected: true, **h)
         new_preview_path = GayFurCity.config.storage_manager.instance.file_path(post.md5, "webp", :preview, protected: true, **h)
+
         assert_equal(post.file_path, path)
         assert_equal(post.preview_file_path, preview_path)
         post.delete!(@user, "test")
+
         assert_equal(post.file_path, new_path)
         assert_equal(post.preview_file_path, new_preview_path)
         post.undelete!(@user)
+
         assert_equal(post.file_path, path)
         assert_equal(post.preview_file_path, preview_path)
       end
@@ -190,13 +202,15 @@ class PostTest < ActiveSupport::TestCase
       @post.updater = @user
       @post.copy_tags_to_parent
       @post.parent.save
-      assert_equal(@parent.reload.tag_string, "a b c d e f invalid_source")
+
+      assert_equal("a b c d e f invalid_source", @parent.reload.tag_string)
     end
     should("Copy sources to parent") do
       @post.updater = @user
       @post.copy_sources_to_parent
       @post.parent.save
-      assert_equal(@parent.reload.source, "a\nb\nc\nd")
+
+      assert_equal("a\nb\nc\nd", @parent.reload.source)
     end
   end
 
@@ -204,10 +218,12 @@ class PostTest < ActiveSupport::TestCase
     context("Assigning a parent to a post") do
       should("update the has_children flag on the parent") do
         p1 = create(:post)
+
         assert_not(p1.has_children?, "Parent should not have any children")
         create(:post, parent_id: p1.id)
         p1.reload
-        assert(p1.has_children?, "Parent not updated after child was added")
+
+        assert_predicate(p1, :has_children?, "Parent not updated after child was added")
       end
 
       should("update the has_children flag on the old parent") do
@@ -218,8 +234,9 @@ class PostTest < ActiveSupport::TestCase
         c1.save
         p1.reload
         p2.reload
+
         assert_not(p1.has_children?, "Old parent should not have a child")
-        assert(p2.has_children?, "New parent should have a child")
+        assert_predicate(p2, :has_children?, "New parent should have a child")
       end
     end
 
@@ -230,7 +247,8 @@ class PostTest < ActiveSupport::TestCase
           c1 = create(:post, parent_id: p1.id)
           c1.expunge!(@user)
           p1.reload
-          assert_equal(false, p1.has_children?)
+
+          assert_not(p1.has_children?)
         end
 
         should("update the parent's has_children flag") do
@@ -238,6 +256,7 @@ class PostTest < ActiveSupport::TestCase
           c1 = create(:post, parent_id: p1.id)
           c1.expunge!(@user)
           p1.reload
+
           assert_not(p1.has_children?, "Parent should not have children")
         end
       end
@@ -248,6 +267,7 @@ class PostTest < ActiveSupport::TestCase
           c1 = create(:post, parent_id: p1.id)
           p1.expunge!(@user)
           c1.reload
+
           assert_nil(c1.parent)
         end
       end
@@ -285,7 +305,8 @@ class PostTest < ActiveSupport::TestCase
 
         should("set the has_children flag on the new parent") do
           @p1.expunge!(@user)
-          assert_equal(true, @c1.reload.has_children?)
+
+          assert_predicate(@c1.reload, :has_children?)
         end
       end
     end
@@ -300,6 +321,7 @@ class PostTest < ActiveSupport::TestCase
           VoteManager::Posts.vote!(user: user, ip_addr: "127.0.0.1", post: c1, score: 1)
           c1.delete!(@user, "test")
           p1.reload
+
           assert(Favorite.exists?(post_id: c1.id, user_id: user.id), "Child should still have favorites")
           assert(PostVote.exists?(post_id: c1.id, user_id: user.id), "Child should still have votes")
           assert_not(Favorite.exists?(post_id: p1.id, user_id: user.id), "Parent should not have favorites")
@@ -314,6 +336,7 @@ class PostTest < ActiveSupport::TestCase
           VoteManager::Posts.vote!(user: user, ip_addr: "127.0.0.1", post: c1, score: 1)
           with_inline_jobs { c1.delete!(@user, "test", move_favorites: true) }
           p1.reload
+
           assert_not(Favorite.exists?(post_id: c1.id, user_id: user.id), "Child should not still have favorites")
           assert_not(PostVote.exists?(post_id: c1.id, user_id: user.id), "Child should not still have votes")
           assert(Favorite.exists?(post_id: p1.id, user_id: user.id), "Parent should have favorites")
@@ -325,7 +348,8 @@ class PostTest < ActiveSupport::TestCase
           c1 = create(:post, parent_id: p1.id)
           c1.delete!(@user, "test")
           p1.reload
-          assert(p1.has_children?, "Parent should have children")
+
+          assert_predicate(p1, :has_children?, "Parent should have children")
         end
 
         should("clear the has_active_children flag when the 'move favorites' option is set") do
@@ -334,9 +358,10 @@ class PostTest < ActiveSupport::TestCase
           c1 = create(:post, parent_id: p1.id)
           FavoriteManager.add!(user: user, post: c1)
 
-          assert_equal(true, p1.reload.has_active_children?)
+          assert_predicate(p1.reload, :has_active_children?)
           c1.delete!(@user, "test", move_favorites: true)
-          assert_equal(false, p1.reload.has_active_children?)
+
+          assert_not(p1.reload.has_active_children?)
         end
       end
 
@@ -346,7 +371,8 @@ class PostTest < ActiveSupport::TestCase
           create(:post, parent_id: p1.id)
           p1.delete!(@user, "test")
           p1.reload
-          assert_equal(true, p1.has_children?)
+
+          assert_predicate(p1, :has_children?)
         end
 
         should("not remove the parent of that child") do
@@ -354,6 +380,7 @@ class PostTest < ActiveSupport::TestCase
           c1 = create(:post, parent_id: p1.id)
           p1.delete!(@user, "test")
           c1.reload
+
           assert_not_nil(c1.parent)
         end
       end
@@ -368,6 +395,7 @@ class PostTest < ActiveSupport::TestCase
           c1.reload
           c2.reload
           c3.reload
+
           assert_equal(p1.id, c1.parent_id)
           assert_equal(p1.id, c2.parent_id)
           assert_equal(p1.id, c3.parent_id)
@@ -383,6 +411,7 @@ class PostTest < ActiveSupport::TestCase
         c1.delete!(@user, "test")
         c1.undelete!(new_user)
         p1.reload
+
         assert_equal(new_user.id, c1.approver_id)
       end
 
@@ -392,8 +421,9 @@ class PostTest < ActiveSupport::TestCase
         c1.delete!(@user, "test")
         c1.undelete!(@user)
         p1.reload
+
         assert_not_nil(c1.parent_id)
-        assert(p1.has_children?, "Parent should have children")
+        assert_predicate(p1, :has_children?, "Parent should have children")
       end
     end
   end
@@ -411,15 +441,17 @@ class PostTest < ActiveSupport::TestCase
 
         should("not allow undeletion") do
           @post.undelete!(@user)
+
           assert_equal(["Is status locked ; cannot undelete post"], @post.errors.full_messages)
-          assert_equal(true, @post.is_deleted?)
+          assert_predicate(@post, :is_deleted?)
         end
       end
 
       context("when undeleted") do
         should("be undeleted") do
           @post.undelete!(@user)
-          assert_equal(false, @post.reload.is_deleted?)
+
+          assert_not(@post.reload.is_deleted?)
         end
       end
     end
@@ -430,7 +462,7 @@ class PostTest < ActiveSupport::TestCase
         assert_difference(-> { PostFlag.count }, 1) do
           create(:post_flag, post: post)
         end
-        assert(post.is_flagged?, "Post should be flagged.")
+        assert_predicate(post, :is_flagged?, "Post should be flagged.")
         assert_equal(1, post.flags.count)
       end
 
@@ -446,6 +478,7 @@ class PostTest < ActiveSupport::TestCase
       should("preserve the approver's identity when approved") do
         post = create(:post, is_pending: true)
         post.approve!(@user)
+
         assert_equal(post.approver_id, @user.id)
       end
 
@@ -460,7 +493,8 @@ class PostTest < ActiveSupport::TestCase
 
         should("allow person Y to approve the post") do
           @post.approve!(@mod2)
-          assert(@post.valid?)
+
+          assert_predicate(@post, :valid?)
         end
       end
 
@@ -473,10 +507,12 @@ class PostTest < ActiveSupport::TestCase
 
         should("no longer be pending") do
           @post.approve!(@user)
-          assert(@post.errors.empty?, @post.errors.full_messages.join(", "))
+
+          assert_empty(@post.errors, @post.errors.full_messages.join(", "))
           @post.reload
-          assert_equal(true, @post.is_flagged?)
-          assert_equal(false, @post.is_pending?)
+
+          assert_predicate(@post, :is_flagged?)
+          assert_not(@post.is_pending?)
         end
       end
     end
@@ -489,6 +525,7 @@ class PostTest < ActiveSupport::TestCase
       should("not allow new flags") do
         flag = build(:post_flag, post: @post, creator: @user)
         flag.validate
+
         assert_equal(["Post is locked and cannot be flagged"], flag.errors.full_messages)
       end
 
@@ -521,6 +558,7 @@ class PostTest < ActiveSupport::TestCase
         should("allow you to remove request tags") do
           @post.update_with(@user, tag_string: "aaa bbb ccc ddd")
           @post.reload
+
           assert_equal("aaa bbb ccc ddd", @post.tag_string)
         end
       end
@@ -594,11 +632,13 @@ class PostTest < ActiveSupport::TestCase
             locked_tags = "-base_tag -female/female male/male test_tag"
             tag_string = "specific_tag female/female group def"
             @post = create(:post, locked_tags: locked_tags, tag_string: tag_string)
+
             assert_equal("def group male male/male test_tag", @post.tag_string)
           end
 
           should("update the cache when implications change") do
             @post = create(:post, locked_tags: "-group", tag_string: "trio specific_tag")
+
             assert_equal("specific_tag trio", @post.tag_string)
 
             ti = create(:tag_implication, antecedent_name: "trio", consequent_name: "group", status: "pending")
@@ -607,12 +647,14 @@ class PostTest < ActiveSupport::TestCase
             @post.tag_string += " "
             @post.updater = @user
             @post.save
+
             assert_equal("specific_tag", @post.tag_string)
 
             ti.reject!(@user)
             @post.tag_string += " trio"
             @post.updater = @user
             @post.save
+
             assert_equal("specific_tag trio", @post.tag_string)
           end
         end
@@ -648,6 +690,7 @@ class PostTest < ActiveSupport::TestCase
             @post.warnings.clear
             @post.updater = @user
             @post.save
+
             assert_match(/Forcefully added 1 locked tag: avoid_posting/, @post.warnings.full_messages.join(" "))
 
             assert_equal("a avoid_posting b c", @post.tag_string)
@@ -661,6 +704,7 @@ class PostTest < ActiveSupport::TestCase
             @post.warnings.clear
             @post.updater = @user
             @post.save
+
             assert_no_match(/Forcefully added 1 locked tag: avoid_posting/, @post.warnings.full_messages.join(" "))
           end
         end
@@ -680,7 +724,7 @@ class PostTest < ActiveSupport::TestCase
             @post.save
 
             assert_match(/Forcefully removed 2 invalid locked tags: invalid_tag, -invalid_tag_2/, @post.warnings.full_messages.join(" "))
-            assert_equal(@post.tag_string, "invalid_tag test_tag")
+            assert_equal("invalid_tag test_tag", @post.tag_string)
             assert_empty(@post.locked_tags)
           end
 
@@ -692,7 +736,7 @@ class PostTest < ActiveSupport::TestCase
             @post.save
 
             assert_match(/Forcefully removed 2 invalid locked tags: invalid_tag, -invalid_tag_2/, @post.warnings.full_messages.join(" "))
-            assert_equal(@post.tag_string, "invalid_tag test_tag")
+            assert_equal("invalid_tag test_tag", @post.tag_string)
             assert_empty(@post.locked_tags)
           end
         end
@@ -787,28 +831,34 @@ class PostTest < ActiveSupport::TestCase
             @post.update_with(@user, tag_string: "aaa parent:#{@parent.id}")
             @post.reload
             @parent.reload
+
             assert_equal(@parent.id, @post.parent_id)
-            assert(@parent.has_children?)
+            assert_predicate(@parent, :has_children?)
           end
 
           should("not allow self-parenting") do
             @post.update_with(@user, tag_string: "parent:#{@post.id}")
+
             assert_nil(@post.parent_id)
           end
 
           should("clear the parent with parent:none") do
             @post.update_with(@user, parent_id: @parent.id)
+
             assert_equal(@parent.id, @post.parent_id)
 
             @post.update_with(@user, tag_string: "parent:none")
+
             assert_nil(@post.parent_id)
           end
 
           should("clear the parent with -parent:1234") do
             @post.update_with(@user, parent_id: @parent.id)
+
             assert_equal(@parent.id, @post.parent_id)
 
             @post.update_with(@user, tag_string: "-parent:#{@parent.id}")
+
             assert_nil(@post.parent_id)
           end
         end
@@ -823,6 +873,7 @@ class PostTest < ActiveSupport::TestCase
             should("add the post to the pool") do
               @post.reload
               @pool.reload
+
               assert_equal([@post.id], @pool.post_ids)
               assert_equal("pool:#{@pool.id}", @post.pool_string)
             end
@@ -840,6 +891,7 @@ class PostTest < ActiveSupport::TestCase
             should("remove the post from the pool") do
               @post.reload
               @pool.reload
+
               assert_equal([], @pool.post_ids)
               assert_equal("", @post.pool_string)
             end
@@ -854,6 +906,7 @@ class PostTest < ActiveSupport::TestCase
             should("add the post to the pool") do
               @post.reload
               @pool.reload
+
               assert_equal([@post.id], @pool.post_ids)
               assert_equal("pool:#{@pool.id}", @post.pool_string)
             end
@@ -869,6 +922,7 @@ class PostTest < ActiveSupport::TestCase
               should("add the post to the pool") do
                 @post.reload
                 @pool.reload
+
                 assert_equal([@post.id], @pool.post_ids)
                 assert_equal("pool:#{@pool.id}", @post.pool_string)
               end
@@ -879,6 +933,7 @@ class PostTest < ActiveSupport::TestCase
                 @post.update_with(@user, tag_string: "aaa newpool:abc")
                 @pool = Pool.find_by(name: "abc")
                 @post.reload
+
                 assert_not_nil(@pool)
                 assert_equal([@post.id], @pool.post_ids)
                 assert_equal("pool:#{@pool.id}", @post.pool_string)
@@ -888,6 +943,7 @@ class PostTest < ActiveSupport::TestCase
             context("with special characters") do
               should("not strip '%' from the name") do
                 @post.update(tag_string: "aaa newpool:ichigo_100%")
+
                 assert(Pool.exists?(name: "ichigo_100%"))
               end
             end
@@ -899,6 +955,7 @@ class PostTest < ActiveSupport::TestCase
             should("update the rating if the post is unlocked") do
               @post.update_with(@user, tag_string: "aaa rating:e")
               @post.reload
+
               assert_equal("e", @post.rating)
             end
           end
@@ -907,6 +964,7 @@ class PostTest < ActiveSupport::TestCase
             should("not update the rating") do
               @post.update_with(@user, tag_string: "aaa rating:z")
               @post.reload
+
               assert_equal("q", @post.rating)
             end
           end
@@ -915,7 +973,7 @@ class PostTest < ActiveSupport::TestCase
             should("change the rating if locked in the same update") do
               @post.update_with(@user, tag_string: "rating:e", is_rating_locked: true)
 
-              assert(@post.valid?)
+              assert_predicate(@post, :valid?)
               assert_equal("e", @post.reload.rating)
             end
 
@@ -926,7 +984,7 @@ class PostTest < ActiveSupport::TestCase
 
               @post.update_with(@user, tag_string: "rating:e")
 
-              assert(@post.invalid?)
+              assert_predicate(@post, :invalid?)
               assert_not_equal("e", @post.reload.rating)
             end
           end
@@ -936,9 +994,11 @@ class PostTest < ActiveSupport::TestCase
           should("add/remove the current user to the post's favorite listing") do
             @post.update_with(@user, tag_string: "aaa")
             FavoriteManager.add!(user: @user, post: @post)
+
             assert_equal("fav:#{@user.id}", @post.fav_string)
 
             FavoriteManager.remove!(user: @user, post: @post)
+
             assert_equal("", @post.fav_string)
           end
         end
@@ -948,19 +1008,22 @@ class PostTest < ActiveSupport::TestCase
             @children = create_list(:post, 3, parent_id: nil)
 
             @post.update_with(@user, tag_string: "aaa child:#{@children.first.id}..#{@children.last.id}")
-            assert_equal(true, @post.reload.has_children?)
+
+            assert_predicate(@post.reload, :has_children?)
             assert_equal(@post.id, @children[0].reload.parent_id)
             assert_equal(@post.id, @children[1].reload.parent_id)
             assert_equal(@post.id, @children[2].reload.parent_id)
 
             @post.update_with(@user, tag_string: "aaa -child:#{@children.first.id}")
-            assert_equal(true, @post.reload.has_children?)
+
+            assert_predicate(@post.reload, :has_children?)
             assert_nil(@children[0].reload.parent_id)
             assert_equal(@post.id, @children[1].reload.parent_id)
             assert_equal(@post.id, @children[2].reload.parent_id)
 
             @post.update_with(@user, tag_string: "aaa child:none")
-            assert_equal(false, @post.reload.has_children?)
+
+            assert_not(@post.reload.has_children?)
             assert_nil(@children[0].reload.parent_id)
             assert_nil(@children[1].reload.parent_id)
             assert_nil(@children[2].reload.parent_id)
@@ -970,22 +1033,26 @@ class PostTest < ActiveSupport::TestCase
         context("for a source") do
           should("set the source with source:foo_bar_baz") do
             @post.update_with(@user, tag_string: "source:foo_bar_baz")
+
             assert_equal("foo_bar_baz", @post.source)
           end
 
           should('set the source with source:"foo bar baz"') do
             @post.update_with(@user, tag_string: 'source:"foo bar baz"')
+
             assert_equal("foo bar baz", @post.source)
           end
 
           should('strip the source with source:"  foo bar baz  "') do
             @post.update_with(@user, tag_string: 'source:"  foo bar baz  "')
+
             assert_equal("foo bar baz", @post.source)
           end
 
           should("clear the source with source:none") do
             @post.update_with(@user, source: "foobar")
             @post.update_with(@user, tag_string: "source:none")
+
             assert_equal("", @post.source)
           end
         end
@@ -999,17 +1066,20 @@ class PostTest < ActiveSupport::TestCase
             context("by a member") do
               should("not lock the notes") do
                 @post.update_with(@user, tag_string: "locked:notes")
-                assert_equal(false, @post.is_note_locked)
+
+                assert_not(@post.is_note_locked)
               end
             end
 
             context("by a janitor") do
               should("lock/unlock the notes") do
                 @post.update_with(@janitor, tag_string: "locked:notes")
-                assert_equal(true, @post.is_note_locked)
+
+                assert(@post.is_note_locked)
 
                 @post.update_with(@janitor, tag_string: "-locked:notes")
-                assert_equal(false, @post.is_note_locked)
+
+                assert_not(@post.is_note_locked)
               end
             end
           end
@@ -1018,17 +1088,20 @@ class PostTest < ActiveSupport::TestCase
             context("by a member") do
               should("not lock the rating") do
                 @post.update_with(@user, tag_string: "locked:rating")
-                assert_equal(false, @post.is_rating_locked)
+
+                assert_not(@post.is_rating_locked)
               end
             end
 
             context("by a janitor") do
               should("lock/unlock the rating") do
                 @post.update_with(@janitor, tag_string: "locked:rating")
-                assert_equal(true, @post.is_rating_locked)
+
+                assert(@post.is_rating_locked)
 
                 @post.update_with(@janitor, tag_string: "-locked:rating")
-                assert_equal(false, @post.is_rating_locked)
+
+                assert_not(@post.is_rating_locked)
               end
             end
           end
@@ -1037,7 +1110,8 @@ class PostTest < ActiveSupport::TestCase
             context("by a member") do
               should("not lock the status") do
                 @post.update_with(@user, tag_string: "locked:status")
-                assert_equal(false, @post.is_status_locked)
+
+                assert_not(@post.is_status_locked)
               end
             end
 
@@ -1045,10 +1119,12 @@ class PostTest < ActiveSupport::TestCase
               should("lock/unlock the status") do
                 @admin = create(:admin_user)
                 @post.update_with(@admin, tag_string: "locked:status")
-                assert_equal(true, @post.is_status_locked)
+
+                assert(@post.is_status_locked)
 
                 @post.update_with(@admin, tag_string: "-locked:status")
-                assert_equal(false, @post.is_status_locked)
+
+                assert_not(@post.is_status_locked)
               end
             end
           end
@@ -1060,6 +1136,7 @@ class PostTest < ActiveSupport::TestCase
           @post.update_with(@user, tag_string: "aaa bbb ccc")
           @post.update_with(@user, tag_string: "aaa bbb ccc -bbb")
           @post.reload
+
           assert_equal("aaa ccc", @post.tag_string)
         end
 
@@ -1074,9 +1151,11 @@ class PostTest < ActiveSupport::TestCase
       context("tagged with animated_gif or animated_png") do
         should("remove the tag if not a gif or png") do
           @post.update_with(@user, tag_string: "tagme animated_gif")
+
           assert_equal("tagme", @post.tag_string)
 
           @post.update_with(@user, tag_string: "tagme animated_png")
+
           assert_equal("tagme", @post.tag_string)
         end
       end
@@ -1085,6 +1164,7 @@ class PostTest < ActiveSupport::TestCase
         post = create(:post)
         post.reload
         post.set_tag_string("aaa bbb")
+
         assert_equal(%w[aaa bbb], post.tag_array)
         assert_equal(%w[tag1 tag2], post.tag_array_was)
       end
@@ -1187,12 +1267,14 @@ class PostTest < ActiveSupport::TestCase
 
         should("remove the invalid_source tag when the source is removed") do
           @post.update_with(@user, source: "")
+
           assert_no_match(/invalid_source/, @post.reload.tag_string)
         end
       end
 
       should("not allow adding invalid_source") do
         @post.update_with(@user, tag_string: "invalid_source")
+
         assert_no_match(/invalid_source/, @post.reload.tag_string)
       end
 
@@ -1213,8 +1295,8 @@ class PostTest < ActiveSupport::TestCase
         context("as an automated edit") do
           should("error if attempting to merge into the first") do
             post = create(:post, uploader: @user)
+            post.updater = @user
             assert_raises(PostVersion::MergeError, match: "Attempted to merge post ##{post.id} into its first version (#{post.versions.first.id})") do
-              post.updater = @user
               post.merge_post_version(post.versions.first)
             end
           end
@@ -1222,8 +1304,8 @@ class PostTest < ActiveSupport::TestCase
           should("error if attempting to merge into a non-basic version") do
             post = create(:post, uploader: @user)
             post.update_with(@user, description: "test")
+            post.updater = @user
             assert_raises(PostVersion::MergeError, match: "Attempted to merge post ##{post.id} into non-basic post version ##{post.versions.last.id}") do
-              post.updater = @user
               post.merge_post_version(post.versions.last)
             end
           end
@@ -1231,8 +1313,8 @@ class PostTest < ActiveSupport::TestCase
           should("error if attempting to merge into a version made by another updater") do
             post = create(:post, uploader: @user)
             post.update_with(create(:user), tag_string: "zzz")
+            post.updater = @user
             assert_raises(PostVersion::MergeError, match: "Attempted to merge post ##{post.id} into post version ##{post.versions.last.id} created by different updater (#{post.versions.last.updater_id}/#{@user.id})") do
-              post.updater = @user
               post.merge_post_version(post.versions.last)
             end
           end
@@ -1321,11 +1403,13 @@ class PostTest < ActiveSupport::TestCase
 
         should("reset its tag array cache") do
           post = create(:post, tag_string: "aaa bbb ccc")
+
           assert_equal(%w[aaa bbb ccc], post.tag_array)
           post.tag_string = "ddd eee fff"
           post.tag_string = "ddd eee fff"
           post.updater = @user
           post.save
+
           assert_equal("ddd eee fff", post.tag_string)
           assert_equal(%w[ddd eee fff], post.tag_array)
         end
@@ -1340,6 +1424,7 @@ class PostTest < ActiveSupport::TestCase
           create(:post, tag_string: "aaa bbb ccc")
           create(:post, tag_string: "bbb ccc ddd")
           post3 = create(:post, tag_string: "ccc ddd eee")
+
           assert_equal(1, Tag.find_by(name: "aaa").post_count)
           assert_equal(2, Tag.find_by(name: "bbb").post_count)
           assert_equal(3, Tag.find_by(name: "ccc").post_count)
@@ -1347,6 +1432,7 @@ class PostTest < ActiveSupport::TestCase
           post3.updater = @user
           post3.tag_string = "xxx"
           post3.save
+
           assert_equal(1, Tag.find_by(name: "aaa").post_count)
           assert_equal(2, Tag.find_by(name: "bbb").post_count)
           assert_equal(2, Tag.find_by(name: "ccc").post_count)
@@ -1360,6 +1446,7 @@ class PostTest < ActiveSupport::TestCase
           copyright_tag = create(:copyright_tag)
           general_tag = create(:tag)
           new_post = create(:post, tag_string: "#{artist_tag.name} #{copyright_tag.name} #{general_tag.name}")
+
           assert_equal(1, new_post.tag_count_artist)
           assert_equal(1, new_post.tag_count_copyright)
           assert_equal(1, new_post.tag_count_general)
@@ -1369,6 +1456,7 @@ class PostTest < ActiveSupport::TestCase
           new_post.tag_string = "babs"
           new_post.updater = @user
           new_post.save
+
           assert_equal(0, new_post.tag_count_artist)
           assert_equal(0, new_post.tag_count_copyright)
           assert_equal(1, new_post.tag_count_general)
@@ -1395,6 +1483,7 @@ class PostTest < ActiveSupport::TestCase
 
           # final should be <aaa>, <bbb>, <ddd>, <eee>
           final_post = Post.find(post.id)
+
           assert_equal(%w[aaa bbb ddd eee], TagQuery.scan(final_post.tag_string).sort)
         end
 
@@ -1420,6 +1509,7 @@ class PostTest < ActiveSupport::TestCase
 
           # final should be <aaa>, <bbb>, <ddd>, <eee>
           final_post = Post.find(post.id)
+
           assert_equal(%w[aaa bbb ddd eee], TagQuery.scan(final_post.tag_string).sort)
         end
 
@@ -1451,6 +1541,7 @@ class PostTest < ActiveSupport::TestCase
 
           # final post should be rated safe and have the set parent and source
           final_post = Post.find(post.id)
+
           assert_equal(parent_post.id, final_post.parent_id)
           assert_equal("https://example.com", final_post.source)
           assert_equal("s", final_post.rating)
@@ -1463,6 +1554,7 @@ class PostTest < ActiveSupport::TestCase
           post.tag_string = "aaa pool:1234 pool:test rating:s fav:bob"
           post.updater = @user
           post.save
+
           assert_equal("aaa", post.tag_string)
         end
       end
@@ -1487,11 +1579,13 @@ class PostTest < ActiveSupport::TestCase
         should("warn when a post from a known source is missing an artist tag") do
           post = build(:post, source: "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=65985331", uploader: @user)
           post.save
+
           assert_match(/Artist tag is required/, post.warnings.full_messages.join)
         end
 
         should("warn when an upload doesn't have enough tags") do
           post = create(:post, tag_string: "tagme")
+
           assert_match(/Uploads must have at least \d+ general tags/, post.warnings.full_messages.join)
         end
 
@@ -1500,6 +1594,7 @@ class PostTest < ActiveSupport::TestCase
           post = create(:post, tag_string: "1 2 3 4 5")
           post.add_tag("6")
           post.save
+
           assert_match(/tag count exceeds maximum/, post.errors.full_messages.join)
         end
 
@@ -1510,6 +1605,7 @@ class PostTest < ActiveSupport::TestCase
           post.add_tag("2")
           post.updater = @user
           post.save
+
           assert_match(/tag count exceeds maximum/, post.errors.full_messages.join)
         end
 
@@ -1520,6 +1616,7 @@ class PostTest < ActiveSupport::TestCase
           post.remove_tag("3")
           post.updater = @user
           post.save
+
           assert_no_match(/tag count exceeds maximum/, post.errors.full_messages.join)
         end
       end
@@ -1545,6 +1642,7 @@ class PostTest < ActiveSupport::TestCase
         %w[S safe derp].each do |rating|
           subject.rating = rating
           subject.updater = @user
+
           assert_not(subject.valid?)
         end
       end
@@ -1553,7 +1651,8 @@ class PostTest < ActiveSupport::TestCase
         %w[s q e].each do |rating|
           subject.rating = rating
           subject.updater = @user
-          assert(subject.valid?)
+
+          assert_predicate(subject, :valid?)
         end
       end
     end
@@ -1566,6 +1665,7 @@ class PostTest < ActiveSupport::TestCase
         %w[S safe derp].each do |rating|
           subject.rating = rating
           subject.updater = @user
+
           assert_not(subject.valid?)
         end
       end
@@ -1574,6 +1674,7 @@ class PostTest < ActiveSupport::TestCase
         %w[s e].each do |rating|
           subject.rating = rating
           subject.updater = @user
+
           assert_not(subject.valid?)
         end
       end
@@ -1620,6 +1721,7 @@ class PostTest < ActiveSupport::TestCase
         @post.update_column(:fav_string, "fav:1 fav:1 fav:1")
         @post.update_column(:fav_count, 3)
         @post.append_user_to_fav_string(2)
+
         assert_equal("fav:1 fav:2", @post.fav_string)
         assert_equal(2, @post.fav_count)
       end
@@ -1634,27 +1736,32 @@ class PostTest < ActiveSupport::TestCase
       should("not increment the post's score") do
         @member = create(:user)
         FavoriteManager.add!(user: @user, post: @post)
+
         assert_equal(0, @post.score)
       end
 
       should("update the fav strings on the post") do
         FavoriteManager.add!(user: @user, post: @post)
         @post.reload
+
         assert_equal("fav:#{@user.id}", @post.fav_string)
         assert(Favorite.exists?(user_id: @user.id, post_id: @post.id))
 
         assert_raises(Favorite::Error) { FavoriteManager.add!(user: @user, post: @post) }
         @post.reload
+
         assert_equal("fav:#{@user.id}", @post.fav_string)
         assert(Favorite.exists?(user_id: @user.id, post_id: @post.id))
 
         FavoriteManager.remove!(user: @user, post: @post)
         @post.reload
+
         assert_equal("", @post.fav_string)
         assert_not(Favorite.exists?(user_id: @user.id, post_id: @post.id))
 
         FavoriteManager.remove!(user: @user, post: @post)
         @post.reload
+
         assert_equal("", @post.fav_string)
         assert_not(Favorite.exists?(user_id: @user.id, post_id: @post.id))
       end
@@ -1699,9 +1806,11 @@ class PostTest < ActiveSupport::TestCase
         pool.add!(post, @user)
         pool.remove!(post, @user)
         post.reload
+
         assert_equal("", post.pool_string)
         pool.remove!(post, @user)
         post.reload
+
         assert_equal("", post.pool_string)
       end
     end
@@ -1712,12 +1821,15 @@ class PostTest < ActiveSupport::TestCase
         pool = create(:pool)
         pool.add!(post, @user)
         post.reload
+
         assert_equal("pool:#{pool.id}", post.pool_string)
         pool.add!(post, @user)
         post.reload
+
         assert_equal("pool:#{pool.id}", post.pool_string)
         pool.remove!(post, @user)
         post.reload
+
         assert_equal("", post.pool_string)
       end
     end
@@ -1732,9 +1844,11 @@ class PostTest < ActiveSupport::TestCase
         create(:user)
 
         post.uploader = user1
+
         assert_equal(user1.id, post.uploader_id)
 
         post.uploader_id = user2.id
+
         assert_equal(user2.id, post.uploader_id)
         assert_equal(user2.name, post.uploader_name)
       end
@@ -1759,12 +1873,14 @@ class PostTest < ActiveSupport::TestCase
   context("Searching:") do
     should("return posts for the age:<1minute tag") do
       post = create(:post)
+
       assert_tag_match([post], "age:<1minute")
     end
 
     should("return posts for the age:<1minute tag when the user is in Pacific time zone") do
       post = create(:post)
       Time.zone = "Pacific Time (US & Canada)"
+
       assert_tag_match([post], "age:<1minute")
       Time.zone = "Eastern Time (US & Canada)"
     end
@@ -1772,6 +1888,7 @@ class PostTest < ActiveSupport::TestCase
     should("return posts for the age:<1minute tag when the user is in Tokyo time zone") do
       post = create(:post)
       Time.zone = "Asia/Tokyo"
+
       assert_tag_match([post], "age:<1minute")
       Time.zone = "Eastern Time (US & Canada)"
     end
@@ -2270,6 +2387,7 @@ class PostTest < ActiveSupport::TestCase
 
       GayFurCity.config.expects(:is_unlimited_tag).with("rating:s").once.returns(true)
       GayFurCity.config.expects(:is_unlimited_tag).with(anything).twice.returns(false)
+
       assert_tag_match([post1], "aaa bbb rating:s")
     end
 
@@ -2292,6 +2410,7 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([], "artverified:false")
       artist = create(:artist, linked_user: @user)
       post = create(:post, tag_string: artist.name, uploader: @user)
+
       assert_tag_match([], "artverified:false")
       assert_tag_match([post], "artverified:true")
       assert_tag_match([], "~artverified:false")
@@ -2305,6 +2424,7 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([], "artverified:false")
       post = create(:post, tag_string: "artist:test", uploader: @user)
       with_inline_jobs { create(:artist, name: "test", linked_user: @user) }
+
       assert_tag_match([], "artverified:false")
       assert_tag_match([post], "artverified:true")
     end
@@ -2314,6 +2434,7 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match([], "pending_replacements:false")
       post = create(:post)
       create(:png_replacement, creator: @user, post: post)
+
       assert_tag_match([post], "pending_replacements:true")
     end
 
@@ -2356,6 +2477,7 @@ class PostTest < ActiveSupport::TestCase
       # Need unvote is returned upon duplicates that are accounted for.
       assert_equal(:need_unvote, VoteManager::Posts.vote!(user: @user, ip_addr: "127.0.0.1", post: @post, score: 1)[1])
       @post.reload
+
       assert_equal(1, PostVote.count)
       assert_equal(1, @post.score)
     end
@@ -2364,27 +2486,32 @@ class PostTest < ActiveSupport::TestCase
       # We deliberately don't call post.reload until the end to verify that
       # post.unvote! returns the correct score even when not forcibly reloaded.
       VoteManager::Posts.vote!(post: @post, user: @user, ip_addr: "127.0.0.1", score: 1)
+
       assert_equal(1, @post.score)
 
       VoteManager::Posts.unvote!(post: @post, user: @user)
+
       assert_equal(0, @post.score)
 
       assert_nothing_raised { VoteManager::Posts.vote!(post: @post, user: @user, ip_addr: "127.0.0.1", score: -1) }
       assert_equal(-1, @post.score)
 
       VoteManager::Posts.unvote!(post: @post, user: @user)
+
       assert_equal(0, @post.score)
 
       assert_nothing_raised { VoteManager::Posts.vote!(post: @post, user: @user, ip_addr: "127.0.0.1", score: 1) }
       assert_equal(1, @post.score)
 
       @post.reload
+
       assert_equal(1, @post.score)
     end
 
     should("periodically clean the vote_string") do
       @post.update_columns(vote_string: "down:1 locked:1 up:1", score: -1)
       @post.append_user_to_vote_string(2, "down")
+
       assert_same_elements(%w[down:1 down:2], @post.vote_string.split)
       assert_equal(-2, @post.score)
     end
@@ -2392,21 +2519,25 @@ class PostTest < ActiveSupport::TestCase
     should("update the vote strings on the post") do
       VoteManager::Posts.vote!(user: @user, ip_addr: "127.0.0.1", post: @post, score: 1)
       @post.reload
+
       assert_equal("up:#{@user.id}", @post.vote_string)
       assert(PostVote.exists?(user_id: @user.id, post_id: @post.id))
 
       VoteManager::Posts.vote!(user: @user, ip_addr: "127.0.0.1", post: @post, score: 1)
       @post.reload
+
       assert_equal("up:#{@user.id}", @post.vote_string)
       assert(PostVote.exists?(user_id: @user.id, post_id: @post.id))
 
       VoteManager::Posts.unvote!(user: @user, post: @post)
       @post.reload
+
       assert_equal("", @post.vote_string)
       assert_not(PostVote.exists?(user_id: @user.id, post_id: @post.id))
 
       VoteManager::Posts.unvote!(user: @user, post: @post)
       @post.reload
+
       assert_equal("", @post.vote_string)
       assert_not(PostVote.exists?(user_id: @user.id, post_id: @post.id))
     end
@@ -2590,7 +2721,7 @@ class PostTest < ActiveSupport::TestCase
         @post.update_with(@user, rating: "e", is_rating_locked: false)
         @post.revert_to!(@post.versions.first, @user)
 
-        assert(@post.valid?)
+        assert_predicate(@post, :valid?)
         assert_equal(@post.versions.first.rating, @post.rating)
       end
     end
@@ -2666,6 +2797,7 @@ class PostTest < ActiveSupport::TestCase
 
       should("rescale notes") do
         note = @dst.notes.active.first
+
         assert_equal([20, 20, 20, 20], [note.x, note.y, note.width, note.height])
       end
     end
@@ -2681,6 +2813,7 @@ class PostTest < ActiveSupport::TestCase
       context("with an id") do
         should("work") do
           @post.update_with(@user, tag_string_diff: "set:#{@set.id}")
+
           assert_equal([@post.id], @set.reload.post_ids)
           assert_equal("set:#{@set.id}", @post.pool_string)
         end
@@ -2688,6 +2821,7 @@ class PostTest < ActiveSupport::TestCase
         should("gracefully fail if the set is full") do
           Config.stubs(:get_with_bypass).with(:set_post_limit, @user).returns(0)
           @post.update_with(@user, tag_string_diff: "set:#{@set.id}")
+
           assert_equal(["Sets can only have up to 0 posts each"], @post.errors.full_messages)
           assert_equal([], @set.reload.post_ids)
           assert_equal("", @post.pool_string)
@@ -2697,6 +2831,7 @@ class PostTest < ActiveSupport::TestCase
       context("with a shortname") do
         should("work") do
           @post.update_with(@user, tag_string_diff: "set:#{@set.shortname}")
+
           assert_equal([@post.id], @set.reload.post_ids)
           assert_equal("set:#{@set.id}", @post.pool_string)
         end
@@ -2704,6 +2839,7 @@ class PostTest < ActiveSupport::TestCase
         should("gracefully fail if the set is full") do
           Config.stubs(:get_with_bypass).with(:set_post_limit, @user).returns(0)
           @post.update_with(@user, tag_string_diff: "set:#{@set.shortname}")
+
           assert_equal(["Sets can only have up to 0 posts each"], @post.errors.full_messages)
           assert_equal([], @set.reload.post_ids)
           assert_equal("", @post.pool_string)
@@ -2721,6 +2857,7 @@ class PostTest < ActiveSupport::TestCase
       context("with an id") do
         should("work") do
           @post.update_with(@user, tag_string_diff: "pool:#{@pool.id}")
+
           assert_equal([@post.id], @pool.reload.post_ids)
           assert_equal("pool:#{@pool.id}", @post.pool_string)
         end
@@ -2728,6 +2865,7 @@ class PostTest < ActiveSupport::TestCase
         should("gracefully fail if the pool is full") do
           Config.stubs(:get_with_bypass).with(:pool_post_limit, @user).returns(0)
           @post.update_with(@user, tag_string_diff: "pool:#{@pool.id}")
+
           assert_equal(["Pools can only have up to 0 posts each"], @post.errors.full_messages)
           assert_equal([], @pool.reload.post_ids)
           assert_equal("", @post.pool_string)
@@ -2737,12 +2875,14 @@ class PostTest < ActiveSupport::TestCase
       context("with a name") do
         should("work") do
           @post.update_with(@user, tag_string_diff: "pool:#{@pool.name}")
+
           assert_equal([@post.id], @pool.reload.post_ids)
           assert_equal("pool:#{@pool.id}", @post.pool_string)
         end
 
         should("work with capital letters") do
           @post.update_with(@user, tag_string_diff: "pool:#{@pool2.name}")
+
           assert_equal([@post.id], @pool2.reload.post_ids)
           assert_equal("pool:#{@pool2.id}", @post.pool_string)
         end
@@ -2750,6 +2890,7 @@ class PostTest < ActiveSupport::TestCase
         should("gracefully fail if the pool is full") do
           Config.stubs(:get_with_bypass).with(:pool_post_limit, @user).returns(0)
           @post.update_with(@user, tag_string_diff: "pool:#{@pool.name}")
+
           assert_equal(["Pools can only have up to 0 posts each"], @post.errors.full_messages)
           assert_equal([], @pool.reload.post_ids)
           assert_equal("", @post.pool_string)
@@ -2767,6 +2908,7 @@ class PostTest < ActiveSupport::TestCase
           @post.update_with(@user, tag_string_diff: "newpool:test")
         end
         @pool = Pool.last
+
         assert_equal([@post.id], @pool.reload.post_ids)
         assert_equal("pool:#{@pool.id}", @post.pool_string)
         assert_equal("test", @pool.name)
@@ -2777,6 +2919,7 @@ class PostTest < ActiveSupport::TestCase
           @post.update_with(@user, tag_string_diff: "newpool:Test2_Pool")
         end
         @pool = Pool.last
+
         assert_equal([@post.id], @pool.reload.post_ids)
         assert_equal("pool:#{@pool.id}", @post.pool_string)
         assert_equal("Test2_Pool", @pool.name)

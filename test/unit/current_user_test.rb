@@ -8,6 +8,7 @@ class CurrentUserTest < ActiveSupport::TestCase
       user1 = create(:user)
       user2 = create(:user)
       CurrentUser.user = user1
+
       CurrentUser.scoped(user2, nil) do
         assert_equal(user2.id, CurrentUser.user.id)
       end

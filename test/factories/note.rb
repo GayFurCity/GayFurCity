@@ -2,8 +2,8 @@
 
 FactoryBot.define do
   factory(:note) do
-    association(:creator, factory: :user)
-    association(:post)
+    creator(factory: %i[user])
+    post
     x { 1 }
     y { 1 }
     width { 1 }

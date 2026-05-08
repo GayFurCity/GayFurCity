@@ -47,6 +47,7 @@ class AiMethodsTest < ActiveSupport::TestCase
 
     should("return not an image for non-image files") do
       result = MediaAsset.is_ai_generated?("/tmp/readme.txt")
+
       assert_equal(0, result[:score])
       assert_equal("not an image", result[:reason])
     end
@@ -54,6 +55,7 @@ class AiMethodsTest < ActiveSupport::TestCase
     should("return file not found for non-existent files") do
       # Don't stub File.exist? for this test, so it returns false for non-existent files
       result = MediaAsset.is_ai_generated?("/tmp/nonexistent.jpg")
+
       assert_equal(0, result[:score])
       assert_equal("file not found", result[:reason])
     end
@@ -70,6 +72,7 @@ class AiMethodsTest < ActiveSupport::TestCase
       })
 
       result = MediaAsset.is_ai_generated?("/tmp/photo.jpg")
+
       assert_equal(80, result[:score])
       assert_includes(result[:reason], "c2pa manifest present")
     end
@@ -86,6 +89,7 @@ class AiMethodsTest < ActiveSupport::TestCase
       })
 
       result = MediaAsset.is_ai_generated?("/tmp/render.jpeg")
+
       assert_equal(70, result[:score])
       assert_includes(result[:reason], "ai generator: midjourney")
     end
@@ -102,6 +106,7 @@ class AiMethodsTest < ActiveSupport::TestCase
       })
 
       result = MediaAsset.is_ai_generated?("/tmp/picture.jpg")
+
       assert_equal(60, result[:score])
       assert_includes(result[:reason], "ai parameter tokens found")
     end
@@ -121,6 +126,7 @@ class AiMethodsTest < ActiveSupport::TestCase
       }, fields: fields)
 
       result = MediaAsset.is_ai_generated?("/tmp/image.png")
+
       assert_equal(20, result[:score])
       assert_includes(result[:reason], "png text markers")
     end
@@ -138,6 +144,7 @@ class AiMethodsTest < ActiveSupport::TestCase
       })
 
       result = MediaAsset.is_ai_generated?("/tmp/photo.jpg")
+
       assert_equal(0, result[:score])
       assert_equal("no ai signals", result[:reason])
     end
@@ -154,6 +161,7 @@ class AiMethodsTest < ActiveSupport::TestCase
       })
 
       result = MediaAsset.is_ai_generated?("/tmp/mixed.jpeg")
+
       assert_equal(100, result[:score])
       assert_includes(result[:reason], "c2pa manifest present")
       assert_includes(result[:reason], "ai parameter tokens found")
@@ -164,6 +172,7 @@ class AiMethodsTest < ActiveSupport::TestCase
       stub_vips_image(values: {}, fields: [], raise_on_get_fields: true)
 
       result = MediaAsset.is_ai_generated?("/tmp/empty.jpg")
+
       assert_equal(0, result[:score])
       assert_equal("no ai signals", result[:reason])
     end
@@ -171,6 +180,7 @@ class AiMethodsTest < ActiveSupport::TestCase
     should("flag SD parameter tokens for fixture tokens.png") do
       path = file_fixture("ai/tokens.png").to_s
       result = MediaAsset.is_ai_generated?(path)
+
       assert_operator(result[:score], :>=, 60)
       assert_includes(result[:reason], "ai parameter tokens found")
     end

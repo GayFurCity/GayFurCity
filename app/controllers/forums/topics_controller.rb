@@ -31,7 +31,7 @@ module Forums
       end
       @forum_posts = ForumPost.html_includes(request, :creator, :spam_ticket, :last_edit_version, topic: %i[category original_post], votes: %i[user])
                               .permitted(CurrentUser.user)
-                              .search_current(topic_id: @forum_topic.id, visible: false)
+                              .search_current({ topic_id: @forum_topic.id, visible: false })
                               .reorder("forum_posts.id")
                               .paginate(params[:page])
       respond_with(@forum_topic)
@@ -73,7 +73,7 @@ module Forums
       if @forum_topic.errors.any?
         respond_with(@forum_topic) do |format|
           format.html do
-            redirect_back(fallback_location: forum_topic_path(@forum_topic), notice: "Failed to hide topic: #{@forum_topic.errors.full_messages.join('; ')}")
+            redirect_back_or_to(forum_topic_path(@forum_topic), notice: "Failed to hide topic: #{@forum_topic.errors.full_messages.join('; ')}")
           end
         end
       else
@@ -121,7 +121,7 @@ module Forums
       authorize(@forum_topic)
       @forum_topic.mark_as_read!(CurrentUser.user)
       respond_to do |format|
-        format.html { redirect_back(fallback_location: forum_topic_path(@forum_topic)) }
+        format.html { redirect_back_or_to(forum_topic_path(@forum_topic)) }
         format.json
       end
     end

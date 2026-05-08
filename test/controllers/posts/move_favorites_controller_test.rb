@@ -21,6 +21,7 @@ module Posts
       context("show action") do
         should("render") do
           get_auth(move_favorites_post_path(@child), @admin)
+
           assert_response(:success)
         end
 
@@ -32,10 +33,12 @@ module Posts
       context("create action") do
         should("work") do
           post_auth(move_favorites_post_path(@child), @admin)
+
           assert_redirected_to(@child)
           perform_enqueued_jobs(only: [TransferFavoritesJob, TransferVotesJob])
           @parent.reload
           @child.reload
+
           assert_equal(@users.map(&:id).sort, @parent.favorited_users(@user).map(&:id).sort)
           assert_equal(@users.map(&:id).sort, @parent.voted_users(@admin).map(&:id).sort)
           assert_equal([], @child.favorited_users(@admin).map(&:id))

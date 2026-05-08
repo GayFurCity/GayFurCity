@@ -16,27 +16,27 @@ module Sources
         end
 
         should("be bad if only a public channel link is provided") do
-          assert_equal(true, @post1.bad_source?)
+          assert_predicate(@post1, :bad_source?)
         end
 
         should("not be bad if a public message link is provided") do
-          assert_equal(false, @post2.bad_source?)
+          assert_not(@post2.bad_source?)
         end
 
         should("be bad if a private channel link is provided") do
-          assert_equal(true, @post3.bad_source?)
+          assert_predicate(@post3, :bad_source?)
         end
 
         should("be bad if only a private message link is provided") do
-          assert_equal(true, @post4.bad_source?)
+          assert_predicate(@post4, :bad_source?)
         end
 
         should("be bad if only a phone number link is provided") do
-          assert_equal(true, @post5.bad_source?)
+          assert_predicate(@post5, :bad_source?)
         end
 
         should("be bad if only a group link is provided") do
-          assert_equal(true, @post6.bad_source?)
+          assert_predicate(@post6, :bad_source?)
         end
       end
     end

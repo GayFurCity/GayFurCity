@@ -2,8 +2,8 @@
 
 FactoryBot.define do
   factory(:help_page) do
-    association(:creator, factory: :admin_user)
-    association(:wiki_page)
+    creator(factory: %i[admin_user])
+    wiki_page
     sequence(:name) { |n| "help_page_#{n}" }
   end
 end

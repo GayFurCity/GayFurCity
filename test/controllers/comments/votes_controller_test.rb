@@ -17,12 +17,14 @@ module Comments
       context("index action") do
         should("render") do
           get_auth(url_for(controller: "comments/votes", action: "index", only_path: true), @admin)
+
           assert_response(:success)
         end
 
         context("members") do
           should("render") do
             get_auth(url_for(controller: "comments/votes", action: "index", only_path: true), @user2)
+
             assert_response(:success)
           end
 
@@ -31,6 +33,7 @@ module Comments
             create(:comment_vote, comment: @comment, user: @admin, score: 1)
 
             get_auth(url_for(controller: "comments/votes", action: "index", format: "json", only_path: true), @user2)
+
             assert_response(:success)
             assert_equal(1, response.parsed_body.length)
             assert_equal(@user2.id, response.parsed_body[0]["user_id"])
@@ -72,6 +75,7 @@ module Comments
         should("create a vote") do
           assert_difference("CommentVote.count", 1) do
             post_auth(comment_votes_path(@comment), @user, params: { score: -1, format: :json })
+
             assert_response(:success)
           end
         end
@@ -80,6 +84,7 @@ module Comments
           create(:comment_vote, comment: @comment, user: @user, score: -1)
           assert_difference("CommentVote.count", -1) do
             post_auth(comment_votes_path(@comment), @user, params: { score: -1, format: :json })
+
             assert_response(:success)
           end
         end
@@ -88,6 +93,7 @@ module Comments
           @post.update(is_comment_locked: true, updater: @admin)
           assert_no_difference("CommentVote.count") do
             post_auth(comment_votes_path(@comment), @user, params: { score: -1, format: :json })
+
             assert_response(:unprocessable_entity)
           end
         end
@@ -97,6 +103,7 @@ module Comments
           create(:comment_vote, comment: @comment, user: @user, score: -1)
           assert_no_difference("CommentVote.count") do
             post_auth(comment_votes_path(@comment), @user, params: { score: -1, format: :json })
+
             assert_response(:unprocessable_entity)
           end
         end
@@ -105,6 +112,7 @@ module Comments
           @post.update(is_comment_disabled: true, updater: @admin)
           assert_no_difference("CommentVote.count") do
             post_auth(comment_votes_path(@comment), @user, params: { score: -1, format: :json })
+
             assert_response(:unprocessable_entity)
           end
         end
@@ -114,6 +122,7 @@ module Comments
           create(:comment_vote, comment: @comment, user: @user, score: -1)
           assert_no_difference("CommentVote.count") do
             post_auth(comment_votes_path(@comment), @user, params: { score: -1, format: :json })
+
             assert_response(:unprocessable_entity)
           end
         end
@@ -130,6 +139,7 @@ module Comments
 
         should("lock votes") do
           post_auth(lock_comment_votes_path, @admin, params: { ids: @vote.id, format: :json })
+
           assert_response(:success)
 
           assert_predicate(@vote.reload, :is_locked?)
@@ -138,12 +148,14 @@ module Comments
         should("create staff audit log entry") do
           assert_difference("StaffAuditLog.count", 1) do
             post_auth(lock_comment_votes_path, @admin, params: { ids: @vote.id, format: :json })
+
             assert_response(:success)
 
             assert_predicate(@vote.reload, :is_locked?)
           end
 
           log = StaffAuditLog.last
+
           assert_equal("comment_vote_lock", log.action)
           assert_equal(@comment.id, log.comment_id)
           assert_equal(-1, log.vote)
@@ -166,6 +178,7 @@ module Comments
 
         should("delete votes") do
           post_auth(delete_comment_votes_path, @admin, params: { ids: @vote.id, format: :json })
+
           assert_response(:success)
 
           assert_raises(ActiveRecord::RecordNotFound) do
@@ -176,6 +189,7 @@ module Comments
         should("create a staff audit log entry") do
           assert_difference("StaffAuditLog.count", 1) do
             post_auth(delete_comment_votes_path, @admin, params: { ids: @vote.id, format: :json })
+
             assert_response(:success)
 
             assert_raises(ActiveRecord::RecordNotFound) do
@@ -184,6 +198,7 @@ module Comments
           end
 
           log = StaffAuditLog.last
+
           assert_equal("comment_vote_delete", log.action)
           assert_equal(@comment.id, log.comment_id)
           assert_equal(-1, log.vote)

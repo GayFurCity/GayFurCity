@@ -2,8 +2,8 @@
 
 FactoryBot.define do
   factory(:post_flag) do
-    association(:creator, factory: :user)
-    association(:post)
+    creator(factory: %i[user])
+    post
     reason_name { "dnp_artist" }
     note { "Some explanation" }
     is_resolved { false }

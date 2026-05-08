@@ -47,7 +47,7 @@ module Users
       @user_feedback.soft_delete_with_current(:updater)
       flash[:notice] = @user_feedback.errors.any? ? @user_feedback.errors.full_messages.join("; ") : "Feedback deleted"
       respond_with(@user_feedback) do |format|
-        format.html { redirect_back(fallback_location: user_feedbacks_path(search: { user_id: @user_feedback.user_id })) }
+        format.html { redirect_back_or_to(user_feedbacks_path(search: { user_id: @user_feedback.user_id })) }
       end
     end
 
@@ -56,7 +56,7 @@ module Users
       @user_feedback.soft_undelete_with_current(:updater)
       flash[:notice] = @user_feedback.errors.any? ? @user_feedback.errors.full_messages.join("; ") : "Feedback undeleted"
       respond_with(@user_feedback) do |format|
-        format.html { redirect_back(fallback_location: user_feedbacks_path(search: { user_id: @user_feedback.user_id })) }
+        format.html { redirect_back_or_to(user_feedbacks_path(search: { user_id: @user_feedback.user_id })) }
       end
     end
 
@@ -64,7 +64,7 @@ module Users
       @user_feedback = authorize(UserFeedback.find(params[:id]))
       @user_feedback.destroy_with_current(:destroyer)
       respond_with(@user_feedback) do |format|
-        format.html { redirect_back(fallback_location: user_feedbacks_path) }
+        format.html { redirect_back_or_to(user_feedbacks_path) }
       end
     end
   end

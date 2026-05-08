@@ -24,18 +24,21 @@ module Forums
 
         should("not render the vote links for the requesting user") do
           get_auth(forum_topic_path(@forum_topic), @user)
+
           assert_response(:success)
           assert_select("a[title='Vote up']", false)
         end
 
         should("render the vote links") do
           get_auth(forum_topic_path(@forum_topic), @mod)
+
           assert_response(:success)
           assert_select("a[title='Vote up']")
         end
 
         should("render existing votes") do
           get_auth(forum_topic_path(@forum_topic), @mod)
+
           assert_response(:success)
           assert_select("li.vote-score-up")
         end
@@ -59,6 +62,7 @@ module Forums
       context("index action") do
         should("list all forum posts") do
           get(forum_posts_path)
+
           assert_response(:success)
         end
 
@@ -71,11 +75,13 @@ module Forums
 
           should("only list visible posts") do
             get(forum_posts_path)
+
             assert_response(:success)
             assert_select("#forum-post-#{@forum_post.id}", true)
             assert_select("#forum-post-#{@forum_post2.id}", false)
 
             get(forum_posts_path(format: :json))
+
             assert_response(:success)
             assert_equal([@forum_post.id], @response.parsed_body.pluck("id"))
           end
@@ -84,18 +90,21 @@ module Forums
         context("with search conditions") do
           should("list all matching forum posts") do
             get(forum_posts_path, params: { search: { body_matches: "xxx" } })
+
             assert_response(:success)
             assert_select("#forum-post-#{@forum_post.id}")
           end
 
           should("list nothing for when the search matches nothing") do
             get(forum_posts_path, params: { search: { body_matches: "bababa" } })
+
             assert_response(:success)
             assert_select("#forum-post-#{@forum_post.id}", false)
           end
 
           should("list by creator id") do
             get(forum_posts_path, params: { search: { creator_id: @user.id } })
+
             assert_response(:success)
             assert_select("#forum-post-#{@forum_post.id}")
           end
@@ -136,16 +145,19 @@ module Forums
       context("edit action") do
         should("render if the editor is the creator of the topic") do
           get_auth(edit_forum_post_path(@forum_post), @user)
+
           assert_response(:success)
         end
 
         should("render if the editor is an admin") do
           get_auth(edit_forum_post_path(@forum_post), create(:admin_user))
+
           assert_response(:success)
         end
 
         should("fail if the editor is not the creator of the topic and is not an admin") do
           get_auth(edit_forum_post_path(@forum_post), @other_user)
+
           assert_response(:forbidden)
         end
 
@@ -158,19 +170,21 @@ module Forums
         should("should allow enabling allow_voting") do
           assert_difference("EditHistory.count", 2) do
             put_auth(forum_post_path(@forum_post), @user, params: { format: :json, forum_post: { allow_voting: true } })
+
             assert_response(:success)
           end
           assert_equal("enabled_voting", EditHistory.last.edit_type)
-          assert_equal(true, @forum_post.reload.has_voting?)
+          assert_predicate(@forum_post.reload, :has_voting?)
         end
 
         should("not allow users to disable allow_voting") do
           @forum_post.update_columns(allow_voting: true)
           assert_no_difference("EditHistory.count") do
             put_auth(forum_post_path(@forum_post), @user, params: { format: :json, forum_post: { allow_voting: false } })
+
             assert_response(:bad_request)
           end
-          assert_equal(true, @forum_post.reload.has_voting?)
+          assert_predicate(@forum_post.reload, :has_voting?)
           assert_equal("found unpermitted parameter: :allow_voting", @response.parsed_body["message"])
         end
 
@@ -178,10 +192,11 @@ module Forums
           @forum_post.update_columns(allow_voting: true)
           assert_difference("EditHistory.count", 2) do
             put_auth(forum_post_path(@forum_post), @admin, params: { format: :json, forum_post: { allow_voting: false } })
+
             assert_response(:success)
           end
           assert_equal("disabled_voting", EditHistory.last.edit_type)
-          assert_equal(false, @forum_post.reload.has_voting?)
+          assert_not(@forum_post.reload.has_voting?)
         end
 
         should("not allow admins to disable allow_voting on TCRs") do
@@ -189,9 +204,10 @@ module Forums
           @forum_post.update_with(@user, tag_change_request: @ta, allow_voting: true)
           assert_no_difference("EditHistory.count") do
             put_auth(forum_post_path(@forum_post), @admin, params: { format: :json, forum_post: { allow_voting: false } })
+
             assert_response(:bad_request)
           end
-          assert_equal(true, @forum_post.reload.has_voting?)
+          assert_predicate(@forum_post.reload, :has_voting?)
           assert_equal("found unpermitted parameter: :allow_voting", @response.parsed_body["message"])
         end
       end
@@ -199,6 +215,7 @@ module Forums
       context("new action") do
         should("render") do
           get_auth(new_forum_post_path, @user, params: { forum_post: { topic_id: @forum_topic.id } })
+
           assert_response(:success)
         end
 
@@ -211,6 +228,7 @@ module Forums
         should("create a new forum post") do
           assert_difference("ForumPost.count", 1) do
             post_auth(forum_posts_path, @user, params: { forum_post: { body: "xaxaxa", topic_id: @forum_topic.id } })
+
             assert_redirected_to(forum_topic_path(ForumPost.last.topic, page: ForumPost.last.forum_topic_page, anchor: "forum_post_#{ForumPost.last.id}"))
           end
         end
@@ -218,19 +236,22 @@ module Forums
         should("work with allow_voting=true") do
           assert_difference({ "ForumPost.count" => 1, "EditHistory.count" => 2 }) do
             post_auth(forum_posts_path, @user, params: { forum_post: { body: "xaxaxa", topic_id: @forum_topic.id, allow_voting: true } })
+
             assert_redirected_to(forum_topic_path(ForumPost.last.topic, page: ForumPost.last.forum_topic_page, anchor: "forum_post_#{ForumPost.last.id}"))
           end
           assert_equal("enabled_voting", EditHistory.last.edit_type)
-          assert_equal(true, ForumPost.last.has_voting?)
+          assert_predicate(ForumPost.last, :has_voting?)
         end
 
         should("not create a new forum post if topic is stale") do
           create(:forum_post, topic: @forum_topic, creator: @mod) # if the topic doesn't have any posts it will never be stale
           Config.any_instance.stubs(:enable_stale_forum_topics).returns(true)
           Config.any_instance.stubs(:forum_topic_stale_window).returns(60)
+
           travel_to(1.year.from_now) do
             assert_no_difference("ForumPost.count") do
               post_auth(forum_posts_path, @user, params: { forum_post: { body: "xaxaxa", topic_id: @forum_topic.id }, format: :json })
+
               assert_response(:unprocessable_entity)
               assert_includes(@response.parsed_body.dig("errors", "topic"), "is stale. New posts cannot be created")
             end
@@ -240,9 +261,11 @@ module Forums
         should("work even if the topic is stale if it has no posts") do
           Config.any_instance.stubs(:enable_stale_forum_topics).returns(true)
           Config.any_instance.stubs(:forum_topic_stale_window).returns(60)
+
           travel_to(1.year.from_now) do
             assert_difference("ForumPost.count", 1) do
               post_auth(forum_posts_path, @user, params: { forum_post: { body: "xaxaxa", topic_id: @forum_topic.id } })
+
               assert_redirected_to(forum_topic_path(ForumPost.last.topic, page: ForumPost.last.forum_topic_page, anchor: "forum_post_#{ForumPost.last.id}"))
             end
           end
@@ -252,9 +275,11 @@ module Forums
           create(:forum_post, topic: @forum_topic, creator: @mod) # if the topic doesn't have any posts it will never be stale
           Config.any_instance.stubs(:enable_stale_forum_topics).returns(true)
           Config.any_instance.stubs(:forum_topic_stale_window).returns(60)
+
           travel_to(1.year.from_now) do
             assert_difference("ForumPost.count", 1) do
               post_auth(forum_posts_path, @mod, params: { forum_post: { body: "xaxaxa", topic_id: @forum_topic.id }, format: :json })
+
               assert_response(:success)
             end
           end
@@ -287,6 +312,7 @@ module Forums
         context("on a forum post with an AIBUR") do
           should("work (alias)") do
             @ta = create(:tag_alias, forum_topic: @forum_post.topic, forum_post: @forum_post)
+
             assert_equal(@forum_post.id, @ta.reload.forum_post_id)
             assert_difference({ "ForumPost.count" => -1, "TagAlias.count" => 0 }) do
               delete_auth(forum_post_path(@forum_post), create(:admin_user))
@@ -296,6 +322,7 @@ module Forums
 
           should("work (implication)") do
             @ti = create(:tag_implication, forum_topic: @forum_post.topic, forum_post: @forum_post)
+
             assert_equal(@forum_post.id, @ti.reload.forum_post_id)
             assert_difference({ "ForumPost.count" => -1, "TagImplication.count" => 0 }) do
               delete_auth(forum_post_path(@forum_post), create(:admin_user))
@@ -306,6 +333,7 @@ module Forums
           should("work (bulk update request)") do
             @bur = create(:bulk_update_request, forum_topic: @forum_post.topic, forum_post: @forum_post)
             @forum_post = @bur.forum_post
+
             assert_equal(@forum_post.id, @bur.reload.forum_post_id)
             assert_difference({ "ForumPost.count" => -1, "BulkUpdateRequest.count" => 0 }) do
               delete_auth(forum_post_path(@forum_post), create(:admin_user))
@@ -323,9 +351,11 @@ module Forums
       context("hide action") do
         should("restore the post") do
           put_auth(hide_forum_post_path(@forum_post), @mod)
+
           assert_redirected_to(forum_post_path(@forum_post))
           @forum_post.reload
-          assert_equal(true, @forum_post.is_hidden?)
+
+          assert_predicate(@forum_post, :is_hidden?)
         end
 
         should("restrict access") do
@@ -340,9 +370,11 @@ module Forums
 
         should("restore the post") do
           put_auth(unhide_forum_post_path(@forum_post), @mod)
+
           assert_redirected_to(forum_post_path(@forum_post))
           @forum_post.reload
-          assert_equal(false, @forum_post.is_hidden?)
+
+          assert_not(@forum_post.is_hidden?)
         end
 
         should("restrict access") do
@@ -365,12 +397,13 @@ module Forums
               post_auth(forum_posts_path, @user, params: { forum_post: { body: "abc", topic_id: @forum_topic.id } })
               @ticket = User.system.tickets.last
               @forum_post = ForumPost.last
+
               assert_redirected_to(forum_topic_path(@forum_topic, page: @forum_topic.last_page, anchor: "forum_post_#{@forum_post.id}"))
             end
           end
           assert_equal(@forum_post, @ticket.model)
           assert_equal("Spam.", @ticket.reason)
-          assert_equal(true, @forum_post.is_spam?)
+          assert_predicate(@forum_post, :is_spam?)
         end
 
         should("not mark moderator forum posts as spam") do
@@ -379,10 +412,12 @@ module Forums
             post_auth(forum_posts_path, @mod, params: { forum_post: { body: "abc", topic_id: @forum_topic.id } })
             @ticket = User.system.tickets.last
             @forum_post = ForumPost.last
+
             assert_redirected_to(forum_topic_path(@forum_topic, page: @forum_topic.last_page, anchor: "forum_post_#{@forum_post.id}"))
           end
           @forum_post = ForumPost.last
-          assert_equal(false, @forum_post.is_spam?)
+
+          assert_not(@forum_post.is_spam?)
         end
 
         should("auto ban spammers") do
@@ -392,30 +427,35 @@ module Forums
             post_auth(forum_posts_path, @user, params: { forum_post: { body: "abc", topic_id: @forum_topic.id } })
             @ticket = User.system.tickets.last
             @forum_post = ForumPost.last
+
             assert_redirected_to(forum_topic_path(@forum_topic, page: @forum_topic.last_page, anchor: "forum_post_#{@forum_post.id}"))
           end
           assert_equal(@forum_post, @ticket.model)
           assert_equal("Spam.", @ticket.reason)
-          assert_equal(true, @forum_post.is_spam?)
-          assert_equal(true, @user.reload.is_banned?)
+          assert_predicate(@forum_post, :is_spam?)
+          assert_predicate(@user.reload, :is_banned?)
         end
 
         context("mark spam action") do
           should("work and report false negative") do
             SpamDetector.any_instance.expects(:spam!).times(1)
-            assert_equal(false, @forum_post.reload.is_spam?)
+
+            assert_not(@forum_post.reload.is_spam?)
             put_auth(mark_spam_forum_post_path(@forum_post), @mod)
+
             assert_response(:success)
-            assert_equal(true, @forum_post.reload.is_spam?)
+            assert_predicate(@forum_post.reload, :is_spam?)
           end
 
           should("work and not report false negative if ticket exists") do
             SpamDetector.any_instance.expects(:spam!).never
             User.system.tickets.create!(model: @forum_post, reason: "Spam.", creator_ip_addr: "127.0.0.1")
-            assert_equal(false, @forum_post.reload.is_spam?)
+
+            assert_not(@forum_post.reload.is_spam?)
             put_auth(mark_spam_forum_post_path(@forum_post), @mod)
+
             assert_response(:success)
-            assert_equal(true, @forum_post.reload.is_spam?)
+            assert_predicate(@forum_post.reload, :is_spam?)
           end
 
           should("restrict access") do
@@ -428,20 +468,24 @@ module Forums
           should("work and not report false positive") do
             SpamDetector.any_instance.expects(:ham!).never
             @forum_post.update_column(:is_spam, true)
-            assert_equal(true, @forum_post.reload.is_spam?)
+
+            assert_predicate(@forum_post.reload, :is_spam?)
             put_auth(mark_not_spam_forum_post_path(@forum_post), @mod)
+
             assert_response(:success)
-            assert_equal(false, @forum_post.reload.is_spam?)
+            assert_not(@forum_post.reload.is_spam?)
           end
 
           should("work and report false positive if ticket exists") do
             SpamDetector.any_instance.expects(:ham!).times(1)
             User.system.tickets.create!(model: @forum_post, reason: "Spam.", creator_ip_addr: "127.0.0.1")
             @forum_post.update_column(:is_spam, true)
-            assert_equal(true, @forum_post.reload.is_spam?)
+
+            assert_predicate(@forum_post.reload, :is_spam?)
             put_auth(mark_not_spam_forum_post_path(@forum_post), @mod)
+
             assert_response(:success)
-            assert_equal(false, @forum_post.reload.is_spam?)
+            assert_not(@forum_post.reload.is_spam?)
           end
 
           should("restrict access") do
@@ -453,6 +497,7 @@ module Forums
       context("warning action") do
         should("mark warning") do
           put_auth(warning_forum_post_path(@forum_post), @mod, params: { record_type: "warning" })
+
           assert_response(:success)
           assert_equal("warning", @forum_post.reload.warning_type)
           assert_equal(@mod.id, @forum_post.reload.warning_user_id)
@@ -460,6 +505,7 @@ module Forums
 
         should("mark record") do
           put_auth(warning_forum_post_path(@forum_post), @mod, params: { record_type: "record" })
+
           assert_response(:success)
           assert_equal("record", @forum_post.reload.warning_type)
           assert_equal(@mod.id, @forum_post.reload.warning_user_id)
@@ -467,6 +513,7 @@ module Forums
 
         should("mark ban") do
           put_auth(warning_forum_post_path(@forum_post), @mod, params: { record_type: "ban" })
+
           assert_response(:success)
           assert_equal("ban", @forum_post.reload.warning_type)
           assert_equal(@mod.id, @forum_post.reload.warning_user_id)
@@ -475,6 +522,7 @@ module Forums
         should("unmark") do
           @forum_post.user_warned!("warning", @mod)
           put_auth(warning_forum_post_path(@forum_post), @mod, params: { record_type: "unmark" })
+
           assert_response(:success)
           assert_nil(@forum_post.reload.warning_type)
           assert_nil(@forum_post.reload.warning_user_id)

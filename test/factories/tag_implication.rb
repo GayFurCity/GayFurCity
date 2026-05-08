@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:tag_implication) do
-    association(:creator, factory: :user)
+    creator(factory: %i[user])
     antecedent_name { "aaa" }
     consequent_name { "bbb" }
     status { "active" }

@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:user_resolvable) do
-    association(:user)
+    user
     ip_addr { "127.0.0.1" }
 
     initialize_with { new(user, ip_addr) }

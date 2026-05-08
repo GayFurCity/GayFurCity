@@ -69,10 +69,11 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
         @bur = create(:bulk_update_request)
       end
       @topic = ForumTopic.last
+
       assert_equal(@bur.forum_topic_id, @topic.id)
       assert_equal(@bur.forum_post_id, @topic.posts.first.id)
       assert_equal(@bur.id, @bur.forum_post.tag_change_request_id)
-      assert_equal(true, @bur.forum_post.allow_voting)
+      assert(@bur.forum_post.allow_voting)
       assert_equal("BulkUpdateRequest", @bur.forum_post.tag_change_request_type)
       assert_equal(@bur.id, @bur.forum_post.tag_change_request_id)
     end
@@ -85,7 +86,7 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
       assert_equal(@bur.forum_topic_id, @topic.id)
       assert_equal(@bur.forum_post_id, @topic.posts.second.id)
       assert_equal(@bur.id, @bur.forum_post.tag_change_request_id)
-      assert_equal(true, @bur.forum_post.allow_voting)
+      assert(@bur.forum_post.allow_voting)
       assert_equal("BulkUpdateRequest", @bur.forum_post.tag_change_request_type)
       assert_equal(@bur.id, @bur.forum_post.tag_change_request_id)
     end
@@ -136,6 +137,7 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
       should("not validate") do
         skip("doesn't work")
+
         assert_equal(["Error: a already implies c through another implication (imply a -> c)"], @bur.errors.full_messages)
       end
     end
@@ -186,6 +188,7 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
         @topic.reload
         @post.reload
+
         assert_match(/\[APPROVED\]/, @topic.title)
       end
 
@@ -198,11 +201,13 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
 
         @topic.reload
         @post.reload
+
         assert_match(/\[REJECTED\]/, @topic.title)
       end
 
       should("reference the rejector in the automated message") do
         @req.reject!(@admin)
+
         assert_match(Regexp.compile(@admin.name), @req.forum_post.body)
       end
 

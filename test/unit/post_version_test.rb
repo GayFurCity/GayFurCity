@@ -30,6 +30,7 @@ class PostVersionTest < ActiveSupport::TestCase
         version = @post.versions.second
         version.undo!(@user)
         @post.reload
+
         assert_equal("3", @post.tag_string)
         assert_equal("Undo of version #{version.version}", @post.versions.last.reason)
       end
@@ -59,6 +60,7 @@ class PostVersionTest < ActiveSupport::TestCase
       should("also create a version") do
         assert_equal(1, @post.versions.size)
         @version = @post.versions.last
+
         assert_equal("aaa bbb ccc invalid_source", @version.tags)
         assert_equal(@post.rating, @version.rating)
         assert_equal(@post.parent_id, @version.parent_id)
@@ -75,6 +77,7 @@ class PostVersionTest < ActiveSupport::TestCase
       should("also create a version") do
         assert_equal(2, @post.versions.size)
         @version = @post.versions.last
+
         assert_equal("bbb ccc xxx", @version.tags)
         assert_equal("q", @version.rating)
         assert_equal("", @version.source)
@@ -92,6 +95,7 @@ class PostVersionTest < ActiveSupport::TestCase
       should("should create a version if the rating changes") do
         assert_difference("@post.versions.size", 1) do
           @post.update_with(@user, rating: "s")
+
           assert_equal("s", @post.versions.last.rating)
         end
       end
@@ -99,6 +103,7 @@ class PostVersionTest < ActiveSupport::TestCase
       should("should create a version if the source changes") do
         assert_difference("@post.versions.size", 1) do
           @post.update_with(@user, source: "blah")
+
           assert_equal("blah", @post.versions.last.source)
         end
       end
@@ -107,6 +112,7 @@ class PostVersionTest < ActiveSupport::TestCase
         assert_difference("@post.versions.size", 1) do
           @parent = create(:post)
           @post.update_with(@user, parent_id: @parent.id)
+
           assert_equal(@parent.id, @post.versions.last.parent_id)
         end
       end
@@ -114,6 +120,7 @@ class PostVersionTest < ActiveSupport::TestCase
       should("should create a version if the tags change") do
         assert_difference("@post.versions.size", 1) do
           @post.update_with(@user, tag_string: "blah")
+
           assert_equal("blah", @post.versions.last.tags)
         end
       end

@@ -54,11 +54,13 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
     context("show action") do
       should("render") do
         get_auth(avoid_posting_path(@avoid_posting), @user)
+
         assert_response(:success)
       end
 
       should("render (by name)") do
         get_auth(avoid_posting_path(id: @avoid_posting.artist_name), @user)
+
         assert_response(:success)
       end
 
@@ -70,6 +72,7 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
     context("edit action") do
       should("render") do
         get_auth(edit_avoid_posting_path(@avoid_posting), @owner_user)
+
         assert_response(:success)
       end
 
@@ -81,6 +84,7 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
     context("new action") do
       should("render") do
         get_auth(new_avoid_posting_path, @owner_user)
+
         assert_response(:success)
       end
 
@@ -96,8 +100,10 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         end
 
         artist = Artist.find_by(name: "another_artist")
+
         assert_not_nil(artist)
         avoid_posting = AvoidPosting.find_by(artist: artist)
+
         assert_not_nil(avoid_posting)
         assert_redirected_to(avoid_posting_path(avoid_posting))
       end
@@ -109,6 +115,7 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         end
 
         avoid_posting = AvoidPosting.find_by(artist: @artist)
+
         assert_not_nil(avoid_posting)
         assert_redirected_to(avoid_posting_path(avoid_posting))
       end
@@ -121,6 +128,7 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
 
         @artist.reload
         avoid_posting = AvoidPosting.find_by(artist: @artist)
+
         assert_not_nil(avoid_posting)
         assert_equal(%w[test1 test2 test3], @artist.other_names)
         assert_redirected_to(avoid_posting_path(avoid_posting))
@@ -134,6 +142,7 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
 
         @artist.reload
         avoid_posting = AvoidPosting.find_by(artist: @artist)
+
         assert_not_nil(avoid_posting)
         assert_equal(@owner_user, @artist.linked_user)
         assert_redirected_to(avoid_posting_path(avoid_posting))
@@ -143,11 +152,13 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         @artist = create(:artist, other_names: %w[test1 test2], linked_user: @owner_user)
         assert_difference(%w[AvoidPosting.count AvoidPostingVersion.count], 1) do
           post_auth(avoid_postings_path, @owner_user, params: { avoid_posting: { artist_attributes: { name: @artist.name, other_names: [], other_names_string: "", linked_user_id: "" } } })
+
           assert_response(:redirect)
         end
 
         @artist.reload
         avoid_posting = AvoidPosting.find_by(artist: @artist)
+
         assert_not_nil(avoid_posting)
         assert_equal(%w[test1 test2], @artist.other_names)
         assert_equal(@owner_user, @artist.linked_user)
@@ -191,7 +202,7 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
           put_auth(delete_avoid_posting_path(@avoid_posting), @owner_user)
         end
 
-        assert_equal(false, @avoid_posting.reload.is_active?)
+        assert_not(@avoid_posting.reload.is_active?)
         assert_equal("avoid_posting_delete", ModAction.last.action)
       end
 
@@ -208,7 +219,7 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
           put_auth(undelete_avoid_posting_path(@avoid_posting), @owner_user)
         end
 
-        assert_equal(true, @avoid_posting.reload.is_active?)
+        assert_predicate(@avoid_posting.reload, :is_active?)
         assert_equal("avoid_posting_undelete", ModAction.last.action)
       end
 

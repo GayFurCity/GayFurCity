@@ -19,14 +19,14 @@ class StorageManagerTest < ActiveSupport::TestCase
       should("store the file") do
         @storage_manager.store(StringIO.new("data"), "#{BASE_DIR}/test.txt")
 
-        assert("data", File.read("#{BASE_DIR}/test.txt"))
+        assert_equal("data", File.read("#{BASE_DIR}/test.txt"))
       end
 
       should("overwrite the file if it already exists") do
         @storage_manager.store(StringIO.new("foo"), "#{BASE_DIR}/test.txt")
         @storage_manager.store(StringIO.new("bar"), "#{BASE_DIR}/test.txt")
 
-        assert("bar", File.read("#{BASE_DIR}/test.txt"))
+        assert_equal("bar", File.read("#{BASE_DIR}/test.txt"))
       end
     end
 
@@ -47,6 +47,7 @@ class StorageManagerTest < ActiveSupport::TestCase
       should("return the correct name") do
         md5 = SecureRandom.hex(16)
         format = ->(ext, type) { @storage_manager.file_name(md5, ext, type) }
+
         assert_equal("#{md5}.webm", format.call("webm", :original))
         assert_equal("#{md5}.webp", format.call("webp", :crop))
         assert_equal("#{md5}.webp", format.call("webp", :large))
@@ -62,6 +63,7 @@ class StorageManagerTest < ActiveSupport::TestCase
       should("return the correct urls") do
         md5 = SecureRandom.hex(16)
         format = ->(ext, type) { @storage_manager.url(md5, ext, type, protected: false, prefix: GayFurCity.config.post_path_prefix, protected_prefix: GayFurCity.config.protected_path_prefix) }
+
         assert_equal("#{@base_url}/data/posts/#{md5}.webm", format.call("webm", :original))
         assert_equal("#{@base_url}/data/posts/crop/#{md5}.webp", format.call("webp", :crop))
         assert_equal("#{@base_url}/data/posts/large/#{md5}.webp", format.call("webp", :large))
@@ -77,6 +79,7 @@ class StorageManagerTest < ActiveSupport::TestCase
       should("return the correct paths") do
         md5 = SecureRandom.hex(16)
         format = ->(ext, type) { @storage_manager.url_path(md5, ext, type, protected: false, prefix: GayFurCity.config.post_path_prefix, protected_prefix: GayFurCity.config.protected_path_prefix) }
+
         assert_equal("/data/posts/#{md5}.webm", format.call("webm", :original))
         assert_equal("/data/posts/crop/#{md5}.webp", format.call("webp", :crop))
         assert_equal("/data/posts/large/#{md5}.webp", format.call("webp", :large))
@@ -92,6 +95,7 @@ class StorageManagerTest < ActiveSupport::TestCase
       should("return the correct paths") do
         md5 = SecureRandom.hex(16)
         format = ->(ext, type) { @storage_manager.file_path(md5, ext, type, protected: false, prefix: GayFurCity.config.post_path_prefix, protected_prefix: GayFurCity.config.protected_path_prefix) }
+
         assert_equal("#{BASE_DIR}/posts/#{md5}.webm", format.call("webm", :original))
         assert_equal("#{BASE_DIR}/posts/crop/#{md5}.webp", format.call("webp", :crop))
         assert_equal("#{BASE_DIR}/posts/large/#{md5}.webp", format.call("webp", :large))

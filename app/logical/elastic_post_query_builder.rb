@@ -65,7 +65,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     end
 
     if q[:md5]
-      must.push(match_any(*(q[:md5].map { |m| { term: { md5: m } } })))
+      must.push(match_any(*q[:md5].map { |m| { term: { md5: m } } }))
     end
 
     if q[:status] == "pending"

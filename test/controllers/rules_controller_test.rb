@@ -14,6 +14,7 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
     context("index action") do
       should("render") do
         get(rules_path)
+
         assert_response(:success)
       end
 
@@ -25,6 +26,7 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
     context("new action") do
       should("render") do
         get_auth(new_rule_path, @admin)
+
         assert_response(:success)
       end
 
@@ -46,6 +48,7 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
         end
 
         mod_action = ModAction.last
+
         assert_equal("rule_create", mod_action.action)
         assert_equal(Rule.last, mod_action.subject)
         assert_equal("xxx", mod_action.name)
@@ -61,6 +64,7 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
     context("edit action") do
       should("render") do
         get_auth(edit_rule_path(@rule), @admin)
+
         assert_response(:success)
       end
 
@@ -72,6 +76,7 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
     context("update action") do
       should("update the rule") do
         put_auth(rule_path(@rule), @admin, params: { rule: { name: "xxx" } })
+
         assert_redirected_to(rules_path)
         assert_equal("xxx", @rule.reload.name)
       end
@@ -83,6 +88,7 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
         end
 
         mod_action = ModAction.last
+
         assert_equal("rule_update", mod_action.action)
         assert_equal(@rule, mod_action.subject)
         assert_equal("xxx", mod_action.name)
@@ -97,6 +103,7 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
     context("destroy action") do
       should("destroy the rule") do
         delete_auth(rule_path(@rule), @admin)
+
         assert_redirected_to(rules_path)
         assert_raise(ActiveRecord::RecordNotFound) { @rule.reload }
       end
@@ -107,6 +114,7 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
         end
 
         mod_action = ModAction.last
+
         assert_equal("rule_delete", mod_action.action)
         assert_equal(@rule.name, mod_action.name)
         assert_equal(@rule.category.name, mod_action.category_name)

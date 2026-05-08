@@ -12,6 +12,7 @@ module Users
       context("new action") do
         should("render") do
           get_auth(new_users_count_fixes_path, @user)
+
           assert_response(:success)
         end
 
@@ -28,10 +29,12 @@ module Users
 
         should("work") do
           post_auth(users_count_fixes_path, @user)
+
           assert_redirected_to(user_path(@user))
           perform_enqueued_jobs(only: RefreshUserCountsJob)
+
           @columns.each do |column|
-            assert_equal(@user.reload.send(column), 0, "Column #{column} was not reset")
+            assert_equal(0, @user.reload.send(column), "Column #{column} was not reset")
           end
         end
 

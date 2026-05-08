@@ -15,6 +15,7 @@ module Users
       context("new action") do
         should("render") do
           get_auth(new_user_feedback_path, @critic, params: { user_feedback: { user_id: @user.id } })
+
           assert_response(:success)
         end
 
@@ -30,6 +31,7 @@ module Users
 
         should("render") do
           get_auth(edit_user_feedback_path(@user_feedback), @critic)
+
           assert_response(:success)
         end
 
@@ -45,12 +47,14 @@ module Users
 
         should("render") do
           get_auth(user_feedbacks_path, @user)
+
           assert_response(:success)
         end
 
         context("with search parameters") do
           should("render") do
             get_auth(user_feedbacks_path, @critic, params: { search: { user_id: @user.id } })
+
             assert_response(:success)
           end
         end
@@ -108,7 +112,7 @@ module Users
           end
 
           assert_redirected_to(@feedback)
-          assert("positive", @feedback.reload.category)
+          assert_equal("positive", @feedback.reload.category)
           assert_equal("feedback_create", Notification.last.category)
         end
 

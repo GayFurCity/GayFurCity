@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:forum_post_vote) do
-    association(:user, factory: :user)
+    user
     score { 1 }
   end
 end

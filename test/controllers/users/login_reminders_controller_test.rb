@@ -14,11 +14,13 @@ module Users
 
       should("render the new page") do
         get(new_users_login_reminder_path)
+
         assert_response(:success)
       end
 
       should("deliver an email with the login to the user") do
         post(users_login_reminder_path, params: { user: { email: @user.email } })
+
         assert_equal(1, ActionMailer::Base.deliveries.size)
       end
 
@@ -26,6 +28,7 @@ module Users
         should("fail") do
           post(users_login_reminder_path, params: { user: { email: "" } })
           @blank_email_user.reload
+
           assert_in_delta(@blank_email_user.created_at.to_i, @blank_email_user.updated_at.to_i, 1)
           assert_equal(0, ActionMailer::Base.deliveries.size)
         end

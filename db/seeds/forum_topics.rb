@@ -5,7 +5,7 @@ require_relative("base")
 
 CATEGORY = 2
 
-users = User.where(level: User::Levels::MEMBER, forum_post_count: ..10).order("id asc").limit(100)
+users = User.where(level: User::Levels::MEMBER, forum_post_count: ..10).order(:id).limit(100)
 
 TOTAL = 250
 STEP = (TOTAL * 0.1).to_i

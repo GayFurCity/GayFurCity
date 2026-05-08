@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:post_appeal) do
-    association(:creator, factory: :user)
-    association(:post, is_deleted: true)
+    creator(factory: %i[user])
+    post { create(:post, is_deleted: true) }
   end
 end

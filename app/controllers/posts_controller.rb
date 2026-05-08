@@ -140,7 +140,7 @@ class PostsController < ApplicationController
     @post.undelete!(CurrentUser.user)
     if appeal && request.format.html?
       notice("Post appeal accepted")
-      return redirect_back(fallback_location: post_path(@post))
+      return redirect_back_or_to(post_path(@post))
     end
     respond_with(@post)
   end
@@ -263,7 +263,7 @@ class PostsController < ApplicationController
     else
       notice("Post is AI: #{reason} (score: #{score})  ")
     end
-    redirect_back(fallback_location: post_path(@post))
+    redirect_back_or_to(post_path(@post))
   end
 
   private
@@ -273,8 +273,8 @@ class PostsController < ApplicationController
   end
 
   def respond_with_post_after_update(post)
-    respond_with(post) do |format| # rubocop:disable Metrics/BlockLength
-      format.html do # rubocop:disable Metrics/BlockLength
+    respond_with(post) do |format|
+      format.html do
         if post.warnings.any?
           warnings = post.warnings.full_messages.join(".\n \n")
           if warnings.length > 45_000

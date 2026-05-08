@@ -128,7 +128,7 @@ class Config < ApplicationRecord
   end
 
   column_names.each do |column|
-    define_method("#{column}?") { !!public_send(column) } unless instance_methods.include?(:"#{column}?")
+    define_method("#{column}?") { !!public_send(column) } unless method_defined?(:"#{column}?")
     define_singleton_method(column) { get(column) } unless singleton_methods.include?(column)
     define_singleton_method("#{column}?") { !!public_send(column) } unless singleton_methods.include?(:"#{column}?")
   end

@@ -26,7 +26,7 @@ class SessionsController < ApplicationController
     else
       RateLimiter.hit("login:#{request.remote_ip}", 6.hours)
       GayFurCity::Logger.add_attributes("user.login" => "fail")
-      redirect_back(fallback_location: new_session_path, notice: "Username/Password was incorrect")
+      redirect_back_or_to(new_session_path, notice: "Username/Password was incorrect")
     end
   end
 

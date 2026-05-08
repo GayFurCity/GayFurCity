@@ -2,6 +2,7 @@
 
 module FileMethods
   extend(ActiveSupport::Concern)
+
   VIDEO_EXTENSIONS = %w[webm mp4].freeze
   IMAGE_EXTENSIONS = %w[png jpg gif webp].freeze
   GIF_EXTENSIONS = %w[gif].freeze
@@ -106,7 +107,7 @@ module FileMethods
 
       lines = stdout.lines.map(&:strip)
       headers = []
-      lines.each do |line| # rubocop:disable Metrics/BlockLength
+      lines.each do |line|
         case line
         when /\ACanvas size:\s*(\d+)\s*x\s*(\d+)\s*\z/i
           hash[:width] = $1.to_i

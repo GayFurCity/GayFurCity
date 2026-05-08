@@ -20,7 +20,7 @@ module Moderator
         flash[:notice] = @user_approval.errors.full_messages.join("; ")
       end
       respond_with(@user_approval) do |fmt|
-        fmt.html { redirect_back(fallback_location: { action: :index }) }
+        fmt.html { redirect_back_or_to({ action: :index }) }
       end
     end
 
@@ -33,7 +33,7 @@ module Moderator
         flash[:notice] = @user_approval.errors.full_messages.join("; ")
       end
       respond_with(@user_approval) do |fmt|
-        fmt.html { redirect_back(fallback_location: { action: :index }) }
+        fmt.html { redirect_back_or_to({ action: :index }) }
       end
     end
   end

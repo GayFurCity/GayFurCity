@@ -18,19 +18,19 @@ class ForumPostTest < ActiveSupport::TestCase
       end
 
       should("be votable") do
-        assert(@post.has_voting?)
+        assert_predicate(@post, :has_voting?)
       end
 
       should("only be hidable by moderators") do
         @post.hide!(@user)
 
         assert_equal(["Post is for an alias, implication, or bulk update request. It cannot be hidden"], @post.errors.full_messages)
-        assert_equal(@post.reload.is_hidden, false)
+        assert_not(@post.reload.is_hidden)
 
         @post.hide!(@mod)
 
         assert_equal([], @post.errors.full_messages)
-        assert_equal(@post.reload.is_hidden, true)
+        assert(@post.reload.is_hidden)
       end
     end
 
@@ -49,9 +49,11 @@ class ForumPostTest < ActiveSupport::TestCase
       context("that is deleted") do
         should("update the topic's updated_at timestamp") do
           @topic.reload
+
           assert_in_delta(@posts[-1].updated_at.to_i, @topic.updated_at.to_i, 1)
           @posts[-1].hide!(@user)
           @topic.reload
+
           assert_in_delta(@posts[-2].updated_at.to_i, @topic.updated_at.to_i, 1)
         end
       end
@@ -66,6 +68,7 @@ class ForumPostTest < ActiveSupport::TestCase
       should("update the topic's updated_at when destroyed") do
         @posts.last.destroy_with(@user)
         @topic.reload
+
         assert_equal(@posts[8].updated_at.to_s, @topic.updated_at.to_s)
       end
     end
@@ -80,6 +83,7 @@ class ForumPostTest < ActiveSupport::TestCase
       should("not be updateable") do
         @post.update_with(@user, body: "xxx")
         @post.reload
+
         assert_equal("zzz", @post.body)
       end
 
@@ -96,17 +100,20 @@ class ForumPostTest < ActiveSupport::TestCase
         create(:forum_post, topic_id: @topic.id)
       end
       @topic.reload
+
       assert_not_equal(@original_topic_updated_at.to_s, @topic.updated_at.to_s)
     end
 
     should("be searchable by body content") do
       create(:forum_post, topic_id: @topic.id, body: "xxx")
-      assert_equal(1, ForumPost.search_current(body_matches: "xxx").count)
-      assert_equal(0, ForumPost.search_current(body_matches: "aaa").count)
+
+      assert_equal(1, ForumPost.search_current({ body_matches: "xxx" }).count)
+      assert_equal(0, ForumPost.search_current({ body_matches: "aaa" }).count)
     end
 
     should("initialize its creator") do
       post = create(:forum_post, topic_id: @topic.id, creator: @user)
+
       assert_equal(@user.id, post.creator_id)
     end
 
@@ -123,6 +130,7 @@ class ForumPostTest < ActiveSupport::TestCase
 
       should("credit the moderator as the updater") do
         @post.update_with(@mod, body: "test")
+
         assert_equal(@mod.id, @post.updater_id)
       end
     end
@@ -140,6 +148,7 @@ class ForumPostTest < ActiveSupport::TestCase
 
       should("credit the moderator as the updater") do
         @post.hide!(@mod)
+
         assert_equal(@mod.id, @post.updater_id)
       end
     end
@@ -182,6 +191,7 @@ class ForumPostTest < ActiveSupport::TestCase
       instance_exec do
         define_method(:verify_history) do |history, forum_post, edit_type, user = forum_post.creator_id|
           throw("history is nil (#{forum_post.id}:#{edit_type}:#{user}:#{forum_post.creator_id})") if history.nil?
+
           assert_equal(forum_post.body_history[history.version - 1], history.body, "history body did not match")
           assert_equal(edit_type, history.edit_type, "history edit_type did not match")
           assert_equal(user, history.updater_id, "history updater_id did not match")

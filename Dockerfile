@@ -1,4 +1,4 @@
-FROM ruby:3.3.8-alpine3.21 AS ruby-builder
+FROM ruby:3.4.1-alpine3.21 AS ruby-builder
 
 RUN apk --no-cache add build-base cmake git glib-dev postgresql17-dev gcompat ragel yaml-dev
 
@@ -22,7 +22,7 @@ COPY package.json yarn.lock ./
 RUN corepack enable && corepack prepare --activate && yarn install
 
 
-FROM ruby:3.3.8-alpine3.21
+FROM ruby:3.4.1-alpine3.21
 RUN apk --no-cache add ffmpeg vips \
   postgresql17-client \
   git jemalloc tzdata \

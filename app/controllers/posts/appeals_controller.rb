@@ -39,7 +39,7 @@ module Posts
       respond_with(@post_appeal) do |format|
         format.html do
           notice("Post appeal rejected")
-          redirect_back(fallback_location: post_path(@post_appeal.post))
+          redirect_back_or_to(post_path(@post_appeal.post))
         end
       end
     end

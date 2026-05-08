@@ -16,8 +16,10 @@ class PostEventTest < ActiveSupport::TestCase
 
   def assert_post_events_created(user, events, &)
     count = Array.wrap(events).count
+
     assert_difference("PostEvent.count", count, &)
     list = PostEvent.last(count)
+
     assert_equal(Array.wrap(events).map(&:to_s), list.map(&:action))
     assert_equal([user] * count, list.map(&:creator))
   end

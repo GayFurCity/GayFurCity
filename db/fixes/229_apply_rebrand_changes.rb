@@ -13,17 +13,17 @@ updates[:takedown_email] = "admin@gayfur.city" if config.takedown_email == "admi
 updates[:contact_email] = "admin@gayfur.city" if config.takedown_email == "admin@femboy.fan"
 
 if updates.none?
-  puts "no config changes"
+  puts("no config changes")
 else
   config.update_with!(User.system, updates)
-  puts "config changes: #{updates.keys.join(', ')}"
+  puts("config changes: #{updates.keys.join(', ')}")
 end
 
 mascots = Mascot.where.contains(available_on: ["Femboy Fans"])
 
 if mascots.none?
-  puts "no mascot changes"
+  puts("no mascot changes")
 else
   mascots.each { |m| m.update_with!(User.system, available_on: ["GayFur City", *(m.available_on - ["Femboy Fans"])]) }
-  puts "mascot changes: #{mascots.map(&:id).join(", ")}"
+  puts("mascot changes: #{mascots.map(&:id).join(', ')}")
 end

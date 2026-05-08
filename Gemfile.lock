@@ -345,12 +345,33 @@ GEM
       better_html
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
+    rubocop-factory_bot (2.28.0)
+      lint_roller (~> 1.1)
+      rubocop (~> 1.72, >= 1.72.1)
+    rubocop-faker (1.3.0)
+      faker (>= 2.12.0)
+      lint_roller (~> 1.1)
+      rubocop (>= 1.72.1)
+    rubocop-minitest (0.39.1)
+      lint_roller (~> 1.1)
+      rubocop (>= 1.75.0, < 2.0)
+      rubocop-ast (>= 1.38.0, < 2.0)
+    rubocop-performance (1.26.0)
+      lint_roller (~> 1.1)
+      rubocop (>= 1.75.0, < 2.0)
+      rubocop-ast (>= 1.44.0, < 2.0)
     rubocop-rails (2.32.0)
       activesupport (>= 4.2.0)
       lint_roller (~> 1.1)
       rack (>= 1.1)
       rubocop (>= 1.75.0, < 2.0)
       rubocop-ast (>= 1.44.0, < 2.0)
+    rubocop-rake (0.7.1)
+      lint_roller (~> 1.1)
+      rubocop (>= 1.72.1)
+    rubocop-yiffspace (0.0.1)
+      lint_roller (~> 1.1)
+      rubocop (>= 1.72.2)
     ruby-lsp (0.17.17)
       language_server-protocol (~> 3.17.0)
       prism (~> 1.0)
@@ -477,7 +498,13 @@ DEPENDENCIES
   rqrcode (~> 2.2)
   rubocop
   rubocop-erb
+  rubocop-factory_bot
+  rubocop-faker
+  rubocop-minitest
+  rubocop-performance
   rubocop-rails
+  rubocop-rake
+  rubocop-yiffspace
   ruby-lsp
   ruby-lsp-rails (~> 0.3.13)
   ruby-vips

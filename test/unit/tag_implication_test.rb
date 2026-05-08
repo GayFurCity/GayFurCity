@@ -40,6 +40,7 @@ class TagImplicationTest < ActiveSupport::TestCase
         create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "pending")
         ti2 = build(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "active")
         ti2.save
+
         assert_match(/Antecedent name has already been taken/, ti2.errors.full_messages.join)
       end
     end
@@ -67,25 +68,25 @@ class TagImplicationTest < ActiveSupport::TestCase
       end
 
       should("not allow creator") do
-        assert_equal(false, @ti.approvable_by?(@user))
+        assert_not(@ti.approvable_by?(@user))
       end
 
       should("allow admins") do
-        assert_equal(true, @ti.approvable_by?(@admin))
+        assert(@ti.approvable_by?(@admin))
       end
 
       should("now allow mods") do
-        assert_equal(false, @ti.approvable_by?(@mod))
+        assert_not(@ti.approvable_by?(@mod))
       end
 
       should("not allow admins if antecedent/consequent is dnp") do
-        assert_equal(false, @ti2.approvable_by?(@admin))
-        assert_equal(false, @ti3.approvable_by?(@admin))
+        assert_not(@ti2.approvable_by?(@admin))
+        assert_not(@ti3.approvable_by?(@admin))
       end
 
       should("allow owner") do
-        assert_equal(true, @ti2.approvable_by?(@owner))
-        assert_equal(true, @ti3.approvable_by?(@owner))
+        assert(@ti2.approvable_by?(@owner))
+        assert(@ti3.approvable_by?(@owner))
       end
     end
 
@@ -96,15 +97,15 @@ class TagImplicationTest < ActiveSupport::TestCase
       end
 
       should("allow creator") do
-        assert_equal(true, @ti.rejectable_by?(@user))
+        assert(@ti.rejectable_by?(@user))
       end
 
       should("allow admins") do
-        assert_equal(true, @ti.rejectable_by?(@admin))
+        assert(@ti.rejectable_by?(@admin))
       end
 
       should("now allow mods") do
-        assert_equal(false, @ti.rejectable_by?(@mod))
+        assert_not(@ti.rejectable_by?(@mod))
       end
     end
 
@@ -112,11 +113,13 @@ class TagImplicationTest < ActiveSupport::TestCase
       ti2 = build(:tag_implication, antecedent_name: "b", consequent_name: "c", status: "pending")
       ti2.save
       ti1 = create(:tag_implication, antecedent_name: "a", consequent_name: "b")
+
       assert_equal(%w[b], ti1.descendant_names)
     end
 
     should("populate the creator information") do
       ti = create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", creator: @admin)
+
       assert_equal(@admin.id, ti.creator_id)
     end
 
@@ -130,7 +133,7 @@ class TagImplicationTest < ActiveSupport::TestCase
     should("not validate when a tag directly implicates itself") do
       ti = build(:tag_implication, antecedent_name: "a", consequent_name: "a")
 
-      assert(ti.invalid?)
+      assert_predicate(ti, :invalid?)
       assert_includes(ti.errors[:base], "Cannot implicate a tag to itself")
     end
 
@@ -139,8 +142,8 @@ class TagImplicationTest < ActiveSupport::TestCase
       ti2 = create(:tag_implication, antecedent_name: "bbb", consequent_name: "ccc")
       ti3 = build(:tag_implication, antecedent_name: "bbb", consequent_name: "aaa", creator: @user)
 
-      assert(ti1.valid?)
-      assert(ti2.valid?)
+      assert_predicate(ti1, :valid?)
+      assert_predicate(ti2, :valid?)
       assert_not(ti3.valid?)
       assert_equal("Tag implication cannot create a circular relation with another tag implication", ti3.errors.full_messages.join)
     end
@@ -158,7 +161,8 @@ class TagImplicationTest < ActiveSupport::TestCase
       create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb")
       ti2 = build(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb")
       ti2.save
-      assert(ti2.errors.any?, "Tag implication should not have validated.")
+
+      assert_predicate(ti2.errors, :any?, "Tag implication should not have validated.")
       assert_includes(ti2.errors.full_messages, "Antecedent name has already been taken")
     end
 
@@ -167,7 +171,7 @@ class TagImplicationTest < ActiveSupport::TestCase
       create(:tag_alias, antecedent_name: "bbb", consequent_name: "b")
       ti = build(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb")
 
-      assert(ti.invalid?)
+      assert_predicate(ti, :invalid?)
       assert_includes(ti.errors[:base], "Antecedent tag must not be aliased to another tag")
       assert_includes(ti.errors[:base], "Consequent tag must not be aliased to another tag")
     end
@@ -178,15 +182,19 @@ class TagImplicationTest < ActiveSupport::TestCase
       ti.save(validate: false)
 
       ti.reject!(@admin)
+
       assert_equal("deleted", ti.reload.status)
     end
 
     should("calculate all its descendants") do
       ti1 = create(:tag_implication, antecedent_name: "bbb", consequent_name: "ccc")
+
       assert_equal(%w[ccc], ti1.descendant_names)
       ti2 = create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb")
+
       assert_equal(%w[bbb ccc], ti2.descendant_names)
       ti1.reload
+
       assert_equal(%w[ccc], ti1.descendant_names)
     end
 
@@ -200,6 +208,7 @@ class TagImplicationTest < ActiveSupport::TestCase
       )
       ti1.reload
       ti2.reload
+
       assert_equal(%w[bbb ddd], ti1.descendant_names)
       assert_equal(%w[ddd], ti2.descendant_names)
     end
@@ -213,6 +222,7 @@ class TagImplicationTest < ActiveSupport::TestCase
       ti2.reload
       ti3.reload
       ti4.reload
+
       assert_equal(%w[bbb ccc ddd], ti1.descendant_names)
       assert_equal(%w[bbb ccc ddd], ti2.descendant_names)
       assert_equal(%w[ccc ddd], ti3.descendant_names)
@@ -221,6 +231,7 @@ class TagImplicationTest < ActiveSupport::TestCase
       ti1.reload
       ti2.reload
       ti4.reload
+
       assert_equal(%w[bbb], ti1.descendant_names)
       assert_equal(%w[bbb], ti2.descendant_names)
       assert_equal(%w[ddd], ti4.descendant_names)
@@ -229,12 +240,14 @@ class TagImplicationTest < ActiveSupport::TestCase
     should("update the descendants for all of its parents on create") do
       ti1 = create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb")
       ti1.reload
+
       assert_equal("active", ti1.status)
       assert_equal(%w[bbb], ti1.descendant_names)
 
       ti2 = create(:tag_implication, antecedent_name: "bbb", consequent_name: "ccc")
       ti1.reload
       ti2.reload
+
       assert_equal("active", ti1.status)
       assert_equal("active", ti2.status)
       assert_equal(%w[bbb ccc], ti1.descendant_names)
@@ -244,6 +257,7 @@ class TagImplicationTest < ActiveSupport::TestCase
       ti1.reload
       ti2.reload
       ti3.reload
+
       assert_equal(%w[bbb ccc ddd], ti1.descendant_names)
       assert_equal(%w[ccc ddd], ti2.descendant_names)
 
@@ -252,6 +266,7 @@ class TagImplicationTest < ActiveSupport::TestCase
       ti2.reload
       ti3.reload
       ti4.reload
+
       assert_equal(%w[bbb ccc ddd eee], ti1.descendant_names)
       assert_equal(%w[ccc ddd eee], ti2.descendant_names)
       assert_equal(%w[ddd], ti3.descendant_names)
@@ -263,6 +278,7 @@ class TagImplicationTest < ActiveSupport::TestCase
       ti3.reload
       ti4.reload
       ti5.reload
+
       assert_equal(%w[bbb ccc ddd eee], ti1.descendant_names)
       assert_equal(%w[ccc ddd eee], ti2.descendant_names)
       assert_equal(%w[ddd], ti3.descendant_names)
@@ -298,6 +314,7 @@ class TagImplicationTest < ActiveSupport::TestCase
       ti = create(:tag_implication, antecedent_name: "5", consequent_name: "6", status: "pending")
       post = create(:post, tag_string: "1 2 3 4 5")
       with_inline_jobs { ti.approve!(@admin) }
+
       assert_equal("1 2 3 4 5 6", post.reload.tag_string)
     end
 
@@ -315,6 +332,7 @@ class TagImplicationTest < ActiveSupport::TestCase
         end
         @post.reload
         @topic.reload
+
         assert_match(/The tag implication .* has been approved/, @post.body)
         assert_equal("[APPROVED] Tag implication: aaa -> bbb", @topic.title)
       end
@@ -325,6 +343,7 @@ class TagImplicationTest < ActiveSupport::TestCase
         end
         @post.reload
         @topic.reload
+
         assert_match(/The tag implication .* has been rejected/, @post.body)
         assert_equal("[REJECTED] Tag implication: aaa -> bbb", @topic.title)
       end

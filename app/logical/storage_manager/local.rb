@@ -14,6 +14,7 @@ module StorageManager
         bytes_copied = IO.copy_stream(io, temp_file)
         raise(Error, "store failed: #{bytes_copied}/#{io.size} bytes copied") if bytes_copied != io.size
 
+        temp_file.flush
         FileUtils.chmod(DEFAULT_PERMISSIONS, temp_file.path)
         FileUtils.mv(temp_file.path, p(dest_path))
       rescue StandardError => e
@@ -32,7 +33,7 @@ module StorageManager
 
     def open(path, &)
       log(%{open("#{path}")}) do
-        file = File.open(p(path), "r", binmode: true)
+        file = File.open(p(path), "r", binmode: true) # rubocop:disable Style/FileOpen
         if block_given?
           begin
             yield(file)

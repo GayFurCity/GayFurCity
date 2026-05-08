@@ -26,7 +26,7 @@ class UserPolicy < ApplicationPolicy
       password old_password password_confirmation
       comment_threshold default_image_size favorite_tags blacklisted_tags
       time_zone per_page custom_style
-    ] + User::Preferences.settable_list + [dmail_filter_attributes: %i[id words]]
+    ] + User::Preferences.settable_list + [{ dmail_filter_attributes: %i[id words] }]
   end
 
   def permitted_attributes_for_create
@@ -34,7 +34,7 @@ class UserPolicy < ApplicationPolicy
   end
 
   def permitted_attributes_for_update
-    attr = super + %i[enable_hover_zoom_form forum_unread_form] + [upload_notifications: []]
+    attr = super + %i[enable_hover_zoom_form forum_unread_form] + [{ upload_notifications: [] }]
     attr += %i[profile_about profile_artinfo avatar_id] if unbanned? # Prevent editing when banned
     attr += %i[enable_compact_uploader] if record.post_active_count >= Config.instance.compact_uploader_minimum_posts
     attr

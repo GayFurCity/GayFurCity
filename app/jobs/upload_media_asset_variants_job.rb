@@ -21,14 +21,14 @@ class UploadMediaAssetVariantsJob < ApplicationJob
 
   def self.generate_images(file, asset)
     asset.regenerate_image_variants!(file)
-    data = (asset.variants_data.select { |v| v["video"] }) + asset.image_variants.without(asset.original).map(&:serializable_hash)
+    data = asset.variants_data.select { |v| v["video"] } + asset.image_variants.without(asset.original).map(&:serializable_hash)
     names = data.pluck("type")
     asset.update!(variants_data: data.uniq { |d| [d["type"], d["ext"]] }, generated_variants: names.uniq)
   end
 
   def self.generate_videos(file, asset)
     asset.regenerate_video_variants!(file)
-    data = (asset.variants_data.reject { |v| v["video"] }) + asset.video_variants.without(asset.original).map(&:serializable_hash)
+    data = asset.variants_data.reject { |v| v["video"] } + asset.video_variants.without(asset.original).map(&:serializable_hash)
     names = data.pluck("type")
     asset.update!(variants_data: data.uniq { |d| [d["type"], d["ext"]] }, generated_variants: names.uniq)
   end

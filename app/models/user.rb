@@ -270,7 +270,7 @@ class User < ApplicationRecord
 
   module BanMethods
     def validate_ip_addr_is_not_banned
-      if IpBan.is_banned?(CurrentUser.ip_addr) # rubocop:disable Local/CurrentUserOutsideOfRequests
+      if IpBan.is_banned?(CurrentUser.ip_addr) # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
         errors.add(:base, "IP address is banned")
         false
       end
@@ -744,6 +744,7 @@ class User < ApplicationRecord
 
     class Throttle
       include(ActiveModel::Serializers::JSON)
+
       attr_reader(:name, :limiter, :bypass, :newbie_duration, :level)
 
       def initialize(name, limiter, bypass, newbie_duration, level)
@@ -1099,7 +1100,7 @@ class User < ApplicationRecord
     def validate_sock_puppets
       return if @validate_sock_puppets == false
 
-      if User.where(last_ip_addr: CurrentUser.ip_addr).exists?(["created_at > ?", 1.day.ago]) # rubocop:disable Local/CurrentUserOutsideOfRequests
+      if User.where(last_ip_addr: CurrentUser.ip_addr).exists?(["created_at > ?", 1.day.ago]) # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
         errors.add(:last_ip_addr, "was used recently for another account and cannot be reused for another day")
       end
     end

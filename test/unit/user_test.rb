@@ -12,10 +12,10 @@ class UserTest < ActiveSupport::TestCase
     end
 
     should("not validate if the originating ip address is banned") do
-      assert_raises(ActiveRecord::RecordInvalid) do
-        create(:ip_ban, ip_addr: "1.2.3.4")
+      create(:ip_ban, ip_addr: "1.2.3.4")
 
-        CurrentUser.scoped(User.anonymous, "1.2.3.4") do # rubocop:disable Local/CurrentUserOutsideOfRequests
+      assert_raises(ActiveRecord::RecordInvalid) do
+        CurrentUser.scoped(User.anonymous, "1.2.3.4") do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
           create(:user, last_ip_addr: "1.2.3.4")
         end
       end
@@ -24,16 +24,19 @@ class UserTest < ActiveSupport::TestCase
     should("limit post uploads") do
       assert_equal(:REJ_UPLOAD_NEWBIE, @user.can_upload_with_reason)
       @user.update_columns(created_at: 15.days.ago, base_upload_limit: 2)
-      assert_equal(true, @user.can_upload_with_reason)
+
+      assert(@user.can_upload_with_reason)
       assert_equal(2, @user.upload_limit)
 
       create_list(:post, @user.base_upload_limit - 1, uploader: @user, is_pending: true)
 
       @user = User.find(@user.id).resolvable
+
       assert_equal(1, @user.upload_limit)
-      assert_equal(true, @user.can_upload_with_reason)
+      assert(@user.can_upload_with_reason)
       create(:post, uploader: @user, is_pending: true)
       @user = User.find(@user.id)
+
       assert_equal(:REJ_UPLOAD_LIMIT, @user.can_upload_with_reason)
     end
 
@@ -41,13 +44,15 @@ class UserTest < ActiveSupport::TestCase
       # allow creating one more comment than votes so creating a vote can fail later on
       Config.any_instance.stubs(:comment_vote_limit).returns(1)
       Config.any_instance.stubs(:comment_limit).returns(Config.instance.comment_vote_limit + 1)
-      assert_equal(@user.can_comment_vote_with_reason, :REJ_NEWBIE)
+
+      assert_equal(:REJ_NEWBIE, @user.can_comment_vote_with_reason)
       @user.update_column(:created_at, 1.year.ago)
       user2 = create(:user, created_at: 1.year.ago)
 
       comments = create_list(:comment, Config.instance.comment_vote_limit, creator: user2)
       comments.each { |c| VoteManager::Comments.vote!(comment: c, user: @user, score: -1, ip_addr: "127.0.0.1") }
-      assert_equal(@user.can_comment_vote_with_reason, :REJ_LIMITED)
+
+      assert_equal(:REJ_LIMITED, @user.can_comment_vote_with_reason)
 
       comment = create(:comment, creator: user2)
       assert_raises(ActiveRecord::RecordInvalid) do
@@ -55,18 +60,23 @@ class UserTest < ActiveSupport::TestCase
       end
 
       CommentVote.update_all("created_at = '1990-01-01'")
-      assert_equal(@user.can_comment_vote_with_reason, true)
+
+      assert(@user.can_comment_vote_with_reason)
     end
 
     should("limit comments") do
       Config.any_instance.stubs(:comment_limit).returns(2)
-      assert_equal(@user.can_comment_with_reason, :REJ_NEWBIE)
+
+      assert_equal(:REJ_NEWBIE, @user.can_comment_with_reason)
       @user.update_column(:level, User::Levels::TRUSTED)
+
       assert(@user.can_comment_with_reason)
       @user.update_column(:level, User::Levels::MEMBER)
       @user.update_column(:created_at, 1.year.ago)
+
       assert(@user.can_comment_with_reason)
       create_list(:comment, Config.instance.comment_limit, creator: @user)
+
       assert_equal(:REJ_LIMITED, @user.can_comment_with_reason)
     end
 
@@ -78,16 +88,18 @@ class UserTest < ActiveSupport::TestCase
       (Config.instance.comment_limit - 1).times do
         create(:forum_post, topic_id: topic.id, creator: @user)
       end
+
       assert_equal(:REJ_LIMITED, @user.can_forum_post_with_reason)
     end
 
     should("verify") do
-      assert(@user.is_verified?)
+      assert_predicate(@user, :is_verified?)
       @user = create(:user)
       @user.mark_unverified!(@admin)
+
       assert_not(@user.is_verified?)
       assert_nothing_raised { @user.mark_verified!(@admin) }
-      assert(@user.is_verified?)
+      assert_predicate(@user, :is_verified?)
     end
 
     should("authenticate") do
@@ -97,20 +109,24 @@ class UserTest < ActiveSupport::TestCase
 
     should("normalize its level") do
       user = create(:user, level: User::Levels::ADMIN)
-      assert(user.is_moderator?)
-      assert(user.is_trusted?)
+
+      assert_predicate(user, :is_moderator?)
+      assert_predicate(user, :is_trusted?)
 
       user = create(:user, level: User::Levels::MODERATOR)
+
       assert_not(user.is_admin?)
-      assert(user.is_moderator?)
-      assert(user.is_trusted?)
+      assert_predicate(user, :is_moderator?)
+      assert_predicate(user, :is_trusted?)
 
       user = create(:user, level: User::Levels::TRUSTED)
+
       assert_not(user.is_admin?)
       assert_not(user.is_moderator?)
-      assert(user.is_trusted?)
+      assert_predicate(user, :is_trusted?)
 
       user = create(:user)
+
       assert_not(user.is_admin?)
       assert_not(user.is_moderator?)
       assert_not(user.is_trusted?)
@@ -125,35 +141,41 @@ class UserTest < ActiveSupport::TestCase
         # U+2007: https://en.wikipedia.org/wiki/Figure_space
         user = build(:user, name: "foo\u2007bar")
         user.save
+
         assert_equal(["Name must contain only alphanumeric characters, hypens, apostrophes, tildes and underscores"], user.errors.full_messages)
       end
 
       should("not contain a colon") do
         user = build(:user, name: "a:b")
         user.save
+
         assert_equal(["Name must contain only alphanumeric characters, hypens, apostrophes, tildes and underscores"], user.errors.full_messages)
       end
 
       should("not begin with an underscore") do
         user = build(:user, name: "_x")
         user.save
+
         assert_equal(["Name must not begin with a special character", "Name cannot begin or end with an underscore"], user.errors.full_messages)
       end
 
       should("not end with an underscore") do
         user = build(:user, name: "x_")
         user.save
+
         assert_equal(["Name cannot begin or end with an underscore"], user.errors.full_messages)
       end
 
       should("be fetched given a user id") do
         @user = create(:user)
+
         assert_equal(@user.name, User.id_to_name(@user.id))
       end
 
       should("be updated") do
         @user = create(:user)
         @user.update_attribute(:name, "danzig")
+
         assert_equal(@user.name, User.id_to_name(@user.id))
       end
     end
@@ -165,7 +187,7 @@ class UserTest < ActiveSupport::TestCase
 
       context("in the json representation") do
         should("not appear") do
-          assert(@user.to_json !~ /addr/)
+          assert_no_match(/addr/, @user.to_json)
         end
       end
     end
@@ -178,6 +200,7 @@ class UserTest < ActiveSupport::TestCase
         @user.password_confirmation = "zugzug5"
         @user.save
         @user.reload
+
         assert(User.authenticate(@user.name, "zugzug5"), "Authentication should have succeeded")
       end
 
@@ -186,6 +209,7 @@ class UserTest < ActiveSupport::TestCase
         @user.password = "zugzug6"
         @user.password_confirmation = "zugzug5"
         @user.save
+
         assert_equal(["Password confirmation doesn't match Password"], @user.errors.full_messages)
       end
 
@@ -194,6 +218,7 @@ class UserTest < ActiveSupport::TestCase
         @user.password = "x5"
         @user.password_confirmation = "x5"
         @user.save
+
         assert_equal(["Password is too short (minimum is 6 characters)"], @user.errors.full_messages)
       end
 
@@ -227,7 +252,7 @@ class UserTest < ActiveSupport::TestCase
         end
 
         should("not appear") do
-          assert(@user.to_json !~ /password/)
+          assert_no_match(/password/, @user.to_json)
         end
       end
     end
@@ -239,9 +264,10 @@ class UserTest < ActiveSupport::TestCase
       end
 
       should("not validate") do
-        CurrentUser.scoped(User.anonymous, "127.0.0.2") do # rubocop:disable Local/CurrentUserOutsideOfRequests
+        CurrentUser.scoped(User.anonymous, "127.0.0.2") do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
           @user = build(:user)
           @user.save
+
           assert_equal(["Last ip addr was used recently for another account and cannot be reused for another day"], @user.errors.full_messages)
         end
       end
@@ -256,6 +282,7 @@ class UserTest < ActiveSupport::TestCase
         @user = build(:user)
         @user.email = "what@mine.xyz"
         @user.save
+
         assert_equal(["Email address may not be used"], @user.errors.full_messages)
       end
     end
@@ -266,9 +293,9 @@ class UserTest < ActiveSupport::TestCase
         user2 = create(:user, name: "foobar")
         user3 = create(:user, name: "bar123baz")
 
-        assert_equal([user2.id, user1.id], User.search_current(name_matches: "foo*").map(&:id))
-        assert_equal([user2.id], User.search_current(name_matches: "foo*bar").map(&:id))
-        assert_equal([user3.id], User.search_current(name_matches: "bar*baz").map(&:id))
+        assert_equal([user2.id, user1.id], User.search_current({ name_matches: "foo*" }).map(&:id))
+        assert_equal([user2.id], User.search_current({ name_matches: "foo*bar" }).map(&:id))
+        assert_equal([user3.id], User.search_current({ name_matches: "bar*baz" }).map(&:id))
       end
     end
 
@@ -283,6 +310,7 @@ class UserTest < ActiveSupport::TestCase
         @restricted = create(:restricted_user)
       end
       @approval = UserApproval.last
+
       assert_equal("pending", @approval.status)
       assert_equal(@restricted.id, @approval.user_id)
     end

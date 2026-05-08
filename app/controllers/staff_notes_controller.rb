@@ -27,25 +27,25 @@ class StaffNotesController < ApplicationController
     flash[:notice] = @staff_note.valid? ? "Staff Note added" : @staff_note.errors.full_messages.join("; ")
     respond_with(@staff_note) do |format|
       format.html do
-        redirect_back(fallback_location: staff_notes_path)
+        redirect_back_or_to(staff_notes_path)
       end
     end
   end
 
   def update
     authorize(@staff_note).update_with_current(:updater, permitted_attributes(@staff_note))
-    redirect_back(fallback_location: staff_notes_path)
+    redirect_back_or_to(staff_notes_path)
   end
 
   def destroy
     authorize(@staff_note).update_with_current(:updater, is_deleted: true)
-    redirect_back(fallback_location: staff_notes_path)
+    redirect_back_or_to(staff_notes_path)
   end
 
   def undelete
     @staff_note = authorize(StaffNote.find(params[:staff_note_id]))
     @staff_note.update_with_current(:updater, is_deleted: false)
-    redirect_back(fallback_location: staff_notes_path)
+    redirect_back_or_to(staff_notes_path)
   end
 
   private

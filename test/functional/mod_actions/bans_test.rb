@@ -63,6 +63,7 @@ module ModActions
 
       should("format ban_delete correctly") do
         @ban.destroy_with(@admin)
+
         assert_matches(
           actions: %w[ban_delete],
           subject: @ban,

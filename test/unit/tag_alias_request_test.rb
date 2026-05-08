@@ -10,7 +10,8 @@ class TagAliasRequestTest < ActiveSupport::TestCase
 
     should("handle invalid attributes") do
       tar = TagAliasRequest.create(antecedent_name: "", consequent_name: "", reason: "reason", user: @user)
-      assert(tar.invalid?)
+
+      assert_predicate(tar, :invalid?)
     end
 
     should("create a tag alias") do
@@ -25,6 +26,7 @@ class TagAliasRequestTest < ActiveSupport::TestCase
         @tar = TagAliasRequest.create(antecedent_name: "aaa", consequent_name: "bbb", reason: "reason", user: @user).tag_relationship
       end
       @topic = ForumTopic.last
+
       assert_equal(@tar.forum_topic_id, @topic.id)
       assert_equal(@tar.forum_post_id, @topic.posts.first.id)
       assert_equal(@tar.id, @tar.forum_post.tag_change_request_id)
@@ -50,6 +52,7 @@ class TagAliasRequestTest < ActiveSupport::TestCase
 
     should("fail validation if the reason is too short") do
       tar = TagAliasRequest.create(antecedent_name: "aaa", consequent_name: "bbb", reason: "", user: @user)
+
       assert_match(/Reason is too short/, tar.errors.full_messages.join)
     end
 

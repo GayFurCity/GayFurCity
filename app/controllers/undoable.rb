@@ -2,6 +2,7 @@
 
 module Undoable
   extend(ActiveSupport::Concern)
+
   class UndoError < StandardError; end
 
   module ClassMethods

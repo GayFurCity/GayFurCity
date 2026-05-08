@@ -52,7 +52,7 @@ class CommentsController < ApplicationController
     notice(@comment.valid? ? "Comment posted" : @comment.errors.full_messages.join("; "))
     respond_with(@comment) do |format|
       format.html do
-        redirect_back(fallback_location: @comment.post || comments_path)
+        redirect_back_or_to(@comment.post || comments_path)
       end
     end
   end

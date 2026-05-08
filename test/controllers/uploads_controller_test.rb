@@ -11,6 +11,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
     context("new action") do
       should("render") do
         get_auth(new_upload_path, @user)
+
         assert_response(:success)
       end
 
@@ -25,11 +26,13 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
 
         should("prevent uploads") do
           get_auth(new_upload_path, create(:user))
+
           assert_response(:forbidden)
         end
 
         should("allow uploads for users of the same or higher level") do
           get_auth(new_upload_path, create(:trusted_user, created_at: 2.weeks.ago))
+
           assert_response(:success)
         end
       end
@@ -47,6 +50,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
 
       should("render") do
         get_auth(uploads_path, @user)
+
         assert_response(:success)
       end
 
@@ -91,11 +95,13 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
 
       should("render") do
         get_auth(upload_path(@pending), @user)
+
         assert_response(:success)
       end
 
       should("redirect if post exists") do
         get_auth(upload_path(@upload), @user)
+
         assert_redirected_to(post_path(@upload.post))
       end
 
@@ -109,6 +115,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
         assert_difference("Upload.count", 1) do
           file = fixture_file_upload("test.jpg")
           post_auth(uploads_path, @user, params: { upload: { file: file, tag_string: "aaa", rating: "q", source: "aaa" }, format: :json })
+
           assert_response(:success)
         end
       end
@@ -117,10 +124,11 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
         assert_difference("Upload.count", 1) do
           file = fixture_file_upload("test.jpg")
           post_auth(uploads_path, create(:janitor_user), params: { upload: { file: file, tag_string: "aaa", rating: "q", source: "aaa" }, format: :json })
+
           assert_response(:success)
         end
-        assert_equal(false, Post.last.is_pending?)
-        assert_equal(false, @user.notifications.post_approve.exists?)
+        assert_not(Post.last.is_pending?)
+        assert_not(@user.notifications.post_approve.exists?)
       end
 
       context("with a previously destroyed post") do
@@ -135,6 +143,7 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
             assert_enqueued_jobs(1, only: NotifyExpungedMediaAssetReuploadJob) do
               file = fixture_file_upload("test.jpg")
               post_auth(uploads_path, @user, params: { upload: { file: file, tag_string: "aaa", rating: "q", source: "aaa" }, format: :json })
+
               assert_response(:precondition_failed)
               assert_equal("That image has been deleted and cannot be reuploaded", @response.parsed_body["message"])
               assert_equal("expunged", UploadMediaAsset.last.status)

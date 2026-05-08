@@ -58,6 +58,7 @@ class RelatedTagCalculatorTest < ActiveSupport::TestCase
 
       Tag.find_by(name: "aaa")
       counts = RelatedTagCalculator.calculate_from_sample("aaa", 10)
+
       assert_equal("aaa 3 bbb 3 ccc 2 ddd 1", RelatedTagCalculator.convert_hash_to_string(counts))
     end
   end

@@ -14,7 +14,7 @@ class QueryBuilder
   end
 
   def process_dsl(dsl, params)
-    dsl[:fields].each do |param, field, type = nil, block = nil, options = {}| # rubocop:disable Metrics/BlockLength
+    dsl[:fields].each do |param, field, type = nil, block = nil, options = {}|
       value = params[param]
       multi = options.fetch(:multi, nil) || false
       like = options.fetch(:like, nil) || false

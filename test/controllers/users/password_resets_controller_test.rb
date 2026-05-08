@@ -13,6 +13,7 @@ module Users
 
       should("render the new page") do
         get(new_users_password_reset_path)
+
         assert_response(:success)
       end
 
@@ -53,7 +54,7 @@ module Users
           end
 
           should("create a user event") do
-            assert_equal(true, @user.user_events.password_reset.exists?)
+            assert_predicate(@user.user_events.password_reset, :exists?)
           end
         end
       end
@@ -99,6 +100,7 @@ module Users
 
           should("change the password") do
             @user.reload
+
             assert_not_equal(@old_password, @user.bcrypt_password_hash)
           end
 

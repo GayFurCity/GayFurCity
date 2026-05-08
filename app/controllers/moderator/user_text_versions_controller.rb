@@ -27,14 +27,14 @@ module Moderator
 
     def diff
       if params[:otherversion].blank? || params[:thisversion].blank?
-        redirect_back(fallback_location: { action: :index }, notice: "You must select two versions to diff")
+        redirect_back_or_to({ action: :index }, notice: "You must select two versions to diff")
         return
       end
 
       @otherversion = authorize(UserTextVersion.find(params[:otherversion]))
       @thisversion = authorize(UserTextVersion.find(params[:thisversion]))
       @user = @thisversion.user
-      redirect_back(fallback_location: { action: :index }, notice: "You cannot diff two different users") if @otherversion.user_id != @thisversion.user_id
+      redirect_back_or_to({ action: :index }, notice: "You cannot diff two different users") if @otherversion.user_id != @thisversion.user_id
     end
   end
 end

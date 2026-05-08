@@ -3,7 +3,7 @@
 
 require_relative("base")
 
-users = User.where(level: User::Levels::MEMBER, favorite_count: ...1000).order("id asc")
+users = User.where(level: User::Levels::MEMBER, favorite_count: ...1000).order(:id)
 
 MIN_FAVORITES = 500
 MAX_FAVORITES = Post.count

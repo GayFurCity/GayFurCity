@@ -14,6 +14,7 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
     context("index action") do
       should("render") do
         get(help_pages_path)
+
         assert_response(:success)
       end
 
@@ -25,26 +26,31 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
     context("show action") do
       should("render") do
         get(help_page_path(@help))
+
         assert_response(:success)
       end
 
       should("render for name") do
         get(help_page_path(id: @help.name))
+
         assert_response(:success)
       end
 
       should("render for name with space") do
         get(help_page_path(id: @help.name.gsub("_", " ")))
+
         assert_response(:success)
       end
 
       should("redirect if not found and format is html") do
         get(help_page_path(id: "invalid"))
+
         assert_redirected_to(help_pages_path)
       end
 
       should("not redirect if not found and format is json") do
         get(help_page_path(id: "invalid"), params: { format: :json })
+
         assert_response(:not_found)
       end
 
@@ -56,6 +62,7 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
     context("new action") do
       should("render") do
         get_auth(new_help_page_path, @admin)
+
         assert_response(:success)
       end
 
@@ -67,6 +74,7 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
     context("create action") do
       should("work") do
         post_auth(help_pages_path, @admin, params: { help_page: { name: "test", wiki_page_id: create(:wiki_page).id } })
+
         assert_redirected_to(HelpPage.last)
       end
 
@@ -78,6 +86,7 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
     context("edit action") do
       should("render") do
         get_auth(edit_help_page_path(@help), @admin)
+
         assert_response(:success)
       end
 
@@ -89,6 +98,7 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
     context("update action") do
       should("work") do
         put_auth(help_page_path(@help), @admin, params: { help_page: { name: "test2" } })
+
         assert_redirected_to(@help)
         assert_equal("test2", @help.reload.name)
       end
@@ -101,6 +111,7 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
     context("destroy action") do
       should("work") do
         delete_auth(help_page_path(@help), @admin)
+
         assert_redirected_to(help_pages_path)
         assert_raises(ActiveRecord::RecordNotFound) { @help.reload }
       end

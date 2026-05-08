@@ -16,7 +16,7 @@ module Admin
       query = @reowner_params[:search]
       unless @old_user && @new_user
         flash[:notice] = "Old or new user failed to look up. Use !id for name to use an id"
-        redirect_back(fallback_location: new_admin_reowner_path)
+        redirect_back_or_to(new_admin_reowner_path)
         return
       end
 
@@ -34,7 +34,7 @@ module Admin
 
       StaffAuditLog.log!(CurrentUser.user, :post_owner_reassign, new_user_id: @new_user.id, old_user_id: @old_user.id, query: query, post_ids: moved_post_ids)
       flash[:notice] = "Post ownership reassigned"
-      redirect_back(fallback_location: new_admin_reowner_path)
+      redirect_back_or_to(new_admin_reowner_path)
     end
   end
 end

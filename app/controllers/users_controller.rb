@@ -103,7 +103,7 @@ class UsersController < ApplicationController
       flash[:notice] = "Settings updated"
     end
     respond_with(@user) do |format|
-      format.html { redirect_back(fallback_location: edit_users_path) }
+      format.html { redirect_back_or_to(edit_users_path) }
     end
   end
 

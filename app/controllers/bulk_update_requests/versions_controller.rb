@@ -34,7 +34,7 @@ module BulkUpdateRequests
       return render_expected_error(422, text) if text.present?
       notice("Bulk update request version undone")
       respond_with(@bulk_update_request_version) do |format|
-        format.html { redirect_back(fallback_location: bulk_update_request_versions_path) }
+        format.html { redirect_back_or_to(bulk_update_request_versions_path) }
       end
     end
   end

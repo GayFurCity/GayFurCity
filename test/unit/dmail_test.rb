@@ -25,21 +25,23 @@ class DmailTest < ActiveSupport::TestCase
 
       should("autoread if it has a banned word") do
         @dmail.save
-        assert_equal(true, @dmail.is_read?)
+
+        assert_predicate(@dmail, :is_read?)
       end
 
       should("not update the recipient's has_mail if filtered") do
         @dmail.save
         @recipient.reload
-        assert_equal(false, @recipient.has_mail?)
+
+        assert_not(@recipient.has_mail?)
       end
 
       should("be ignored when sender is a moderator") do
         @dmail = create(:dmail, owner: @recipient, body: "banned word here", to: @recipient, from: @mod)
 
-        assert_equal(false, @recipient.dmail_filter.filtered?(@dmail))
-        assert_equal(false, @dmail.is_read?)
-        assert_equal(true, @recipient.has_mail?)
+        assert_not(@recipient.dmail_filter.filtered?(@dmail))
+        assert_not(@dmail.is_read?)
+        assert_predicate(@recipient, :has_mail?)
       end
 
       context("that is empty") do
@@ -58,21 +60,26 @@ class DmailTest < ActiveSupport::TestCase
         dmail = create(:dmail, title: "xxx", body: "bbb", owner: @user)
 
         matches = Dmail.search({ title_matches: "x*" }, @user)
+
         assert_equal([dmail.id], matches.map(&:id))
 
         matches = Dmail.search({ title_matches: "X*" }, @user)
+
         assert_equal([dmail.id], matches.map(&:id))
 
         matches = Dmail.search({ message_matches: "aaa" }, @user)
-        assert(matches.empty?)
+
+        assert_empty(matches)
       end
 
       should("return results based on body contents") do
         create(:dmail, body: "xxx", owner: @user)
         matches = Dmail.search({ message_matches: "xxx" }, @user)
-        assert(matches.any?)
+
+        assert_predicate(matches, :any?)
         matches = Dmail.search({ message_matches: "aaa" }, @user)
-        assert(matches.empty?)
+
+        assert_empty(matches)
       end
     end
 
@@ -83,6 +90,7 @@ class DmailTest < ActiveSupport::TestCase
       (Config.instance.dmail_minute_limit + 1).times do
         Dmail.create_split(title: SecureRandom.hex(10), body: SecureRandom.hex(10), from: @user, to: @recipient)
       end
+
       assert_equal(Config.instance.dmail_minute_limit * 2, Dmail.count)
     end
 
@@ -90,12 +98,14 @@ class DmailTest < ActiveSupport::TestCase
       dmail = build(:dmail, owner: @user)
       dmail.to_id = nil
       dmail.to_name = @user.name
-      assert(dmail.to_id == @user.id)
+
+      assert_equal(dmail.to_id, @user.id)
     end
 
     should("construct a response") do
       dmail = create(:dmail, owner: @user)
       response = dmail.build_response
+
       assert_equal("Re: #{dmail.title}", response.title)
       assert_equal(dmail.from_id, response.to_id)
       assert_equal(dmail.to_id, response.from_id)
@@ -110,6 +120,7 @@ class DmailTest < ActiveSupport::TestCase
 
     should("record the from user's ip addr") do
       dmail = create(:dmail, owner: @user)
+
       assert_equal(@user.ip_addr, dmail.from_ip_addr.to_s)
     end
 
@@ -138,9 +149,11 @@ class DmailTest < ActiveSupport::TestCase
 
     should("be marked as read after the user reads it") do
       dmail = create(:dmail, owner: @user)
+
       assert_not(dmail.is_read?)
       dmail.mark_as_read!(@user)
-      assert(dmail.is_read?)
+
+      assert_predicate(dmail, :is_read?)
     end
 
     should("notify the recipient he has mail") do
@@ -148,12 +161,14 @@ class DmailTest < ActiveSupport::TestCase
       Dmail.create_split!(title: "hello", body: "hello", to: recipient, from: @user)
       dmail = Dmail.where(owner_id: recipient.id).last
       recipient.reload
-      assert(recipient.has_mail?)
+
+      assert_predicate(recipient, :has_mail?)
       assert_equal(1, recipient.unread_dmail_count)
 
       dmail.mark_as_read!(recipient)
 
       recipient.reload
+
       assert_not(recipient.has_mail?)
       assert_equal(0, recipient.unread_dmail_count)
     end
@@ -174,6 +189,7 @@ class DmailTest < ActiveSupport::TestCase
       should("fail gracefully if recipient doesn't exist") do
         assert_nothing_raised do
           dmail = Dmail.create_automated(to_name: "this_name_does_not_exist", title: "test", body: "test")
+
           assert_equal(["must exist"], dmail.errors[:to])
         end
       end
@@ -186,15 +202,19 @@ class DmailTest < ActiveSupport::TestCase
 
       should("update the recipient's unread dmail count") do
         dmail = create(:dmail, owner: @recipient, to: @recipient, from: @user)
+
         assert_equal(1, @recipient.reload.unread_dmail_count)
         dmail.mark_as_read!(@recipient)
+
         assert_equal(0, @recipient.reload.unread_dmail_count)
       end
 
       should("mark all related notifications as read") do
         dmail = create(:dmail, owner: @recipient, to: @recipient, from: @user)
+
         assert_equal(1, @recipient.notifications.unread.count)
         dmail.mark_as_read!(@recipient)
+
         assert_equal(0, @recipient.notifications.unread.count)
       end
     end
@@ -207,16 +227,20 @@ class DmailTest < ActiveSupport::TestCase
       should("update the recipient's unread dmail count") do
         dmail = create(:dmail, owner: @recipient, to: @recipient, from: @user)
         dmail.mark_as_read!(@recipient)
+
         assert_equal(0, @recipient.reload.unread_dmail_count)
         dmail.mark_as_unread!(@recipient)
+
         assert_equal(1, @recipient.reload.unread_dmail_count)
       end
 
       should("mark all related notifications as unread") do
         dmail = create(:dmail, owner: @recipient, to: @recipient, from: @user)
         dmail.mark_as_read!(@recipient)
+
         assert_equal(0, @recipient.notifications.unread.count)
         dmail.mark_as_unread!(@recipient)
+
         assert_equal(1, @recipient.notifications.unread.count)
       end
     end

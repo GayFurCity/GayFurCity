@@ -72,7 +72,7 @@ class TagsController < ApplicationController
     @correction.fix!
 
     respond_to do |format|
-      format.html { redirect_back(fallback_location: tags_path(search: { name_matches: @correction.tag.name, hide_empty: "no" }), notice: "Tag will be fixed in a few seconds") }
+      format.html { redirect_back_or_to(tags_path(search: { name_matches: @correction.tag.name, hide_empty: "no" }), notice: "Tag will be fixed in a few seconds") }
       format.json
     end
   end
@@ -80,11 +80,11 @@ class TagsController < ApplicationController
   def follow
     @follower = authorize(@tag).follow!(CurrentUser.user)
     respond_with(@follower) do |format|
-      format.html { redirect_back(fallback_location: tag_path(@tag), notice: "#{@tag.name} added to followed tags") }
+      format.html { redirect_back_or_to(tag_path(@tag), notice: "#{@tag.name} added to followed tags") }
     end
   rescue TagFollower::AliasedTagError
     respond_to do |format|
-      format.html { redirect_back(fallback_location: tag_path(@tag), notice: "You cannot follow aliased tags") }
+      format.html { redirect_back_or_to(tag_path(@tag), notice: "You cannot follow aliased tags") }
       format.json { render_expected_error(400, "You cannot follow aliased tags.") }
     end
   end
@@ -92,7 +92,7 @@ class TagsController < ApplicationController
   def unfollow
     @follower = authorize(@tag).unfollow!(CurrentUser.user)
     respond_with(@follower) do |format|
-      format.html { redirect_back(fallback_location: tag_path(@tag), notice: "#{@tag.name} removed from followed tags") }
+      format.html { redirect_back_or_to(tag_path(@tag), notice: "#{@tag.name} removed from followed tags") }
     end
   end
 

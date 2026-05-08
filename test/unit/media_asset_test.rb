@@ -4,6 +4,7 @@ require("test_helper")
 
 class MediaAssetTest < ActiveSupport::TestCase
   include(ActiveJob::TestHelper)
+
   setup do
     @user = create(:user)
   end
@@ -14,8 +15,9 @@ class MediaAssetTest < ActiveSupport::TestCase
         @upload = create(:jpg_upload)
       end
 
-      assert(File.exist?(@upload.media_asset.tempfile_path))
+      assert_path_exists(@upload.media_asset.tempfile_path)
       perform_enqueued_jobs(only: MediaAssetDeleteTempfileJob)
+
       assert_not(File.exist?(@upload.media_asset.tempfile_path))
     end
 
@@ -24,6 +26,7 @@ class MediaAssetTest < ActiveSupport::TestCase
       travel_to(5.hours.from_now) do
         MediaAsset.prune_expired!
         @asset.reload
+
         assert_equal("failed", @asset.status)
         assert_equal("expired after 4 hours", @asset.status_message)
       end

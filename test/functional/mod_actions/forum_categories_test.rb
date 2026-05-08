@@ -21,7 +21,7 @@ module ModActions
         end
 
         should("format correctly for users that can see the category") do
-          CurrentUser.scoped(@trusted) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+          CurrentUser.scoped(@trusted) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
             assert_matches(
               actions:             %w[forum_category_create],
               text:                <<~TEXT.strip,
@@ -39,7 +39,7 @@ module ModActions
         end
 
         should("format correctly for users that cannot see the category") do
-          CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+          CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
             assert_matches(
               actions: %w[forum_category_create],
               text:    "Created forum category ##{@category.id}",
@@ -54,7 +54,7 @@ module ModActions
         should("format correctly for users that can see the category") do
           @category.destroy_with!(@admin)
 
-          CurrentUser.scoped(@trusted) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+          CurrentUser.scoped(@trusted) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
             assert_matches(
               actions:             %w[forum_category_delete],
               text:                "Deleted forum category ##{@category.id} (#{@category.name})",
@@ -69,7 +69,7 @@ module ModActions
         should("format correctly for users that cannot see the category") do
           @category.destroy_with!(@admin)
 
-          CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+          CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
             assert_matches(
               actions: %w[forum_category_delete],
               text:    "Deleted forum category ##{@category.id}",
@@ -90,7 +90,7 @@ module ModActions
         should("format correctly for users that can see the category") do
           with_inline_jobs { @category.move_all_topics(@category2, @admin) }
 
-          CurrentUser.scoped(@trusted) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+          CurrentUser.scoped(@trusted) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
             assert_matches(
               actions:                 %w[forum_category_topics_move forum_category_update forum_category_update],
               text:                    "Moved all topics in [#{@category.name}](#{forum_category_path(@category)}) to [#{@category2.name}](#{forum_category_path(@category2)})",
@@ -109,7 +109,7 @@ module ModActions
         should("format correctly for users that cannot see the category") do
           with_inline_jobs { @category.move_all_topics(@category2, @admin) }
 
-          CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+          CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
             assert_matches(
               actions:               %w[forum_category_topics_move forum_category_update forum_category_update],
               text:                  "Moved all topics in category ##{@category.id} to category ##{@category2.id}",
@@ -131,7 +131,7 @@ module ModActions
           should("format correctly for users that can see the category") do
             @category.update_with!(@admin)
 
-            CurrentUser.scoped(@trusted) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@trusted) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions:                 %w[forum_category_update],
                 text:                    "Updated forum category ##{@category.id} (#{@category.name})",
@@ -150,7 +150,7 @@ module ModActions
           should("format correctly for users that cannot see the category") do
             @category.update_with!(@admin)
 
-            CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[forum_category_update],
                 text:    "Updated forum category ##{@category.id}",
@@ -165,7 +165,7 @@ module ModActions
           should("format correctly for users that can see the category") do
             @category.update_with!(@admin, name: "xxx")
 
-            CurrentUser.scoped(@trusted) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@trusted) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions:                 %w[forum_category_update],
                 text:                    <<~TEXT.strip,
@@ -187,7 +187,7 @@ module ModActions
           should("format correctly for users that cannot see the category") do
             @category.update_with!(@admin, name: "xxx")
 
-            CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[forum_category_update],
                 text:    "Updated forum category ##{@category.id}",
@@ -202,7 +202,7 @@ module ModActions
           should("format correctly for users that can see the category") do
             @category.update_with!(@admin, can_view: User::Levels::ADMIN)
 
-            CurrentUser.scoped(@admin) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@admin) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions:                 %w[forum_category_update],
                 text:                    <<~TEXT.strip,
@@ -224,7 +224,7 @@ module ModActions
           should("format correctly for users that cannot see the category") do
             @category.update_with!(@admin, can_view: User::Levels::ADMIN)
 
-            CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[forum_category_update],
                 text:    "Updated forum category ##{@category.id}",
@@ -239,7 +239,7 @@ module ModActions
           should("format correctly for users that can see the category") do
             @category.update_with!(@admin, can_create: User::Levels::ADMIN)
 
-            CurrentUser.scoped(@admin) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@admin) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions:                 %w[forum_category_update],
                 text:                    <<~TEXT.strip,
@@ -261,7 +261,7 @@ module ModActions
           should("format correctly for users that cannot see the category") do
             @category.update_with!(@admin, can_create: User::Levels::ADMIN)
 
-            CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[forum_category_update],
                 text:    "Updated forum category ##{@category.id}",
@@ -276,7 +276,7 @@ module ModActions
           should("format correctly for users that can see the category") do
             @category.update_with!(@admin, name: "xxx", can_view: User::Levels::ADMIN, can_create: User::Levels::ADMIN)
 
-            CurrentUser.scoped(@admin) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@admin) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions:                 %w[forum_category_update],
                 text:                    <<~TEXT.strip,
@@ -300,7 +300,7 @@ module ModActions
           should("format correctly for users that cannot see the category") do
             @category.update_with!(@admin, name: "xxx", can_view: User::Levels::ADMIN, can_create: User::Levels::ADMIN)
 
-            CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 actions: %w[forum_category_update],
                 text:    "Updated forum category ##{@category.id}",

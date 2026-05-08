@@ -78,7 +78,7 @@ module Forums
       respond_to do |format|
         format.html do
           notice("Order updated")
-          redirect_back(fallback_location: forum_categories_path)
+          redirect_back_or_to(forum_categories_path)
         end
         format.json
       end
@@ -106,7 +106,7 @@ module Forums
       authorize(ForumCategory)
       @forum_category.mark_as_read!(CurrentUser.user)
       respond_to do |format|
-        format.html { redirect_back(fallback_location: forum_category_path(@forum_category)) }
+        format.html { redirect_back_or_to(forum_category_path(@forum_category)) }
         format.json
       end
     end
@@ -115,7 +115,7 @@ module Forums
       authorize(ForumCategory)
       ForumCategory.mark_all_as_read!(CurrentUser.user)
       respond_to do |format|
-        format.html { redirect_back(fallback_location: forums_path) }
+        format.html { redirect_back_or_to(forums_path) }
         format.json
       end
     end

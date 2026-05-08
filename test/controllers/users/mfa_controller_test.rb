@@ -20,6 +20,7 @@ module Users
           mfa = ::MFA.new(username: @user.name)
           assert_difference("UserEvent.count", 3) do
             put_auth(user_mfa_path, @user, params: { mfa: { signed_secret: mfa.signed_secret, verification_code: mfa.code } })
+
             assert_redirected_to(user_mfa_backup_codes_path)
           end
           assert_equal(mfa.secret, @user.reload.mfa_secret)
@@ -32,6 +33,7 @@ module Users
           mfa = ::MFA.new(username: @user.name)
           assert_difference("UserEvent.count", 3) do
             put_auth(user_mfa_path, @user, params: { mfa: { signed_secret: mfa.signed_secret, verification_code: mfa.code } })
+
             assert_redirected_to(user_mfa_backup_codes_path)
           end
           assert_equal(mfa.secret, @user.reload.mfa_secret)
@@ -45,10 +47,11 @@ module Users
           @user.update_mfa_secret!(mfa.secret, mock_request)
           assert_difference("UserEvent.count", 3) do
             delete_auth(user_mfa_path, @user)
+
             assert_redirected_to(edit_users_path)
           end
           assert_nil(@user.reload.mfa_secret)
-          assert_equal(true, @user.user_events.mfa_disable.exists?)
+          assert_predicate(@user.user_events.mfa_disable, :exists?)
         end
       end
     end

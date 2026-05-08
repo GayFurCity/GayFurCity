@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:mod_action) do
-    association(:creator, factory: :user)
+    creator(factory: %i[user])
     action { "test" }
   end
 end

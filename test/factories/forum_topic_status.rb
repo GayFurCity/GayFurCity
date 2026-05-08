@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:forum_topic_status) do
-    association(:user)
-    association(:forum_topic)
+    user
+    forum_topic
   end
 end

@@ -14,6 +14,7 @@ module Posts
       context("index action") do
         should("render") do
           get(post_appeals_path)
+
           assert_response(:success)
         end
 
@@ -49,6 +50,7 @@ module Posts
       context("new action") do
         should("render") do
           get_auth(new_post_appeal_path, @admin, params: { post_appeal: { post_id: @appeal.id } })
+
           assert_response(:success)
         end
 
@@ -61,9 +63,10 @@ module Posts
         should("work") do
           assert_difference("PostEvent.count", 1) do
             post_auth(post_appeals_path, @admin, params: { post_appeal: { post_id: @post.id } })
+
             assert_redirected_to(post_path(@post))
           end
-          assert(@post.reload.is_appealed?)
+          assert_predicate(@post.reload, :is_appealed?)
           assert_equal("appeal_created", PostEvent.last.action)
         end
 
@@ -77,12 +80,13 @@ module Posts
           @appeal = create(:post_appeal, post: @post)
           assert_difference("PostEvent.count", 1) do
             delete_auth(post_appeal_path(@appeal), create(:janitor_user))
+
             assert_redirected_to(post_path(@post))
           end
-          assert(@post.reload.is_deleted?)
+          assert_predicate(@post.reload, :is_deleted?)
           assert_not(@post.reload.is_appealed?)
           assert_equal("appeal_rejected", PostEvent.last.action)
-          assert_equal(true, @appeal.creator.notifications.appeal_reject.exists?)
+          assert_predicate(@appeal.creator.notifications.appeal_reject, :exists?)
         end
 
         should("restrict access") do
@@ -96,12 +100,13 @@ module Posts
           @appeal = create(:post_appeal, post: @post)
           assert_difference("PostEvent.count", 2) do
             put_auth(undelete_post_path(@post), @admin)
+
             assert_redirected_to(post_path(@post))
           end
-          assert(@post.reload.is_active?)
+          assert_predicate(@post.reload, :is_active?)
           assert_not(@post.reload.is_appealed?)
           assert_equal(%w[undeleted appeal_accepted], PostEvent.last(2).map(&:action))
-          assert_equal(true, @appeal.creator.notifications.appeal_accept.exists?)
+          assert_predicate(@appeal.creator.notifications.appeal_accept, :exists?)
         end
 
         should("restrict access") do

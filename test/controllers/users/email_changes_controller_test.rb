@@ -13,6 +13,7 @@ module Users
       context("new action") do
         should("render") do
           get_auth(new_users_email_change_path, @user)
+
           assert_response(:success)
         end
       end
@@ -21,10 +22,12 @@ module Users
         context("with the correct password") do
           should("work") do
             post_auth(users_email_change_path, @user, params: { email_change: { password: "password", email: "abc@ogres.net" } })
+
             assert_redirected_to(home_users_path)
             @user.reload
+
             assert_equal("abc@ogres.net", @user.email)
-            assert_equal(true, @user.user_events.email_change.exists?)
+            assert_predicate(@user.user_events.email_change, :exists?)
           end
         end
 
@@ -32,6 +35,7 @@ module Users
           should("not work") do
             post_auth(users_email_change_path, @user, params: { email_change: { password: "passwordx", email: "abc@ogres.net" } })
             @user.reload
+
             assert_equal("bob@ogres.net", @user.email)
           end
         end
@@ -39,6 +43,7 @@ module Users
         should("not work with an invalid email") do
           post_auth(users_email_change_path, @user, params: { email_change: { password: "password", email: "" } })
           @user.reload
+
           assert_not_equal("", @user.email)
           assert_match(/Email can't be blank/, flash[:notice])
         end
@@ -47,8 +52,9 @@ module Users
           @user = create(:user, email: "")
           post_auth(users_email_change_path, @user, params: { email_change: { password: "password", email: "abc@ogres.net" } })
           @user.reload
+
           assert_equal("abc@ogres.net", @user.email)
-          assert_equal(true, @user.user_events.email_change.exists?)
+          assert_predicate(@user.user_events.email_change, :exists?)
         end
 
         should("restrict access") do

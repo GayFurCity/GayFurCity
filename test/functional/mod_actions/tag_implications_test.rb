@@ -11,6 +11,7 @@ module ModActions
     context("mod actions for tag implications") do
       should("format tag_implication_create correctly") do
         @implication = create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", creator: @admin)
+
         assert_matches(
           actions:          %w[tag_implication_create],
           text:             "Created \"tag implication ##{@implication.id}\":[#{tag_implication_path(@implication)}]: [[aaa]] -> [[bbb]]",
@@ -23,6 +24,7 @@ module ModActions
         @implication = create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", creator: @admin)
         set_count!
         @implication.update_with!(@admin, status: "pending")
+
         assert_matches(
           actions:          %w[tag_implication_update],
           text:             "Updated \"tag implication ##{@implication.id}\":[#{tag_implication_path(@implication)}]: [[aaa]] -> [[bbb]]\nchanged status from \"active\" to \"pending\"",

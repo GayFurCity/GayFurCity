@@ -13,6 +13,7 @@ module Tags
       context("new action") do
         should("render") do
           get_auth(new_tag_implication_path, @user)
+
           assert_response(:success)
         end
 
@@ -28,9 +29,10 @@ module Tags
           end
           topic = ForumTopic.last
           post = topic.posts.last
+
           assert_equal("TagImplication", post.tag_change_request_type)
           assert_equal(TagImplication.last.id, post.tag_change_request_id)
-          assert_equal(true, post.allow_voting?)
+          assert_predicate(post, :allow_voting?)
           assert_redirected_to(forum_topic_path(topic, page: post.forum_topic_page, anchor: "forum_post_#{post.id}"))
         end
 
@@ -41,10 +43,11 @@ module Tags
           topic = ForumTopic.last
           post = topic.posts.last
           ti = TagImplication.last
+
           assert_equal("pending", ti.status)
           assert_equal("TagImplication", post.tag_change_request_type)
           assert_equal(ti.id, post.tag_change_request_id)
-          assert_equal(true, post.allow_voting?)
+          assert_predicate(post, :allow_voting?)
           assert_redirected_to(forum_topic_path(topic, page: post.forum_topic_page, anchor: "forum_post_#{post.id}"))
         end
 
@@ -60,6 +63,7 @@ module Tags
 
         should("render") do
           get_auth(edit_tag_implication_path(@tag_implication), @admin)
+
           assert_response(:success)
         end
 
@@ -81,12 +85,14 @@ module Tags
           should("succeed") do
             put_auth(tag_implication_path(@tag_implication), @admin, params: { tag_implication: { antecedent_name: "xxx" } })
             @tag_implication.reload
+
             assert_equal("xxx", @tag_implication.antecedent_name)
           end
 
           should("not allow changing the status") do
             put_auth(tag_implication_path(@tag_implication), @admin, params: { tag_implication: { status: "active" } })
             @tag_implication.reload
+
             assert_equal("pending", @tag_implication.status)
           end
         end
@@ -99,6 +105,7 @@ module Tags
           should("fail") do
             put_auth(tag_implication_path(@tag_implication), @admin, params: { tag_implication: { antecedent_name: "xxx" } })
             @tag_implication.reload
+
             assert_equal("aaa", @tag_implication.antecedent_name)
           end
         end
@@ -116,11 +123,13 @@ module Tags
 
         should("list all tag implications") do
           get(tag_implications_path)
+
           assert_response(:success)
         end
 
         should("list all tag_implications (with search)") do
           get(tag_implications_path, params: { search: { antecedent_name: "aaa" } })
+
           assert_response(:success)
         end
 
@@ -167,9 +176,11 @@ module Tags
 
         should("approve the implication") do
           put_auth(approve_tag_implication_path(@tag_implication), @admin, params: { format: :json })
+
           assert_response(:success)
           perform_enqueued_jobs(only: TagImplicationJob)
           @tag_implication.reload
+
           assert_equal("active", @tag_implication.status)
         end
 
@@ -177,6 +188,7 @@ module Tags
           Config.stubs(:get_user).with(:tag_change_request_update_limit, @admin).returns(1)
           create_list(:post, 2, tag_string: "aaa")
           put_auth(approve_tag_implication_path(@tag_implication), @admin, params: { format: :json })
+
           assert_response(:forbidden)
           assert_equal("pending", @tag_implication.status)
         end
@@ -194,6 +206,7 @@ module Tags
         should("mark the implication as deleted") do
           assert_difference("TagImplication.count", 0) do
             delete_auth(tag_implication_path(@tag_implication), @admin)
+
             assert_equal("deleted", @tag_implication.reload.status)
           end
         end

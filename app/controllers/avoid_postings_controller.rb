@@ -78,7 +78,7 @@ class AvoidPostingsController < ApplicationController
     authorize(@avoid_posting).soft_delete_with_current(:updater)
     notice("Avoid posting entry deleted")
     respond_with(@avoid_posting) do |format|
-      format.html { redirect_back(fallback_location: avoid_posting_path(@avoid_posting)) }
+      format.html { redirect_back_or_to(avoid_posting_path(@avoid_posting)) }
     end
   end
 
@@ -86,7 +86,7 @@ class AvoidPostingsController < ApplicationController
     authorize(@avoid_posting).soft_undelete_with_current(:updater)
     notice("Avoid posting entry undeleted")
     respond_with(@avoid_posting) do |format|
-      format.html { redirect_back(fallback_location: avoid_posting_path(@avoid_posting)) }
+      format.html { redirect_back_or_to(avoid_posting_path(@avoid_posting)) }
     end
   end
 

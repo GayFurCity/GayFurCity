@@ -8,6 +8,7 @@ module Tags
       context("show action") do
         should("work") do
           get_auth(related_tags_path, create(:user), params: { query: "touhou" })
+
           assert_response(:success)
         end
 

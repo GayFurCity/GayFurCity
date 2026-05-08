@@ -124,7 +124,7 @@ module PostIndex
 
       # PG returns {array,results,like,this}, so we need to parse it
 
-      relation.find_in_batches(batch_size: batch_size) do |batch| # rubocop:disable Metrics/BlockLength
+      relation.find_in_batches(batch_size: batch_size) do |batch|
         post_ids = batch.map(&:id)
 
         data                     = get_data(Post.where(id: post_ids))
@@ -154,7 +154,7 @@ module PostIndex
         views                    = Reports.get_views_for_posts(post_ids)
 
         empty = []
-        batch.map! do |p| # rubocop:disable Metrics/BlockLength
+        batch.map! do |p|
           index_options = {
             comment_count:            comment_counts[p.id] || 0,
             pools:                    pool_ids[p.id] || empty,

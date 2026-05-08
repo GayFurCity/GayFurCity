@@ -175,7 +175,7 @@ class PostReplacement < ApplicationRecord
         return
       end
       errors.add(:post, "is deleted") if post.is_deleted?
-      transaction do # rubocop:disable Metrics/BlockLength
+      transaction do
         create_backup_replacement if post.replacements.original.none?
 
         post.replacements.approved.find_each do |replacement|

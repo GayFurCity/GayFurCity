@@ -262,7 +262,7 @@ class Artist < ApplicationRecord
         sources = Post.tag_match_system(name, resolve_aliases: false).limit(100).pluck(:source).each do |source_string|
           sources = source_string.split("\n")
           # try to filter out direct file urls
-          domains = sources.filter { |s| !re.match?(s) }.map do |x|
+          domains = sources.grep_v(re).map do |x|
             Addressable::URI.parse(x).domain
           rescue Addressable::URI::InvalidURIError
             nil

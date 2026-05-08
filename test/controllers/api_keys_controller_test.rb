@@ -55,11 +55,13 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
     context("new action") do
       should("render for a Member user") do
         get_auth(new_user_api_key_path(@user), @user)
+
         assert_response(:success)
       end
 
       should("fail for an Anonymous user") do
         get(new_user_api_key_path(@user))
+
         assert_redirected_to(new_session_path(url: new_user_api_key_path(@user)))
       end
 
@@ -84,11 +86,13 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
     context("edit action") do
       should("render for the API key owner") do
         get_auth(edit_api_key_path(@api_key), @user)
+
         assert_response(:success)
       end
 
       should("fail for someone else") do
         get_auth(edit_api_key_path(@api_key), create(:user))
+
         assert_response(:not_found)
       end
 
@@ -107,6 +111,7 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
 
       should("fail for someone else") do
         put_auth(api_key_path(@api_key), create(:user))
+
         assert_response(:not_found)
       end
 

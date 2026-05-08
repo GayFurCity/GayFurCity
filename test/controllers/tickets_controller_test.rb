@@ -8,11 +8,13 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       if allow_create
         assert_difference("Ticket.count") do
           post_auth(tickets_path, user, params: { ticket: { **params, model_id: model.id, model_type: model.class.name, reason: "test" } })
+
           assert_response(:redirect)
         end
       else
         assert_no_difference("Ticket.count") do
           post_auth(tickets_path, user, params: { ticket: { **params, model_id: @content.id, model_type: model.class.name, reason: "test" } })
+
           assert_response(:forbidden)
         end
       end
@@ -105,12 +107,14 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should("restrict access to users") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @user)
+
         assert_response(:forbidden)
       end
 
       should("not restrict access to janitors") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @janitor)
+
         assert_response(:success)
       end
     end
@@ -123,14 +127,17 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should("restrict reporting") do
         assert_ticket_create_permissions([[@user, true], [@janitor, true], [@admin, true], [@bad_actor, true]], model: @content)
         @content.update_columns(is_hidden: true)
+
         assert_ticket_create_permissions([[@user, false], [@janitor, false], [@admin, true], [@bad_actor, true]], model: @content)
       end
 
       should("restrict access") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @user)
+
         assert_response(:forbidden)
         get_auth(ticket_path(@ticket), @janitor)
+
         assert_response(:forbidden)
       end
     end
@@ -147,14 +154,19 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should("restrict access") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @reporter)
+
         assert_response(:success)
         get_auth(ticket_path(@ticket), @admin)
+
         assert_response(:success)
         get_auth(ticket_path(@ticket), @janitor)
+
         assert_response(:forbidden)
         get_auth(ticket_path(@ticket), @user)
+
         assert_response(:forbidden)
         get_auth(ticket_path(@ticket), @bad_actor)
+
         assert_response(:forbidden)
       end
     end
@@ -167,16 +179,20 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should("restrict reporting") do
         assert_ticket_create_permissions([[@janitor, true], [@admin, true], [@bad_actor, true]], model: @content)
         @content.update_columns(is_hidden: true)
+
         assert_ticket_create_permissions([[@janitor, false], [@admin, true], [@bad_actor, true]], model: @content)
       end
 
       should("restrict access") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @admin)
+
         assert_response(:success)
         get_auth(ticket_path(@ticket), @reporter)
+
         assert_response(:success)
         get_auth(ticket_path(@ticket), @janitor)
+
         assert_response(:forbidden)
       end
     end
@@ -193,12 +209,14 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should("restrict access to users") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @user)
+
         assert_response(:forbidden)
       end
 
       should("not restrict access to janitors") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @janitor)
+
         assert_response(:success)
       end
     end
@@ -215,6 +233,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should("not restrict access") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @janitor)
+
         assert_response(:success)
       end
     end
@@ -227,14 +246,17 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should("disallow reporting sets you can't see") do
         assert_ticket_create_permissions([[@reporter, true], [@user, true], [@janitor, true], [@admin, true], [@bad_actor, true]], model: @content)
         @content.update_columns(is_public: false)
+
         assert_ticket_create_permissions([[@reporter, false], [@user, false], [@janitor, false], [@admin, true], [@bad_actor, true]], model: @content)
       end
 
       should("restrict access") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @janitor)
+
         assert_response(:forbidden)
         get_auth(ticket_path(@ticket), @user)
+
         assert_response(:forbidden)
       end
     end
@@ -251,12 +273,14 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should("restrict access to users") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @user)
+
         assert_response(:forbidden)
       end
 
       should("not restrict access to janitors") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @janitor)
+
         assert_response(:success)
       end
     end
@@ -273,24 +297,32 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should("restrict access") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @reporter)
+
         assert_response(:success)
         get_auth(ticket_path(@ticket), @admin)
+
         assert_response(:success)
         get_auth(ticket_path(@ticket), @janitor)
+
         assert_response(:forbidden)
         get_auth(ticket_path(@ticket), @user)
+
         assert_response(:forbidden)
       end
 
       should("not restrict access to janitors for commendations") do
         @ticket = create(:ticket, creator: @reporter, model: @content, report_type: "commendation")
         get_auth(ticket_path(@ticket), @reporter)
+
         assert_response(:success)
         get_auth(ticket_path(@ticket), @admin)
+
         assert_response(:success)
         get_auth(ticket_path(@ticket), @janitor)
+
         assert_response(:success)
         get_auth(ticket_path(@ticket), @user)
+
         assert_response(:forbidden)
       end
 
@@ -298,12 +330,16 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         @janitor2 = create(:janitor_user)
         @ticket = create(:ticket, creator: @janitor2, model: @content)
         get_auth(ticket_path(@ticket), @janitor2)
+
         assert_response(:success)
         get_auth(ticket_path(@ticket), @admin)
+
         assert_response(:success)
         get_auth(ticket_path(@ticket), @janitor)
+
         assert_response(:success)
         get_auth(ticket_path(@ticket), @user)
+
         assert_response(:forbidden)
       end
     end
@@ -320,12 +356,14 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should("restrict access to users") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @user)
+
         assert_response(:forbidden)
       end
 
       should("not restrict access to janitors") do
         @ticket = create(:ticket, creator: @reporter, model: @content)
         get_auth(ticket_path(@ticket), @janitor)
+
         assert_response(:success)
       end
     end

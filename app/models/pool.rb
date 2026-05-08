@@ -329,11 +329,11 @@ class Pool < ApplicationRecord
     PoolVersion.queue(self, updater.resolvable(updater_ip_addr))
   end
 
-  # rubocop:disable Local/CurrentUserOutsideOfRequests -- this is used exclusively within requests
+  # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests -- this is used exclusively within requests
   def last_page
     (post_count / CurrentUser.user.per_page.to_f).ceil.clamp(1..)
   end
-  # rubocop:enable Local/CurrentUserOutsideOfRequests
+  # rubocop:enable YiffSpace/CurrentUserOutsideOfRequests
 
   def validate_name
     case name

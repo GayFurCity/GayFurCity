@@ -2,6 +2,6 @@
 
 FactoryBot.define do
   factory(:upload_whitelist) do
-    association(:creator, factory: :admin_user)
+    creator(factory: %i[admin_user])
   end
 end

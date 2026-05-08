@@ -21,6 +21,7 @@ class FileMethodsTest < ActiveSupport::TestCase
 
   def assert_metadata(type, file, field, expected)
     data = @obj.public_send("#{type}_metadata", file)
+
     assert(data.key?(field.to_sym))
     if expected.nil?
       assert_nil(data[field.to_sym])
@@ -33,6 +34,7 @@ class FileMethodsTest < ActiveSupport::TestCase
     data = @obj.public_send("#{type}_metadata", file)
     return if data.blank? && allow_none
     assert_not(data.key?(field.to_sym)) unless allow_nil
+
     assert_nil(data[field.to_sym])
   end
 
@@ -763,14 +765,14 @@ class FileMethodsTest < ActiveSupport::TestCase
 
   context("is_ai_generated?") do
     should("work") do
-      assert_operator(@obj.is_ai_generated?(@jpg)[:score], :==, 0)
-      assert_operator(@obj.is_ai_generated?(@png)[:score], :==, 0)
-      assert_operator(@obj.is_ai_generated?(@webp)[:score], :==, 0)
-      assert_operator(@obj.is_ai_generated?(@gif)[:score], :==, 0)
-      assert_operator(@obj.is_ai_generated?(@mp4)[:score], :==, 0)
-      assert_operator(@obj.is_ai_generated?(@webm)[:score], :==, 0)
-      assert_operator(@obj.is_ai_generated?(@tiff)[:score], :==, 0)
-      assert_operator(@obj.is_ai_generated?(@empty)[:score], :==, 0)
+      assert_equal(0, @obj.is_ai_generated?(@jpg)[:score])
+      assert_equal(0, @obj.is_ai_generated?(@png)[:score])
+      assert_equal(0, @obj.is_ai_generated?(@webp)[:score])
+      assert_equal(0, @obj.is_ai_generated?(@gif)[:score])
+      assert_equal(0, @obj.is_ai_generated?(@mp4)[:score])
+      assert_equal(0, @obj.is_ai_generated?(@webm)[:score])
+      assert_equal(0, @obj.is_ai_generated?(@tiff)[:score])
+      assert_equal(0, @obj.is_ai_generated?(@empty)[:score])
       assert_operator(@obj.is_ai_generated?(@ai_generator)[:score], :>=, 70)
       assert_operator(@obj.is_ai_generated?(@ai_tokens)[:score], :>=, 60)
     end

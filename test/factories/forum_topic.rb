@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:forum_topic) do
-    association(:creator, factory: :old_user)
+    creator(factory: %i[old_user])
     sequence(:title) { |n| "forum_topic_title_#{n}" }
     is_sticky { false }
     is_locked { false }

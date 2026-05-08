@@ -13,6 +13,7 @@ class BansControllerTest < ActionDispatch::IntegrationTest
     context("new action") do
       should("render") do
         get_auth(new_ban_path, @mod)
+
         assert_response(:success)
       end
 
@@ -24,6 +25,7 @@ class BansControllerTest < ActionDispatch::IntegrationTest
     context("edit action") do
       should("render") do
         get_auth(edit_ban_path(@ban), @mod)
+
         assert_response(:success)
       end
 
@@ -35,6 +37,7 @@ class BansControllerTest < ActionDispatch::IntegrationTest
     context("show action") do
       should("render") do
         get_auth(ban_path(@ban), @mod)
+
         assert_response(:success)
       end
 
@@ -46,11 +49,13 @@ class BansControllerTest < ActionDispatch::IntegrationTest
     context("index action") do
       should("render") do
         get_auth(bans_path, @mod)
+
         assert_response(:success)
       end
 
       should("search") do
         get_auth(bans_path(search: { user_name: @user.name }), @mod)
+
         assert_response(:success)
       end
 
@@ -85,9 +90,10 @@ class BansControllerTest < ActionDispatch::IntegrationTest
         user = create(:user)
         assert_difference({ "Ban.count" => 1, "ModAction.count" => 3 }) do
           post_auth(bans_path, @mod, params: { ban: { duration: 60, reason: "xxx", user_id: user.id } })
+
           assert_redirected_to(ban_path(Ban.last))
         end
-        assert_equal(true, user.reload.is_banned?)
+        assert_predicate(user.reload, :is_banned?)
         assert_equal(%w[user_feedback_create user_ban ban_create], ModAction.last(3).pluck(:action))
       end
 
@@ -102,6 +108,7 @@ class BansControllerTest < ActionDispatch::IntegrationTest
           put_auth(ban_path(@ban), @mod, params: { ban: { reason: "xxx", duration: 60 } })
         end
         @ban.reload
+
         assert_equal("xxx", @ban.reason)
         assert_redirected_to(ban_path(@ban))
       end

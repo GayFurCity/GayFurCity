@@ -66,27 +66,33 @@ class TagFollowerTest < ActiveSupport::TestCase
     should("update the tag's follower count") do
       assert_equal(0, @tag.reload.follower_count)
       @tag.follow!(@user)
+
       assert_equal(1, @tag.reload.follower_count)
       @tag.unfollow!(@user)
+
       assert_equal(0, @tag.reload.follower_count)
     end
 
     should("update the user's followed tag count") do
       assert_equal(0, @user.reload.followed_tag_count)
       @tag.follow!(@user)
+
       assert_equal(1, @user.reload.followed_tag_count)
       @tag.unfollow!(@user)
+
       assert_equal(0, @user.reload.followed_tag_count)
     end
 
     should("have its tag changed when an alias is approved") do
       @follower = @tag.follow!(@user)
+
       assert_equal(@tag.id, @follower.tag_id)
       assert_equal(1, @tag.reload.follower_count)
       assert_equal(0, @tag2.reload.follower_count)
       @ta = create(:tag_alias, antecedent_name: @tag.name, consequent_name: @tag2.name)
       with_inline_jobs { @ta.approve!(@user) }
       @follower.reload
+
       assert_equal(@tag2.id, @follower.tag_id)
       assert_equal(0, @tag.reload.follower_count)
       assert_equal(1, @tag2.reload.follower_count)

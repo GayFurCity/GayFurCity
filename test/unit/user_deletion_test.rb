@@ -53,7 +53,7 @@ class UserDeletionTest < ActiveSupport::TestCase
     end
 
     should("create user event") do
-      assert_equal(true, @user.user_events.user_deletion.exists?)
+      assert_predicate(@user.user_events.user_deletion, :exists?)
     end
 
     should("blank out the email") do
@@ -80,6 +80,7 @@ class UserDeletionTest < ActiveSupport::TestCase
 
     should("remove any favorites") do
       @post.reload
+
       assert_equal(0, Favorite.count)
       assert_equal("", @post.fav_string)
       assert_equal(0, @post.fav_count)
@@ -87,6 +88,7 @@ class UserDeletionTest < ActiveSupport::TestCase
 
     should("remove any followed tags") do
       @tag.reload
+
       assert_equal(0, TagFollower.count)
       assert_equal(0, @tag.follower_count)
     end

@@ -2,6 +2,6 @@
 
 FactoryBot.define do
   factory(:user_approval) do
-    association(:user, factory: :restricted_user)
+    user(factory: %i[restricted_user])
   end
 end

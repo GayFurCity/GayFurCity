@@ -21,6 +21,7 @@ module BulkUpdateRequests
 
         should("list all versions") do
           get_auth(bulk_update_request_versions_path, @user)
+
           assert_response(:success)
           assert_select("#bulk-update-request-version-#{@versions[0].id}")
           assert_select("#bulk-update-request-version-#{@versions[1].id}")
@@ -29,6 +30,7 @@ module BulkUpdateRequests
 
         should("list all versions that match the search criteria") do
           get_auth(bulk_update_request_versions_path, @user, params: { search: { updater_id: @user2.id } })
+
           assert_response(:success)
           assert_select("#bulk-update-request-version-#{@versions[0].id}", false)
           assert_select("#bulk-update-request-version-#{@versions[1].id}")
@@ -66,14 +68,17 @@ module BulkUpdateRequests
 
         should("work") do
           version = @bulk_update_request.versions.first
+
           assert_match(/\Aalias aaa -> bbb/, version.script)
           put_auth(undo_bulk_update_request_version_path(@bulk_update_request.versions.second), @user)
           @bulk_update_request.reload
+
           assert_match(/\Aalias aaa -> bbb/, @bulk_update_request.reload.script)
         end
 
         should("not allow undoing version 1") do
           put_auth(undo_bulk_update_request_version_path(@bulk_update_request.versions.first), @user)
+
           assert_response(:bad_request)
         end
 

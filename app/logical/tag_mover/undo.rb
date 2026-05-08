@@ -12,7 +12,7 @@ class TagMover
     end
 
     def undo!
-      @undos.each do |undo| # rubocop:disable Metrics/BlockLength
+      @undos.each do |undo|
         case undo.first
         when :update_tag_category
           success = undo_update_tag_category!(undo.second[:id], undo.second[:old], undo.second[:new])

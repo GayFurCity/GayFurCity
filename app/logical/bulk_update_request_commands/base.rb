@@ -7,6 +7,7 @@ module BulkUpdateRequestCommands
     extend(ActiveModel::Naming)
     extend(ActiveModel::Translation)
     include(ActiveModel::Validations)
+
     class << self
       attr_reader(:command, :arguments, :regex, :groups)
     end

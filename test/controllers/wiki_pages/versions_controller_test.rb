@@ -15,11 +15,13 @@ module WikiPages
       context("index action") do
         should("list all versions") do
           get(wiki_page_versions_path)
+
           assert_response(:success)
         end
 
         should("list all versions that match the search criteria") do
           get(wiki_page_versions_path, params: { search: { wiki_page_id: @wiki_page.id } })
+
           assert_response(:success)
         end
 
@@ -51,6 +53,7 @@ module WikiPages
       context("show action") do
         should("render") do
           get(wiki_page_version_path(@wiki_page.versions.first))
+
           assert_response(:success)
         end
 
@@ -62,6 +65,7 @@ module WikiPages
       context("diff action") do
         should("render") do
           get(diff_wiki_page_versions_path, params: { thispage: @wiki_page.versions.first.id, otherpage: @wiki_page.versions.last.id })
+
           assert_response(:success)
         end
 

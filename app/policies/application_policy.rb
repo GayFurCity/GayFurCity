@@ -111,7 +111,7 @@ class ApplicationPolicy
   def can_use_attribute?(attrs, action = nil)
     attrs = [attrs] unless attrs.is_a?(Array)
     permitted = action.nil? || !respond_to?("permitted_attributes_for_#{action}") ? permitted_attributes : send("permitted_attributes_for_#{action}")
-    hash_permitted = permitted.select { |p| p.is_a?(Hash) }.flat_map(&:keys)
+    hash_permitted = permitted.grep(Hash).flat_map(&:keys)
     attrs.all? { |attr| permitted.include?(attr) || hash_permitted.include?(attr) }
   end
 

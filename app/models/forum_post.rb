@@ -2,6 +2,7 @@
 
 class ForumPost < ApplicationRecord
   include(UserWarnable)
+
   simple_versioning
   mentionable
   has_dtext_links(:body)
@@ -235,14 +236,14 @@ class ForumPost < ApplicationRecord
   end
 
   def update_topic_updated_at_on_hide
-    max = ForumPost.where(topic_id: topic.id, is_hidden: false).order("updated_at desc").first
+    max = ForumPost.where(topic_id: topic.id, is_hidden: false).order(updated_at: :desc).first
     if max
       ForumTopic.where(id: topic.id).update_all(["updated_at = ?, updater_id = ?", max.updated_at, max.updater_id])
     end
   end
 
   def update_topic_updated_at_on_destroy
-    max = ForumPost.where(topic_id: topic.id, is_hidden: false).order("updated_at desc").first
+    max = ForumPost.where(topic_id: topic.id, is_hidden: false).order(updated_at: :desc).first
     if max
       ForumTopic.where(id: topic.id).update_all(["response_count = response_count - 1, updated_at = ?, updater_id = ?", max.updated_at, max.updater_id])
     else

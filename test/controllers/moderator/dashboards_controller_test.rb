@@ -18,6 +18,7 @@ module Moderator
 
           should("render") do
             get_auth(moderator_dashboard_path, @admin)
+
             assert_response(:success)
           end
         end
@@ -29,6 +30,7 @@ module Moderator
 
           should("render") do
             get_auth(moderator_dashboard_path, @admin)
+
             assert_response(:success)
           end
         end
@@ -40,6 +42,7 @@ module Moderator
 
           should("render") do
             get_auth(moderator_dashboard_path, @admin)
+
             assert_response(:success)
           end
         end
@@ -51,6 +54,7 @@ module Moderator
 
           should("render") do
             get_auth(moderator_dashboard_path, @admin)
+
             assert_response(:success)
           end
         end
@@ -63,6 +67,7 @@ module Moderator
 
           should("render") do
             get_auth(moderator_dashboard_path, @admin)
+
             assert_response(:success)
           end
         end
@@ -80,6 +85,7 @@ module Moderator
 
           should("render") do
             get_auth(moderator_dashboard_path, @admin)
+
             assert_response(:success)
           end
         end
@@ -91,6 +97,7 @@ module Moderator
 
           should("render") do
             get_auth(moderator_dashboard_path, @admin)
+
             assert_response(:success)
           end
         end
@@ -103,6 +110,7 @@ module Moderator
 
           should("render") do
             get_auth(moderator_dashboard_path, @admin)
+
             assert_response(:success)
           end
         end

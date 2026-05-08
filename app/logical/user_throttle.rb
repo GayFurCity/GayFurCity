@@ -64,7 +64,7 @@ class UserThrottle
   end
 
   def ctime(time)
-    ((time.to_i / @duration.to_i)).to_i
+    (time.to_i / @duration.to_i).to_i
   end
 
   def ptime(time)

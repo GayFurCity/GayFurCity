@@ -72,7 +72,7 @@ module Posts
         PostReplacementRejectionReason.log_reorder(changes, CurrentUser.user) if changes != 0
 
         respond_to do |format|
-          format.html { redirect_back(fallback_location: post_replacement_rejection_reasons_path) }
+          format.html { redirect_back_or_to(post_replacement_rejection_reasons_path) }
           format.json
         end
       rescue ActiveRecord::RecordNotFound

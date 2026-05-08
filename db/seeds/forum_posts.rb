@@ -5,7 +5,7 @@ require_relative("base")
 
 TOPIC = nil
 
-users = User.where(level: User::Levels::MEMBER, forum_post_count: ..10).order("id asc").limit(100)
+users = User.where(level: User::Levels::MEMBER, forum_post_count: ..10).order(:id).limit(100)
 topics = (TOPIC.nil? ? ForumTopic.order("RANDOM()") : ForumTopic.where(id: TOPIC).order(id: :asc)).limit(100)
 
 TOPIC_COUNT = topics.count

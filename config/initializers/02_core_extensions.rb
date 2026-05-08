@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Style/OneClassPerFile
 module GayFurCity
   module Extensions
     module String
@@ -55,11 +56,11 @@ module GayFurCity
       end
 
       # Like `#map`, but in parallel.
-      def parallel_map(executor = :io, &block)
+      def parallel_map(executor = :io, &)
         return enum_for(:parallel_map, executor) unless block_given?
 
         promises = map do |item|
-          Concurrent::Promises.future_on(executor, item, &block)
+          Concurrent::Promises.future_on(executor, item, &)
         end
 
         Concurrent::Promises.zip_futures_on(executor, *promises).value!
@@ -86,3 +87,4 @@ end
 class Hash
   include(GayFurCity::Extensions::Hash)
 end
+# rubocop:enable Style/OneClassPerFile

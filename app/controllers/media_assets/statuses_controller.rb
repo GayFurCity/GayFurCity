@@ -19,7 +19,7 @@ module MediaAssets
       authorize(MediaAsset, :queue_statuses?)
       PostFilesStatus.queue
       respond_to do |format|
-        format.html { redirect_back(fallback_location: media_asset_status_path) }
+        format.html { redirect_back_or_to(media_asset_status_path) }
         format.json
       end
     end

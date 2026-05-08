@@ -18,27 +18,27 @@ module Sources
         end
 
         should("be bad if only a direct link is provided (e621)") do
-          assert_equal(true, @post1.bad_source?)
+          assert_predicate(@post1, :bad_source?)
         end
 
         should("be bad if only a direct link is provided (e926)") do
-          assert_equal(true, @post2.bad_source?)
+          assert_predicate(@post2, :bad_source?)
         end
 
         should("not be bad if a post link is provided (e621)") do
-          assert_equal(false, @post3.bad_source?)
+          assert_not(@post3.bad_source?)
         end
 
         should("not be bad if a post link is provided (e926)") do
-          assert_equal(false, @post4.bad_source?)
+          assert_not(@post4.bad_source?)
         end
 
         should("not be bad if both a post link and a direct link is provided") do
-          assert_equal(false, @post5.bad_source?)
+          assert_not(@post5.bad_source?)
         end
 
         should("be bad if only an other link is provided") do
-          assert_equal(true, @post6.bad_source?)
+          assert_predicate(@post6, :bad_source?)
         end
       end
     end

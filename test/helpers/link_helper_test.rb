@@ -46,11 +46,13 @@ class LinkHelperTest < ActionView::TestCase
   test("all listed images exist") do
     favicon_folder = Rails.public_path.join("images/favicons")
     all_domains = LinkHelper::DECORATABLE_DOMAINS + LinkHelper::DECORATABLE_ALIASES.values
+
     all_domains.each do |domain|
-      assert(favicon_folder.join("#{domain}.png").exist?, "missing #{domain}")
+      assert_predicate(favicon_folder.join("#{domain}.png"), :exist?, "missing #{domain}")
     end
     # No extraneous files
     all_files = favicon_folder.children.map { |file| file.basename.to_s.delete_suffix(".png") }
+
     assert_empty(all_files - all_domains, "unused files in favicon folder")
   end
 end

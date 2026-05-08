@@ -12,6 +12,7 @@ module Posts
       context("index action") do
         should("render") do
           get(post_approvals_path)
+
           assert_response(:success)
         end
 
@@ -46,10 +47,12 @@ module Posts
 
         should("work") do
           post_auth(post_approvals_path, @admin, params: { post_id: @post.id, format: :json })
+
           assert_response(:success)
           @post.reload
+
           assert_not(@post.reload.is_pending?)
-          assert_equal(true, @post.uploader.notifications.post_approve.exists?)
+          assert_predicate(@post.uploader.notifications.post_approve, :exists?)
         end
 
         should("restrict access") do
@@ -66,13 +69,15 @@ module Posts
 
         should("work") do
           delete_auth(post_approval_path(@post), @admin, params: { format: :json })
+
           assert_response(:success)
-          assert(@post.reload.is_pending?)
-          assert_equal(true, @post.uploader.notifications.post_unapprove.exists?)
+          assert_predicate(@post.reload, :is_pending?)
+          assert_predicate(@post.uploader.notifications.post_unapprove, :exists?)
         end
 
         should("not work if user is not approver") do
           delete_auth(post_approval_path(@post), create(:admin_user), params: { format: :json })
+
           assert_response(:bad_request)
           assert_not(@post.reload.is_pending?)
         end

@@ -10,7 +10,8 @@ class TagImplicationRequestTest < ActiveSupport::TestCase
 
     should("handle invalid attributes") do
       tir = TagImplicationRequest.create(antecedent_name: "", consequent_name: "", reason: "reason", user: @user)
-      assert(tir.invalid?)
+
+      assert_predicate(tir, :invalid?)
     end
 
     should("create a tag implication") do
@@ -25,6 +26,7 @@ class TagImplicationRequestTest < ActiveSupport::TestCase
         @tir = TagImplicationRequest.create(antecedent_name: "aaa", consequent_name: "bbb", reason: "reason", user: @user).tag_relationship
       end
       @topic = ForumTopic.last
+
       assert_equal(@tir.forum_topic_id, @topic.id)
       assert_equal(@tir.forum_post_id, @topic.posts.first.id)
       assert_equal(@tir.id, @tir.forum_post.tag_change_request_id)

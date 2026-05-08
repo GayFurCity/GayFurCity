@@ -16,27 +16,27 @@ module Sources
         end
 
         should("be bad if only a user link is provided") do
-          assert_equal(true, @post1.bad_source?)
+          assert_predicate(@post1, :bad_source?)
         end
 
         should("be bad if only a gallery link is provided") do
-          assert_equal(true, @post2.bad_source?)
+          assert_predicate(@post2, :bad_source?)
         end
 
         should("be bad if only a direct link is provided") do
-          assert_equal(true, @post3.bad_source?)
+          assert_predicate(@post3, :bad_source?)
         end
 
         should("not be bad if a submission link is provided") do
-          assert_equal(false, @post4.bad_source?)
+          assert_not(@post4.bad_source?)
         end
 
         should("not be bad if a submission link is provided with a user link") do
-          assert_equal(false, @post5.bad_source?)
+          assert_not(@post5.bad_source?)
         end
 
         should("not be bad if a submission link is provided with a user link and direct link") do
-          assert_equal(false, @post6.bad_source?)
+          assert_not(@post6.bad_source?)
         end
       end
     end

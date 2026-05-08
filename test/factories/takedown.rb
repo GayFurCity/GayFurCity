@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:takedown) do
-    association(:creator, factory: :user)
+    creator(factory: %i[user])
     email { "takedown@example.com" }
     source { "example.com" }
     reason { "foo" }

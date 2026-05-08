@@ -13,6 +13,7 @@ module Tags
       context("new action") do
         should("render") do
           get_auth(new_tag_alias_path, @user)
+
           assert_response(:success)
         end
 
@@ -29,10 +30,11 @@ module Tags
           topic = ForumTopic.last
           post = topic.posts.last
           ta = TagAlias.last
+
           assert_equal("pending", ta.status)
           assert_equal("TagAlias", post.tag_change_request_type)
           assert_equal(ta.id, post.tag_change_request_id)
-          assert_equal(true, post.allow_voting?)
+          assert_predicate(post, :allow_voting?)
           assert_redirected_to(forum_topic_path(topic, page: post.forum_topic_page, anchor: "forum_post_#{post.id}"))
         end
 
@@ -48,6 +50,7 @@ module Tags
 
         should("render") do
           get_auth(edit_tag_alias_path(@tag_alias), @admin)
+
           assert_response(:success)
         end
 
@@ -69,12 +72,14 @@ module Tags
           should("succeed") do
             put_auth(tag_alias_path(@tag_alias), @admin, params: { tag_alias: { antecedent_name: "xxx" } })
             @tag_alias.reload
+
             assert_equal("xxx", @tag_alias.antecedent_name)
           end
 
           should("not allow changing the status") do
             put_auth(tag_alias_path(@tag_alias), @admin, params: { tag_alias: { status: "active" } })
             @tag_alias.reload
+
             assert_equal("pending", @tag_alias.status)
           end
         end
@@ -87,6 +92,7 @@ module Tags
           should("fail") do
             put_auth(tag_alias_path(@tag_alias), @admin, params: { tag_alias: { antecedent_name: "xxx" } })
             @tag_alias.reload
+
             assert_equal("aaa", @tag_alias.antecedent_name)
           end
         end
@@ -104,11 +110,13 @@ module Tags
 
         should("list all tag alias") do
           get_auth(tag_aliases_path, @admin)
+
           assert_response(:success)
         end
 
         should("list all tag_alias (with search)") do
           get_auth(tag_aliases_path, @admin, params: { search: { antecedent_name: "aaa" } })
+
           assert_response(:success)
         end
 
@@ -155,9 +163,11 @@ module Tags
 
         should("approve the alias") do
           put_auth(approve_tag_alias_path(@tag_alias), @admin, params: { format: :json })
+
           assert_response(:success)
           perform_enqueued_jobs(only: TagAliasJob)
           @tag_alias.reload
+
           assert_equal("active", @tag_alias.status)
         end
 
@@ -165,6 +175,7 @@ module Tags
           Config.stubs(:get_user).with(:tag_change_request_update_limit, @admin).returns(1)
           create_list(:post, 2, tag_string: "aaa")
           put_auth(approve_tag_alias_path(@tag_alias), @admin, params: { format: :json })
+
           assert_response(:forbidden)
           assert_equal("pending", @tag_alias.status)
         end
@@ -182,6 +193,7 @@ module Tags
         should("mark the alias as deleted") do
           assert_difference("TagAlias.count", 0) do
             delete_auth(tag_alias_path(@tag_alias), @admin)
+
             assert_equal("deleted", @tag_alias.reload.status)
           end
         end

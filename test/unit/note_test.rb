@@ -21,6 +21,7 @@ class NoteTest < ActiveSupport::TestCase
 
         should("null out its last_noted_at_field") do
           @post.reload
+
           assert_nil(@post.last_noted_at)
         end
       end
@@ -34,25 +35,28 @@ class NoteTest < ActiveSupport::TestCase
       should("not validate if the note is outside the image") do
         @note = build(:note, x: 1001, y: 500, post: @post, creator: @user)
         @note.save
+
         assert_equal(["Note must be inside the image"], @note.errors.full_messages)
       end
 
       should("not validate if the note is larger than the image") do
         @note = build(:note, x: 500, y: 500, height: 501, width: 500, post: @post, creator: @user)
         @note.save
+
         assert_equal(["Note must be inside the image"], @note.errors.full_messages)
       end
 
       should("not validate if the post does not exist") do
         @note = build(:note, x: 500, y: 500, post_id: -1, creator: @user)
         @note.save
+
         assert_match(/Post must exist/, @note.errors.full_messages.join)
       end
 
       should("not validate if the body is blank") do
         @note = build(:note, body: "   ", creator: @user, post: @post)
 
-        assert_equal(false, @note.valid?)
+        assert_not(@note.valid?)
         assert_equal(["Body can't be blank"], @note.errors.full_messages)
       end
 
@@ -73,6 +77,7 @@ class NoteTest < ActiveSupport::TestCase
         assert_nil(@post.last_noted_at)
         @note = create(:note, post: @post)
         @post.reload
+
         assert_equal(@post.last_noted_at, @note.updated_at)
       end
 
@@ -109,6 +114,7 @@ class NoteTest < ActiveSupport::TestCase
         assert_equal(@post.last_noted_at, @note.updated_at)
         @note.update_with(@user, x: 500)
         @post.reload
+
         assert_equal(@post.last_noted_at, @note.updated_at)
       end
 
@@ -131,6 +137,7 @@ class NoteTest < ActiveSupport::TestCase
 
         should("fail") do
           @note.update_with(@user, x: 500)
+
           assert_equal(["Post is note locked"], @note.errors.full_messages)
         end
       end
@@ -158,6 +165,7 @@ class NoteTest < ActiveSupport::TestCase
           assert_equal([@user.id, @vandal.id], @note.versions.map(&:updater_id))
           Note.undo_changes_by_user(@vandal.id, @user)
           @note.reload
+
           assert_equal([1, 3], @note.versions.map(&:version))
           assert_equal([@user.id, @user.id], @note.versions.map(&:updater_id))
           assert_equal(5, @note.x)

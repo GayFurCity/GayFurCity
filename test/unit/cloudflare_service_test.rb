@@ -14,6 +14,7 @@ class CloudflareServiceTest < ActiveSupport::TestCase
         },
       }
       stub_request(:get, CloudflareService.endpoint).to_return(status: 200, body: dummy_response.to_json)
+
       assert_equal([IPAddr.new(ipv4), IPAddr.new(ipv6)], CloudflareService.ips)
     end
   end

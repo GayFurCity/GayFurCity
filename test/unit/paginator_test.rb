@@ -5,6 +5,7 @@ require("test_helper")
 class PaginatorTest < ActiveSupport::TestCase
   def assert_paginated(expected_records:, is_first_page:, is_last_page:, &)
     records = yield
+
     assert_equal(expected_records.map(&:id), records.map(&:id))
     assert_equal(is_first_page, records.is_first_page?, "is_first_page")
     assert_equal(is_last_page, records.is_last_page?, "is_last_page")
@@ -87,6 +88,7 @@ class PaginatorTest < ActiveSupport::TestCase
         assert_equal(10, model.paginate_posts(1, limit: 10, user: @user).records_per_page)
 
         @user.update_columns(per_page: 25)
+
         assert_equal(25, model.paginate_posts(1, user: @user).records_per_page)
         assert_equal(10, model.paginate_posts(1, limit: 10, user: @user).records_per_page)
       end

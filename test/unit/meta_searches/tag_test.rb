@@ -14,6 +14,7 @@ module MetaSearches
       should("find the tag") do
         meta_search = MetaSearches::Tag.new(name: "xxx")
         meta_search.load_all
+
         assert_equal(1, meta_search.tags.size)
         assert_equal("xxx", meta_search.tags.first.name)
       end
@@ -21,6 +22,7 @@ module MetaSearches
       should("find the alias") do
         meta_search = MetaSearches::Tag.new(name: "aaa")
         meta_search.load_all
+
         assert_equal(1, meta_search.tag_aliases.size)
         assert_equal("aaa", meta_search.tag_aliases.first.antecedent_name)
       end
@@ -28,6 +30,7 @@ module MetaSearches
       should("find the implication") do
         meta_search = MetaSearches::Tag.new(name: "ccc")
         meta_search.load_all
+
         assert_equal(1, meta_search.tag_implications.size)
         assert_equal("ccc", meta_search.tag_implications.first.antecedent_name)
       end

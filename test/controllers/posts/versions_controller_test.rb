@@ -24,6 +24,7 @@ module Posts
 
         should("list all versions") do
           get_auth(post_versions_path, @user)
+
           assert_response(:success)
           assert_select("#post-version-#{@post2.versions[0].id}")
           assert_select("#post-version-#{@versions[0].id}")
@@ -33,6 +34,7 @@ module Posts
 
         should("list all versions that match the search criteria") do
           get_auth(post_versions_path, @user, params: { search: { post_id: @post.id } })
+
           assert_response(:success)
           assert_select("#post-version-#{@post2.versions[0].id}", false)
           assert_select("#post-version-#{@versions[0].id}")

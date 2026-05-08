@@ -19,6 +19,7 @@ class MentionsTest < ActiveSupport::TestCase
           end
 
           @notification = Notification.last
+
           assert_equal("mention", @notification.category)
           assert_equal(@user2.id, @notification.user_id)
           assert_equal({ "mention_id" => @comment.id, "mention_type" => "Comment", "user_id" => @user.id, "post_id" => @comment.post_id }, @notification.data)
@@ -55,12 +56,14 @@ class MentionsTest < ActiveSupport::TestCase
       context("when editing") do
         should("create a notification") do
           @comment = create(:comment, creator: @user, body: "hello @#{@user2.name}")
+
           assert_equal(1, @user2.reload.unread_notification_count)
           assert_same_elements([@user2.id], @comment.notified_mentions)
           assert_difference("Notification.count", 1) do
             @comment.update!(body: "hello @#{@user3.name}")
           end
           @notification = Notification.last
+
           assert_equal("mention", @notification.category)
           assert_equal(@user3.id, @notification.user_id)
           assert_equal({ "mention_id" => @comment.id, "mention_type" => "Comment", "user_id" => @user.id, "post_id" => @comment.post_id }, @notification.data)
@@ -71,12 +74,14 @@ class MentionsTest < ActiveSupport::TestCase
 
         should("not create a notification if the user has already been notified") do
           @comment = create(:comment, creator: @user, body: "hello @#{@user2.name}")
+
           assert_equal(1, @user2.reload.unread_notification_count)
           assert_same_elements([@user2.id], @comment.notified_mentions)
           assert_no_difference("Notification.count") do
             @comment.update!(body: "hello @#{@user2.name} how are you")
           end
           @notification = Notification.last
+
           assert_equal("mention", @notification.category)
           assert_equal(@user2.id, @notification.user_id)
           assert_equal({ "mention_id" => @comment.id, "mention_type" => "Comment", "user_id" => @user.id, "post_id" => @comment.post_id }, @notification.data)
@@ -116,6 +121,7 @@ class MentionsTest < ActiveSupport::TestCase
 
         should("not create a notification if edited by someone other than the creator") do
           @comment = create(:comment, creator: @user, body: "hello")
+
           assert_equal([], @comment.notified_mentions)
           assert_no_difference("Notification.count") do
             @comment.update!(body: "hello @#{@user2.name}", updater: @admin)
@@ -137,6 +143,7 @@ class MentionsTest < ActiveSupport::TestCase
           end
 
           @notification = Notification.last
+
           assert_equal("mention", @notification.category)
           assert_equal(@user2.id, @notification.user_id)
           assert_equal({ "mention_id" => @forum_post.id, "mention_type" => "ForumPost", "user_id" => @user.id, "topic_id" => @topic.id, "topic_title" => @topic.title }, @notification.data)
@@ -173,12 +180,14 @@ class MentionsTest < ActiveSupport::TestCase
       context("when editing") do
         should("create a notification") do
           @forum_post = create(:forum_post, creator: @user, body: "hello @#{@user2.name}", topic: @topic)
+
           assert_equal(1, @user2.reload.unread_notification_count)
           assert_same_elements([@user2.id], @forum_post.notified_mentions)
           assert_difference("Notification.count", 1) do
             @forum_post.update!(body: "hello @#{@user3.name}")
           end
           @notification = Notification.last
+
           assert_equal("mention", @notification.category)
           assert_equal(@user3.id, @notification.user_id)
           assert_equal({ "mention_id" => @forum_post.id, "mention_type" => "ForumPost", "user_id" => @user.id, "topic_id" => @topic.id, "topic_title" => @topic.title }, @notification.data)
@@ -189,12 +198,14 @@ class MentionsTest < ActiveSupport::TestCase
 
         should("not create a notification if the user has already been notified") do
           @forum_post = create(:forum_post, creator: @user, body: "hello @#{@user2.name}", topic: @topic)
+
           assert_equal(1, @user2.reload.unread_notification_count)
           assert_same_elements([@user2.id], @forum_post.notified_mentions)
           assert_no_difference("Notification.count") do
             @forum_post.update!(body: "hello @#{@user2.name} how are you")
           end
           @notification = Notification.last
+
           assert_equal("mention", @notification.category)
           assert_equal(@user2.id, @notification.user_id)
           assert_equal({ "mention_id" => @forum_post.id, "mention_type" => "ForumPost", "user_id" => @user.id, "topic_id" => @topic.id, "topic_title" => @topic.title }, @notification.data)
@@ -235,6 +246,7 @@ class MentionsTest < ActiveSupport::TestCase
 
       should("not create a notification if edited by someone other than the creator") do
         @forum_post = create(:forum_post, creator: @user, body: "hello", topic: @topic)
+
         assert_equal([], @forum_post.notified_mentions)
         assert_no_difference("Notification.count") do
           @forum_post.update!(body: "hello @#{@user2.name}", updater: @admin)

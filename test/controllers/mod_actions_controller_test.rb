@@ -11,6 +11,7 @@ class ModActionsControllerTest < ActionDispatch::IntegrationTest
     context("index action") do
       should("render") do
         get(mod_actions_path)
+
         assert_response(:success)
       end
 
@@ -43,6 +44,7 @@ class ModActionsControllerTest < ActionDispatch::IntegrationTest
     context("show action") do
       should("redirect") do
         get(mod_action_path(@mod_action))
+
         assert_redirected_to(mod_actions_path(search: { id: @mod_action.id }))
       end
 

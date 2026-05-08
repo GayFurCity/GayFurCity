@@ -2,6 +2,7 @@
 
 class UserInfo
   include(ActiveModel::Serializers::JSON)
+
   THROTTLE_LIST = User::LimitMethods.throttles.map(&:name).sort
   attr_reader(:user)
 
@@ -11,6 +12,7 @@ class UserInfo
 
   class Throttle
     include(ActiveModel::Serializers::JSON)
+
     attr_reader(:user, :throttle, :bypass, :newbie, :level, :limit)
 
     def initialize(user, throttle)

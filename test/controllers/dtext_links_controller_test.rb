@@ -14,6 +14,7 @@ class DtextLinksControllerTest < ActionDispatch::IntegrationTest
     context("index action") do
       should("render") do
         get(dtext_links_path)
+
         assert_response(:success)
       end
 

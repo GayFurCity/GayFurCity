@@ -3,20 +3,22 @@ inherit_mode:
     - Exclude
     - Include
 
-inherit_from:
-  - ./lib/rubocop/cop/local/default.yml
-
-require:
-  - ./lib/rubocop/cop/local/rules.rb
+inherit_gem:
+  rubocop-yiffspace:
+    - config/rails.yml
+    - config/custom.yml
 
 plugins:
   - rubocop-erb
   - rubocop-rails
+  - rubocop-faker
+  - rubocop-minitest
+  - rubocop-rake
+  - rubocop-factory_bot
+  - rubocop-yiffspace
 
 AllCops:
   NewCops: enable
-  SuggestExtensions:
-    rubocop-factory_bot: false
   Exclude:
     - 'lib/dtext_rb/**/*'
 
@@ -262,7 +264,7 @@ Naming/MethodParameterName:
     - pp
     - to
 
-Local/CurrentUserOutsideOfRequests:
+YiffSpace/CurrentUserOutsideOfRequests:
   Enabled: true
   Exclude:
     - db/fixes/1*.rb
@@ -272,7 +274,27 @@ Local/CurrentUserOutsideOfRequests:
     - app/logical/session_loader.rb
     - test/unit/current_user_test.rb
 
+Style/FileOpen:
+  Exclude:
+    - db/fixes/213*.rb
+
 Rails/SquishedSQLHeredocs:
   Enabled: true
   Exclude:
     - db/migrate/*.rb
+
+# these two cause an infinite loop with eachother
+
+Minitest/EmptyLineBeforeAssertionMethods:
+  Exclude:
+    - test/unit/zeitwerk_test.rb
+
+Layout/EmptyLinesAroundClassBody:
+  Exclude:
+    - test/unit/zeitwerk_test.rb
+
+Minitest/MultipleAssertions:
+  Enabled: false
+
+FactoryBot/FactoryAssociationWithStrategy:
+  Enabled: false

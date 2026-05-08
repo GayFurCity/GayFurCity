@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:bulk_update_request) do
-    association(:creator, factory: :user)
+    creator(factory: %i[user])
     script { "alias aaa -> bbb" }
     sequence(:title) { |n| "bulk_update_request_#{n}" }
     sequence(:reason) { |n| "bulk_update_request_reason_#{n}" }

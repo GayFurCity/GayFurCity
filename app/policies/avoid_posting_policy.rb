@@ -22,7 +22,7 @@ class AvoidPostingPolicy < ApplicationPolicy
   end
 
   def permitted_attributes
-    %i[details staff_notes is_active] + [artist_attributes: [:id, :name, :other_names_string, :linked_user_id, { other_names: [] }]]
+    %i[details staff_notes is_active] + [{ artist_attributes: [:id, :name, :other_names_string, :linked_user_id, { other_names: [] }] }]
   end
 
   def permitted_search_params

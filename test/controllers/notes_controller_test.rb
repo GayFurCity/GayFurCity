@@ -13,6 +13,7 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
     context("index action") do
       should("list all notes") do
         get(notes_path)
+
         assert_response(:success)
       end
 
@@ -30,6 +31,7 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
         }
 
         get(notes_path, params: params)
+
         assert_response(:success)
       end
 
@@ -65,6 +67,7 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
     context("show action") do
       should("render") do
         get(note_path(@note), params: { format: "json" })
+
         assert_response(:success)
       end
 
@@ -88,11 +91,13 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
 
         should("prevent edits when the editors level is lower") do
           post_auth(notes_path, @user, params: { note: { x: 0, y: 0, width: 10, height: 10, body: "abc", post_id: @post.id }, format: :json })
+
           assert_response(:forbidden)
         end
 
         should("allow edits when the editors level is higher") do
           post_auth(notes_path, @admin, params: { note: { x: 0, y: 0, width: 10, height: 10, body: "abc", post_id: @post.id }, format: :json })
+
           assert_response(:success)
         end
       end
@@ -105,12 +110,14 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
     context("update action") do
       should("update a note") do
         put_auth(note_path(@note), @user, params: { note: { body: "xyz" } })
+
         assert_equal("xyz", @note.reload.body)
       end
 
       should("not allow changing the post id to another post") do
         @other = create(:post)
         put_auth(note_path(@note), @user, params: { format: "json", id: @note.id, note: { post_id: @other.id } })
+
         assert_not_equal(@other.id, @note.reload.post_id)
       end
 
@@ -122,11 +129,13 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
 
         should("prevent edits when the editors level is lower") do
           put_auth(note_path(@note), @user, params: { note: { body: "xyz" }, format: :json })
+
           assert_response(:forbidden)
         end
 
         should("allow edits when the editors level is higher") do
           put_auth(note_path(@note), @admin, params: { note: { body: "xyz" }, format: :json })
+
           assert_response(:success)
         end
       end
@@ -139,7 +148,8 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
     context("destroy action") do
       should("destroy a note") do
         delete_auth(note_path(@note), @user)
-        assert_equal(false, @note.reload.is_active?)
+
+        assert_not(@note.reload.is_active?)
       end
 
       context("min_edit_level") do
@@ -150,11 +160,13 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
 
         should("prevent edits when the editors level is lower") do
           delete_auth(note_path(@note), @user, params: { format: :json })
+
           assert_response(:forbidden)
         end
 
         should("allow edits when the editors level is higher") do
           delete_auth(note_path(@note), @admin, params: { format: :json })
+
           assert_response(:success)
         end
       end
@@ -176,12 +188,14 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
 
       should("revert to a previous version") do
         put_auth(revert_note_path(@note), @user, params: { version_id: @note.versions.first.id })
+
         assert_equal("000", @note.reload.body)
       end
 
       should("not allow reverting to a previous version of another note") do
         @note2 = create(:note, body: "note 2")
         put_auth(revert_note_path(@note), @user, params: { version_id: @note2.versions.first.id })
+
         assert_not_equal(@note.reload.body, @note2.body)
         assert_response(:missing)
       end
@@ -194,11 +208,13 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
 
         should("prevent edits when the editors level is lower") do
           put_auth(revert_note_path(@note), @user, params: { version_id: @note.versions.first.id, format: :json })
+
           assert_response(:forbidden)
         end
 
         should("allow edits when the editors level is higher") do
           put_auth(revert_note_path(@note), @admin, params: { version_id: @note.versions.first.id, format: :json })
+
           assert_response(:success)
         end
       end

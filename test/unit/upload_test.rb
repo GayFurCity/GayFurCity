@@ -19,6 +19,7 @@ class UploadTest < ActiveSupport::TestCase
       should("fail creation") do
         @upload = build(:jpg_upload, tag_string: "", uploader: @user)
         @upload.save
+
         assert_equal(["You have reached your upload limit"], @upload.errors.full_messages)
       end
     end
@@ -31,6 +32,7 @@ class UploadTest < ActiveSupport::TestCase
       should("fail creation") do
         @upload = build(:jpg_upload, tag_string: "", uploader: @user)
         @upload.save
+
         assert_equal(["You have too many pending uploads. Finish or cancel your existing uploads and try again"], @upload.errors.full_messages)
       end
     end
@@ -38,6 +40,7 @@ class UploadTest < ActiveSupport::TestCase
     should("require a checksum if no file or direct_url is provided") do
       @upload = build(:upload, uploader: @user, upload_media_asset: build(:upload_media_asset, checksum: nil, creator: @user))
       @upload.save
+
       assert_equal(["Checksum is required unless a file or direct_url is supplied"], @upload.errors.full_messages)
     end
 
@@ -46,6 +49,7 @@ class UploadTest < ActiveSupport::TestCase
         source1 = "poke\u0301mon" # pokémon (nfd form)
         source2 = "pok\u00e9mon"  # pokémon (nfc form)
         @upload = create(:jpg_upload, source: source1, uploader: @user)
+
         assert_equal(source2, @upload.post.source)
       end
     end
@@ -53,6 +57,7 @@ class UploadTest < ActiveSupport::TestCase
     context("without a file or a direct url") do
       should("be pending") do
         @upload = create(:upload, file: nil, direct_url: nil, uploader: @user, upload_media_asset: build(:upload_media_asset, creator: @user))
+
         assert_equal("pending", @upload.status)
       end
     end
@@ -64,6 +69,7 @@ class UploadTest < ActiveSupport::TestCase
         CloudflareService.stubs(:ips).returns([])
         stub_request(:get, "http://example.com/alpha.png").to_return(status: 200, body: file.read, headers: { "Content-Type" => "image/png" })
         @upload = create(:upload, file: fixture_file_upload("test.jpg"), direct_url: "http://example.com/alpha.png", uploader: @user, upload_media_asset: build(:upload_media_asset, checksum: nil, creator: @user))
+
         assert_equal("active", @upload.status)
         assert_equal("jpg", @upload.file_ext)
       end
@@ -71,6 +77,7 @@ class UploadTest < ActiveSupport::TestCase
 
     should("create a post") do
       @upload = create(:jpg_upload, uploader: @user)
+
       assert_not_nil(@upload.post)
     end
 
@@ -81,10 +88,13 @@ class UploadTest < ActiveSupport::TestCase
         @upload = create(:ai_upload, uploader: @user)
         perform_enqueued_jobs(only: AiCheckJob)
         @post = @upload.post&.reload
+
         assert_not_nil(@post)
         @flag = @post.flags.flag.by_system.unresolved.first
+
         assert_not_nil(@flag)
         MediaAsset.is_ai_generated?(@post.file_path) => { score:, reason: }
+
         assert_equal("AI Score: #{score}\nReason: #{reason}", @flag.note)
       end
 
@@ -94,6 +104,7 @@ class UploadTest < ActiveSupport::TestCase
         @upload = create(:ai_upload, uploader: @user)
         perform_enqueued_jobs(only: AiCheckJob)
         @post = @upload.post&.reload
+
         assert_not_nil(@post)
         assert(@post.has_tag?("ai_generated"))
         assert_match(/ai_generated/, @post.locked_tags)
@@ -106,6 +117,7 @@ class UploadTest < ActiveSupport::TestCase
         @upload = create(:ai_upload, uploader: @user)
         perform_enqueued_jobs(only: AiCheckJob)
         @post = @upload.post&.reload
+
         assert_not_nil(@post)
         assert_equal(@user.id, @post.uploader_id)
         assert_equal(@user.id, @post.versions.first.updater_id)

@@ -68,7 +68,7 @@ class StaticController < ApplicationController
     else
       cookies.permanent[:nmm] = "1"
     end
-    redirect_back(fallback_location: posts_path)
+    redirect_back_or_to(posts_path)
   end
 
   def discord

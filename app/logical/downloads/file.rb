@@ -3,6 +3,7 @@
 module Downloads
   class File
     include(ActiveModel::Validations)
+
     class Error < StandardError; end
 
     attr_reader(:user, :url)

@@ -19,6 +19,7 @@ class ApplicationController < ActionController::Base
   include(TitleHelper)
   include(DeferredPosts)
   include(Pundit::Authorization)
+
   helper_method(:deferred_post_ids, :deferred_posts, :search_params, :can_use_attribute?, :can_use_attributes?, :can_use_any_attribute?)
 
   rescue_from(Exception, with: :rescue_exception)

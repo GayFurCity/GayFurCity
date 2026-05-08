@@ -21,11 +21,13 @@ module Notes
 
         should("list all versions") do
           get(note_versions_path)
+
           assert_response(:success)
         end
 
         should("list all versions that match the search criteria") do
           get(note_versions_path, params: { search: { updater_id: @user2.id } })
+
           assert_response(:success)
         end
 

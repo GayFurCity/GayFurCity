@@ -34,6 +34,7 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
     context("show action") do
       should("redirect") do
         get_auth(notification_path(@notification), @user)
+
         assert_redirected_to(@notification.view_link)
       end
 
@@ -46,6 +47,7 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
       should("work") do
         assert_equal(1, @user.reload.unread_notification_count)
         delete_auth(notification_path(@notification), @user)
+
         assert_redirected_to(notifications_path)
         assert_equal(0, Notification.count)
         assert_equal(0, @user.reload.unread_notification_count)
@@ -60,6 +62,7 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
       should("work") do
         assert_equal(1, @user.reload.unread_notification_count)
         put_auth(mark_as_read_notification_path(@notification), @user)
+
         assert_redirected_to(notifications_path)
         assert(@notification.reload.is_read)
         assert_equal(0, @user.reload.unread_notification_count)
@@ -73,8 +76,10 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
     context("mark all as read action") do
       should("work") do
         create(:notification, user: @user)
+
         assert_equal(2, @user.reload.unread_notification_count)
         put_auth(mark_all_as_read_notifications_path, @user)
+
         assert_redirected_to(notifications_path)
         assert_equal(0, Notification.unread.count)
         assert_equal(0, @user.reload.unread_notification_count)
@@ -94,6 +99,7 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
 
     should("have an unread banner") do
       get_auth(posts_path, @user)
+
       assert_select("#notification-notice", count: 1)
       assert_select("#notification-notice a.unread-notification-count", { count: 1, text: "1 unread notification" })
     end

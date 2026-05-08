@@ -11,26 +11,31 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     context("index action") do
       should("list all users") do
         get(users_path)
+
         assert_response(:success)
       end
 
       should("not redirect for /users?name=<name> if invalid") do
         get(users_path, params: { name: "some_name" })
+
         assert_response(:not_found)
       end
 
       should("redirect for /users?name=<name> if valid") do
         get(users_path, params: { name: @user.name })
+
         assert_redirected_to(user_path(@user))
       end
 
       should("list all users (with search)") do
         get(users_path, params: { search: { name_matches: @user.name } })
+
         assert_response(:success)
       end
 
       should("list all users (with blank search parameters)") do
         get(users_path, params: { search: { level: "", name: "test" } })
+
         assert_redirected_to(users_path(search: { name: "test" }))
       end
 
@@ -71,6 +76,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
       should("render") do
         get(user_path(@user))
+
         assert_response(:success)
       end
 
@@ -104,6 +110,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
       should("render") do
         get(new_user_path)
+
         assert_response(:success)
       end
     end
@@ -114,10 +121,11 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
           post(users_path, params: { user: { name: "xxx", password: "xxxxx1", password_confirmation: "xxxxx1" } })
         end
         created_user = User.find(session[:user_id])
+
         assert_equal("xxx", created_user.name)
         assert_equal(Config.instance.records_per_page, created_user.per_page)
         assert_not_nil(created_user.last_ip_addr)
-        assert_equal(true, created_user.user_events.user_creation.exists?)
+        assert_predicate(created_user.user_events.user_creation, :exists?)
       end
 
       context("with sockpuppet validation enabled") do
@@ -141,6 +149,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         should("prevent creation") do
           assert_no_difference(-> { User.count }) do
             post(users_path, params: { user: { name: "TEst123", password: "xxxxx1", password_confirmation: "xxxxx1" } })
+
             assert_match(/Name already exists/, flash[:notice])
           end
         end
@@ -154,8 +163,10 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         should("reject invalid emails") do
           assert_no_difference(-> { User.count }) do
             post(users_path, params: { user: { name: "test", password: "xxxxxx", password_confirmation: "xxxxxx" } })
+
             assert_match(/Email can't be blank/, flash[:notice])
             post(users_path, params: { user: { name: "test", password: "xxxxxx", password_confirmation: "xxxxxx", email: "invalid" } })
+
             assert_match(/Email is invalid/, flash[:notice])
           end
         end
@@ -165,6 +176,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
           assert_no_difference(-> { User.count }) do
             post(users_path, params: { user: { name: "test2", password: "xxxxxx", password_confirmation: "xxxxxx", email: "VaLid@gayfur.city" } })
+
             assert_match(/Email has already been taken/, flash[:notice])
           end
         end
@@ -178,6 +190,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
       should("render") do
         get_auth(edit_users_path, @user)
+
         assert_response(:success)
       end
 
@@ -194,6 +207,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
       should("update a user") do
         post_auth(update_users_path, @user, params: { user: { favorite_tags: "xyz" } })
         @user.reload
+
         assert_equal("xyz", @user.favorite_tags)
       end
 
@@ -205,6 +219,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         should("not work") do
           post_auth(update_users_path, @cuser, params: { user: { level: User::Levels::MODERATOR } })
           @user.reload
+
           assert_equal(User::Levels::MEMBER, @user.level)
         end
       end
@@ -217,6 +232,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
         should("force them to update their email") do
           post_auth(update_users_path, @user, params: { user: { comment_threshold: "-100" } })
+
           assert_match(/Email can't be blank/, flash[:notice])
         end
       end
@@ -224,8 +240,9 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
       should("change password") do
         post_auth(update_users_path, @user, params: { user: { old_password: "password", password: "password2", password_confirmation: "password2" } })
         @user.reload
-        assert_equal(true, @user.bcrypt_password.is_password?("password2"))
-        assert_equal(true, @user.user_events.password_change.exists?)
+
+        assert(@user.bcrypt_password.is_password?("password2"))
+        assert_predicate(@user.user_events.password_change, :exists?)
       end
 
       should("restrict access") do
@@ -237,6 +254,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
       should("return the correct styling") do
         @user.update_columns(custom_style: "body { display:none; }")
         get_auth(custom_style_users_path(format: :css), @user)
+
         assert_response(:success)
         assert_equal("body { display:none !important; }", @response.body.strip)
       end
@@ -250,12 +268,14 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
       should("work") do
         mod = create(:moderator_user)
         @user.ban!(mod)
-        assert_equal(true, @user.reload.is_banned?)
+
+        assert_predicate(@user.reload, :is_banned?)
         assert_difference({ "Ban.count" => 0, "ModAction.count" => 1 }) do
           put_auth(unban_user_path(@user), mod)
+
           assert_redirected_to(user_path(@user))
         end
-        assert_equal(false, @user.reload.is_banned?)
+        assert_not(@user.reload.is_banned?)
       end
 
       should("restrict access") do

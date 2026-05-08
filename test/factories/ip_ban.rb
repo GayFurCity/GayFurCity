@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:ip_ban) do
-    association(:creator, factory: :user)
+    creator(factory: %i[user])
     sequence(:reason) { |n| "ip_ban_reason_#{n}" }
   end
 end

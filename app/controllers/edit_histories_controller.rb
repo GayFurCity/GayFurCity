@@ -23,13 +23,13 @@ class EditHistoriesController < ApplicationController
 
   def diff
     if params[:otherversion].blank? || params[:thisversion].blank?
-      redirect_back(fallback_location: { action: :index }, notice: "You must select two versions to diff")
+      redirect_back_or_to({ action: :index }, notice: "You must select two versions to diff")
       return
     end
 
     @otherversion = authorize(EditHistory.find(params[:otherversion]))
     @thisversion = authorize(EditHistory.find(params[:thisversion]))
-    redirect_back(fallback_location: { action: :index }, notice: "You cannot diff different versionables") if @otherversion.versionable_type != @thisversion.versionable_type || @otherversion.versionable_id != @thisversion.versionable_id
+    redirect_back_or_to({ action: :index }, notice: "You cannot diff different versionables") if @otherversion.versionable_type != @thisversion.versionable_type || @otherversion.versionable_id != @thisversion.versionable_id
   end
 
   private

@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:post_approval) do
-    association(:user, factory: :janitor_user)
-    association(:post, is_pending: true)
+    user(factory: %i[janitor_user])
+    post { create(:post, is_pending: true) }
   end
 end

@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:wiki_page) do
-    association(:creator, factory: :user)
+    creator(factory: %i[user])
     sequence(:title) { |n| "wiki_page_title_#{n}" }
     sequence(:body) { |n| "wiki_page_body_#{n}" }
   end

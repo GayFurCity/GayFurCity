@@ -303,14 +303,14 @@ class ForumTopic < ApplicationRecord
     is_stale?
   end
 
-  # rubocop:disable Local/CurrentUserOutsideOfRequests -- Used exclusively within requests for json
+  # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests -- Used exclusively within requests for json
   def is_read?
     return true if CurrentUser.user.is_anonymous?
     return true if new_record?
 
     read_by?(CurrentUser.user)
   end
-  # rubocop:enable Local/CurrentUserOutsideOfRequests
+  # rubocop:enable YiffSpace/CurrentUserOutsideOfRequests
 
   def self.available_includes
     %i[category creator updater original_post]

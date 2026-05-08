@@ -47,12 +47,14 @@ class PostFlagTest < ActiveSupport::TestCase
 
       travel_to(PostFlag::COOLDOWN_PERIOD.from_now + 1.minute) do
         @flag3 = create(:post_flag, post: @post, creator: @users.second)
-        assert(@flag3.errors.empty?)
+
+        assert_empty(@flag3.errors)
       end
     end
 
     should("initialize its creator") do
       @post_flag = create(:post_flag, post: @post, creator: @alice)
+
       assert_equal(@alice.id, @post_flag.creator_id)
       assert_equal(IPAddr.new("127.0.0.1"), @post_flag.creator_ip_addr)
     end
@@ -80,6 +82,7 @@ class PostFlagTest < ActiveSupport::TestCase
         reasons = GayFurCity.config.flag_reasons.select { |r| r[:require_explanation] }
         reasons.each do |reason|
           flag = build(:post_flag, post: @post, creator: @user, reason_name: reason[:name], note: "")
+
           assert_not(flag.valid?, "note should be required for reason #{reason[:name]}")
           assert_includes(flag.errors[:note], "is required for the selected reason")
         end
@@ -90,6 +93,7 @@ class PostFlagTest < ActiveSupport::TestCase
         reasons.each do |reason|
           flag = build(:post_flag, post: @post, creator: @user, reason_name: reason[:name], note: "")
           flag.valid?
+
           assert_not_includes(flag.errors[:note], "is required for the selected reason")
         end
       end
@@ -99,6 +103,7 @@ class PostFlagTest < ActiveSupport::TestCase
         reasons.each do |reason|
           flag = build(:post_flag, post: @post, creator: @user, reason_name: reason[:name], note: "Some explanation")
           flag.valid?
+
           assert_not_includes(flag.errors[:note], "is required for the selected reason")
         end
       end

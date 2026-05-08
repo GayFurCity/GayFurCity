@@ -26,7 +26,7 @@ module Admin
       @config.update_with!(CurrentUser.user, values)
       notice("Config updated")
       respond_with(@config) do |format|
-        format.html { redirect_back(fallback_location: admin_config_path) }
+        format.html { redirect_back_or_to(admin_config_path) }
       end
     end
   end

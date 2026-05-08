@@ -14,7 +14,7 @@ class UploadPolicy < ApplicationPolicy
     attr += %i[as_pending] if user.unrestricted_uploads?
     attr += %i[locked_rating] if user.is_trusted?
     attr += %i[locked_tags] if user.is_admin?
-    attr + [upload_media_asset_attributes: %i[checksum]]
+    attr + [{ upload_media_asset_attributes: %i[checksum] }]
   end
 
   def permitted_search_params

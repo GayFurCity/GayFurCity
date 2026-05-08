@@ -29,13 +29,15 @@ module Forums
           should("work") do
             assert_difference({ "EditHistory.merged.count" => 2, "ModAction.count" => 1 }) do
               post_auth(merge_forum_topic_path(@topic), @admin, params: { forum_topic: { target_topic_id: @target.id } })
+
               assert_redirected_to(forum_topic_path(@target))
             end
 
             @topic.reload
             @ogpost.reload
             @post.reload
-            assert_equal(true, @topic.is_hidden?)
+
+            assert_predicate(@topic, :is_hidden?)
             assert_equal(0, @topic.posts.count)
             assert_equal(3, @target.posts.count)
             assert_equal(@target.id, @ogpost.topic_id)
@@ -77,12 +79,14 @@ module Forums
           should("work") do
             assert_difference({ "EditHistory.unmerged.count" => 2, "ModAction.count" => 1 }) do
               delete_auth(merge_forum_topic_path(@topic), @admin)
+
               assert_redirected_to(forum_topic_path(@topic))
             end
 
             @topic.reload
             @ogpost.reload
             @post.reload
+
             assert_equal(2, @topic.posts.count)
             assert_equal(1, @target.posts.count)
             assert_equal(@topic.id, @ogpost.topic_id)
@@ -97,6 +101,7 @@ module Forums
           should("fail gracefully if the target topic no longer exists") do
             @target.destroy_with!(@admin)
             delete_auth(merge_forum_topic_path(@topic), @admin)
+
             assert_response(:unprocessable_entity)
           end
 

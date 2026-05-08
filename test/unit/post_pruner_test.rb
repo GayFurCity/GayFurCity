@@ -14,12 +14,14 @@ class PostPrunerTest < ActiveSupport::TestCase
 
     should("prune expired pending posts") do
       @old_post.reload
-      assert(@old_post.is_deleted?)
+
+      assert_predicate(@old_post, :is_deleted?)
     end
 
     should("prune old pending appeals") do
       @old_appeal.reload
-      assert(@old_appeal.rejected?)
+
+      assert_predicate(@old_appeal, :rejected?)
     end
   end
 end

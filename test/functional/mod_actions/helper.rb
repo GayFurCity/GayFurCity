@@ -22,11 +22,13 @@ module ModActions
 
     def assert_matches(actions:, text:, subject:, creator: @admin, **attributes)
       diff = ModAction.count - @count
+
       assert_equal(actions.length, diff, "modaction count diff (#{ModAction.last(diff).map(&:action).join(', ')})")
       assert_same_elements(actions, ModAction.last(actions.length).map(&:action), "actions")
 
       # fetch the modaction we're actually testing
       modaction = ModAction.where(action: actions[0]).last
+
       assert_not_nil(modaction, "modaction (#{actions[0]})")
       assert_equal(creator.id, modaction.creator_id, "creator")
 
@@ -38,7 +40,7 @@ module ModActions
 
       # check the attributes match
       attributes.each do |key, value|
-        assert(ModAction.local_stored_attributes[:values].include?(key), "values->#{key} is not included in store")
+        assert_includes(ModAction.local_stored_attributes[:values], key, "values->#{key} is not included in store")
         if value.nil? # thanks minitest
           assert_nil(modaction.values[key.to_s], "values->#{key} (#{modaction.values.inspect})")
         else

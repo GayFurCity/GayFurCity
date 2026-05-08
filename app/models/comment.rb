@@ -3,6 +3,7 @@
 class Comment < ApplicationRecord
   RECENT_COUNT = 6
   include(UserWarnable)
+
   simple_versioning
   mentionable
   belongs_to_user(:creator, ip: true, clones: :updater, counter_cache: "comment_count")

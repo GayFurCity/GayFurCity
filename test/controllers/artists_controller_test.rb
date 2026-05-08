@@ -15,6 +15,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     context("new action") do
       should("render") do
         get_auth(new_artist_path, @user)
+
         assert_response(:success)
       end
 
@@ -26,11 +27,13 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     context("show_or_new action") do
       should("get the show_or_new page for an existing artist") do
         get_auth(show_or_new_artists_path(name: "masao"), @user)
+
         assert_redirected_to(@masao)
       end
 
       should("get the show_or_new page for a nonexisting artist") do
         get_auth(show_or_new_artists_path(name: "nobody"), @user)
+
         assert_response(:success)
       end
 
@@ -42,6 +45,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     context("edit action") do
       should("render") do
         get_auth(edit_artist_path(@artist), @user)
+
         assert_response(:success)
       end
 
@@ -54,6 +58,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       should("work") do
         put_auth(artist_path(@artist), @user, params: { artist: { notes: "xyz" } })
         @artist.reload
+
         assert_equal("xyz", @artist.notes)
       end
 
@@ -65,6 +70,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     context("show action") do
       should("render") do
         get(artist_path(@artist))
+
         assert_response(:success)
       end
 
@@ -76,6 +82,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
     context("index action") do
       should("render") do
         get(artists_path)
+
         assert_response(:success)
       end
 
@@ -121,6 +128,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         end
 
         artist = Artist.find_by(name: attributes[:name])
+
         assert_not_nil(artist)
         assert_redirected_to(artist_path(artist.id))
       end
@@ -134,18 +142,22 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         end
 
         artist = Artist.find_by(name: attributes[:name])
+
         assert_not_nil(artist)
         assert_redirected_to(artist_path(artist.id))
       end
 
       should("return expected errors") do
         post_auth(artists_path, @user, params: { artist: { name: @artist.name }, format: "json" })
+
         assert_error_response("name", "has already been taken")
 
         post_auth(artists_path, @user, params: { artist: { name: "" }, format: "json" })
+
         assert_error_response("name", "'' cannot be blank")
 
         post_auth(artists_path, @user, params: { artist: { name: "a" * 101 }, format: "json" })
+
         assert_error_response("name", "is too long (maximum is 100 characters)")
       end
 
@@ -168,6 +180,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         end
         @artist.reload
         @wiki_page = @artist.wiki_page
+
         assert_equal("rex", @artist.notes)
         assert_not_equal(old_timestamp, @wiki_page.updated_at)
         assert_redirected_to(artist_path(@artist.id))
@@ -183,6 +196,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
 
         @artist.reload
         @wiki_page = @artist.wiki_page
+
         assert_in_delta(old_timestamp.to_i, @wiki_page.updated_at.to_i, 1)
         assert_equal(old_updater_id, @wiki_page.updater_id)
       end
@@ -193,6 +207,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
             put_auth(artist_path(@artist), @user, params: { artist: { name: "bbb", notes: "more testing" } })
           end
           @wiki_page.reload
+
           assert_equal("bbb", @wiki_page.title)
           assert_equal("more testing", @wiki_page.body)
         end
@@ -202,7 +217,8 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         put_auth(artist_path(@artist), @user, params: { artist: { is_locked: true } })
         @artist.reload
         @wiki_page.reload
-        assert_equal(true, @artist.is_locked?)
+
+        assert_predicate(@artist, :is_locked?)
         assert_equal(User::Levels.min_staff_level, @wiki_page.protection_level)
       end
 
@@ -211,7 +227,8 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         put_auth(artist_path(@artist), @user, params: { artist: { is_locked: true } })
         @artist.reload
         @wiki_page.reload
-        assert_equal(true, @artist.is_locked?)
+
+        assert_predicate(@artist, :is_locked?)
         assert_equal(User::Levels::ADMIN, @wiki_page.protection_level)
       end
 
@@ -219,6 +236,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         @wiki_page.update_column(:protection_level, User::Levels::ADMIN)
         put_auth(artist_path(@artist), @user, params: { artist: { notes: "xxx" } })
         @artist.reload
+
         assert_equal("testing", @artist.notes)
       end
     end
@@ -227,6 +245,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       should("delete an artist") do
         @admin = create(:admin_user)
         delete_auth(artist_path(@artist), @admin)
+
         assert_redirected_to(artists_path)
       end
 
@@ -246,6 +265,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         @artist2 = create(:artist)
         put_auth(artist_path(@artist), @user, params: { version_id: @artist2.versions.first.id })
         @artist.reload
+
         assert_not_equal(@artist.name, @artist2.name)
         assert_redirected_to(artist_path(@artist.id))
       end
@@ -284,6 +304,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         end
 
         @artist.reload
+
         assert_equal(name, @artist.name)
         assert_equal(other_names, @artist.other_names)
         assert_equal(name, @artist.wiki_page.reload.title)

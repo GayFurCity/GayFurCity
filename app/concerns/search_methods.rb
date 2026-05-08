@@ -167,8 +167,8 @@ module SearchMethods
         next o if o[1].is_a?(Proc)
         [
           o[0],
-          o[1].each_with_object({}) do |t, acc|
-            acc[:"#{t[0]}.#{t[1]}"] = t[2]
+          o[1].to_h do |t|
+            [:"#{t[0]}.#{t[1]}", t[2]]
           end,
         ]
       end

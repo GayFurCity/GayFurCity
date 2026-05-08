@@ -19,6 +19,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
 
       should("list all wiki_pages") do
         get(wiki_pages_path)
+
         assert_response(:success)
       end
 
@@ -58,27 +59,32 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
     context("show action") do
       should("render") do
         get(wiki_page_path(@wiki_page))
+
         assert_response(:success)
       end
 
       should("render for a title") do
         get(wiki_page_path(id: @wiki_page.title))
+
         assert_response(:success)
       end
 
       should("redirect html requests for a nonexistent title") do
         get(wiki_page_path("what"))
+
         assert_redirected_to(show_or_new_wiki_pages_path(title: "what"))
       end
 
       should("return 404 to api requests for a nonexistent title") do
         get(wiki_page_path("what"), as: :json)
+
         assert_response(:not_found)
       end
 
       should("render for a negated tag") do
         @wiki_page.update_columns(title: "-aaa")
         get(wiki_page_path(@wiki_page))
+
         assert_response(:success)
       end
 
@@ -90,11 +96,13 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
     context("show_or_new action") do
       should("redirect when given a title") do
         get(show_or_new_wiki_pages_path, params: { title: @wiki_page.title })
+
         assert_redirected_to(@wiki_page)
       end
 
       should("render when given a nonexistent title") do
         get(show_or_new_wiki_pages_path, params: { title: "what" })
+
         assert_response(:success)
       end
 
@@ -106,6 +114,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
     context("new action") do
       should("render") do
         get_auth(new_wiki_page_path, @mod, params: { wiki_page: { title: "test" } })
+
         assert_response(:success)
       end
 
@@ -117,6 +126,7 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
     context("edit action") do
       should("render") do
         get_auth(wiki_page_path(@wiki_page), @mod)
+
         assert_response(:success)
       end
 
@@ -150,35 +160,41 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
       should("update a wiki_page") do
         put_auth(wiki_page_path(@wiki_page), @user, params: { wiki_page: { body: "xyz" } })
         @wiki_page.reload
+
         assert_equal("xyz", @wiki_page.body)
       end
 
       should("not rename a wiki page with a non-empty tag") do
         ogtitle = @wiki_page.title
         put_auth(wiki_page_path(@wiki_page), @user, params: { wiki_page: { title: "bar" } })
+
         assert_equal(ogtitle, @wiki_page.reload.title)
       end
 
       should("set protection level") do
         put_auth(wiki_page_path(@wiki_page), @owner, params: { wiki_page: { protection_level: User::Levels::ADMIN } })
+
         assert_equal(User::Levels::ADMIN, @wiki_page.reload.protection_level)
       end
 
       should("update protection level") do
         @wiki_page.update_column(:protection_level, User::Levels::JANITOR)
         put_auth(wiki_page_path(@wiki_page), @owner, params: { wiki_page: { protection_level: User::Levels::ADMIN } })
+
         assert_equal(User::Levels::ADMIN, @wiki_page.reload.protection_level)
       end
 
       should("set protection level on internal page") do
         @wiki_page = create(:wiki_page, title: "internal:test", creator: @owner)
         put_auth(wiki_page_path(@wiki_page), @owner, params: { wiki_page: { protection_level: User::Levels::ADMIN } })
+
         assert_redirected_to(wiki_page_path(@wiki_page))
         assert_equal(User::Levels::ADMIN, @wiki_page.reload.protection_level)
       end
 
       should("not allow setting protection level above editor's level") do
         put_auth(wiki_page_path(@wiki_page), @mod, params: { wiki_page: { protection_level: User::Levels::ADMIN } })
+
         assert_nil(@wiki_page.reload.protection_level)
       end
 
@@ -226,9 +242,11 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
 
       should("revert to a previous version") do
         version = @wiki_page.versions.first
+
         assert_equal("1", version.body)
         put_auth(revert_wiki_page_path(@wiki_page), @user, params: { version_id: version.id })
         @wiki_page.reload
+
         assert_equal("1", @wiki_page.body)
       end
 

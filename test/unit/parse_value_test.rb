@@ -33,15 +33,15 @@ class ParseValueTest < ActiveSupport::TestCase
   end
 
   should("parse floats") do
-    assert_equal(10.0, eq_value("10", :float))
-    assert_equal(0.1, eq_value(".1", :float))
-    assert_equal(1.234, eq_value("1.234", :float))
+    assert_in_delta(10.0, eq_value("10", :float))
+    assert_in_delta(0.1, eq_value(".1", :float))
+    assert_in_delta(1.234, eq_value("1.234", :float))
   end
 
   should("parse ratios") do
-    assert_equal(10.0, eq_value("10", :ratio))
-    assert_equal(0.625, eq_value("5:8", :ratio))
-    assert_equal(0.0, eq_value("10:0", :ratio))
+    assert_in_delta(10.0, eq_value("10", :ratio))
+    assert_in_delta(0.625, eq_value("5:8", :ratio))
+    assert_in_delta(0.0, eq_value("10:0", :ratio))
   end
 
   should("parse filesizes") do

@@ -65,6 +65,7 @@ module PostEvents
           @flag = @post.flags.create!(reason_name: "uploading_guidelines", creator: @admin, note: "abc")
 
           reason = GayFurCity.config.flag_reasons.find { |r| r[:name] == "uploading_guidelines" }[:reason]
+
           assert_matches(
             post_id:      @post.id,
             actions:      %w[flag_created],
@@ -202,7 +203,7 @@ module PostEvents
           should("format correctly for admins") do
             @replacement.destroy_with(@admin)
 
-            CurrentUser.scoped(@admin) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@admin) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 post_id:             @post.id,
                 actions:             %w[replacement_deleted],
@@ -217,7 +218,7 @@ module PostEvents
           should("format correctly for users") do
             @replacement.destroy_with(@admin)
 
-            CurrentUser.scoped(@user) do # rubocop:disable Local/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
               assert_matches(
                 post_id:             @post.id,
                 actions:             %w[replacement_deleted],

@@ -128,6 +128,7 @@ module ModActions
 
         should("format all changes correctly") do
           @reason.update_with!(@admin, reason: "xxx", prompt: "yyy", title: "zzz")
+
           assert_matches(
             actions:    %w[post_deletion_reason_update],
             text:       <<~TEXT.strip,

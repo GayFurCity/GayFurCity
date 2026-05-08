@@ -27,11 +27,13 @@ class UserNameChangeRequestTest < ActiveSupport::TestCase
       should("change the user's name") do
         @change_request.approve!
         @requester.reload
+
         assert_equal("abc", @requester.name)
       end
 
       should("clear the user name cache") do
         @change_request.approve!
+
         assert_equal("abc", Cache.fetch("uin:#{@requester.id}"))
       end
     end
@@ -46,6 +48,7 @@ class UserNameChangeRequestTest < ActiveSupport::TestCase
             desired_name:  @requester.name,
             creator:       @requester,
           )
+
           assert_equal(["Desired name already exists"], req.errors.full_messages)
         end
       end

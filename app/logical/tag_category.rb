@@ -56,7 +56,7 @@ module TagCategory
   IMPORTANT = AdminCategory.new(10, "important", %w[imp])
 
   def categories
-    @categories ||= constants.map { |c| const_get(c) }.select { |c| c.is_a?(Category) }
+    @categories ||= constants.map { |c| const_get(c) }.grep(Category)
   end
 
   def get(value)

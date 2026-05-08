@@ -9,6 +9,7 @@ module HasMediaAsset
       mod = nullable ? MediaAsset::DelegateProperties::Nullable : MediaAsset::DelegateProperties
       class_eval do
         include(mod)
+
         scope(:with_assets, -> { includes(attribute) })
         scope(:with_assets_and_metadata, -> { with_assets.includes(attribute => :media_metadata) })
         attr_accessor(:file, :propagated)

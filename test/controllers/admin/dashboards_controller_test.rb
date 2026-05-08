@@ -12,6 +12,7 @@ module Admin
       context("show action") do
         should("render") do
           get_auth(admin_dashboard_path, @admin)
+
           assert_response(:success)
         end
 

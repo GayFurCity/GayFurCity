@@ -17,6 +17,7 @@ class CommentTest < ActiveSupport::TestCase
       should("fail creation") do
         comment = build(:comment, creator: @user)
         comment.save
+
         assert_equal(["Creator can not yet perform this action. Account is too new"], comment.errors.full_messages)
       end
     end
@@ -42,7 +43,8 @@ class CommentTest < ActiveSupport::TestCase
       should("be created") do
         comment = build(:comment)
         comment.save
-        assert(comment.errors.empty?, comment.errors.full_messages.join(", "))
+
+        assert_empty(comment.errors, comment.errors.full_messages.join(", "))
       end
 
       should("not validate if the post does not exist") do
@@ -56,10 +58,12 @@ class CommentTest < ActiveSupport::TestCase
         post = create(:post)
         create(:comment, do_not_bump_post: true, post: post)
         post.reload
+
         assert_nil(post.last_comment_bumped_at)
 
         create(:comment, post: post)
         post.reload
+
         assert_not_nil(post.last_comment_bumped_at)
       end
 
@@ -71,6 +75,7 @@ class CommentTest < ActiveSupport::TestCase
           create(:comment, post: p)
         end
         p.reload
+
         assert_equal(c1.created_at.to_s, p.last_comment_bumped_at.to_s)
       end
 
@@ -80,10 +85,12 @@ class CommentTest < ActiveSupport::TestCase
 
         c1 = create(:comment, do_not_bump_post: true, post: post)
         post.reload
+
         assert_equal(c1.created_at.to_s, post.last_commented_at.to_s)
 
         c2 = create(:comment, post: post)
         post.reload
+
         assert_equal(c2.created_at.to_s, post.last_commented_at.to_s)
       end
 
@@ -95,6 +102,7 @@ class CommentTest < ActiveSupport::TestCase
 
         VoteManager::Comments.vote!(user: user2, ip_addr: "127.0.0.1", comment: c1, score: -1)
         c1.reload
+
         assert_not_equal(user2.id, c1.updater_id)
       end
 
@@ -148,9 +156,11 @@ class CommentTest < ActiveSupport::TestCase
         comment = create(:comment, post: post, creator: user)
         VoteManager::Comments.vote!(user: user2, ip_addr: "127.0.0.1", comment: comment, score: 1)
         comment.reload
+
         assert_equal(1, comment.score)
         VoteManager::Comments.unvote!(user: user2, comment: comment)
         comment.reload
+
         assert_equal(0, comment.score)
         assert_nothing_raised { VoteManager::Comments.vote!(user: user2, ip_addr: "127.0.0.1", comment: comment, score: -1) }
       end
@@ -160,7 +170,8 @@ class CommentTest < ActiveSupport::TestCase
         c2 = create(:comment, body: "aaa ddd")
         create(:comment, body: "eee")
 
-        matches = Comment.search_current(body_matches: "aaa")
+        matches = Comment.search_current({ body_matches: "aaa" })
+
         assert_equal(2, matches.count)
         assert_equal(c2.id, matches.all[0].id)
         assert_equal(c1.id, matches.all[1].id)
@@ -187,6 +198,7 @@ class CommentTest < ActiveSupport::TestCase
 
         should("credit the moderator as the updater") do
           @comment.update_with(@mod, body: "test")
+
           assert_equal(@mod.id, @comment.updater_id)
         end
       end
@@ -204,6 +216,7 @@ class CommentTest < ActiveSupport::TestCase
 
         should("credit the moderator as the updater") do
           @comment.update_with(@mod, is_hidden: true)
+
           assert_equal(@mod.id, @comment.updater_id)
         end
       end
@@ -221,6 +234,7 @@ class CommentTest < ActiveSupport::TestCase
 
         should("credit the moderator as the updater") do
           @comment.update_with(@mod, is_sticky: true)
+
           assert_equal(@mod.id, @comment.updater_id)
         end
       end
@@ -265,6 +279,7 @@ class CommentTest < ActiveSupport::TestCase
         should("prevent new comments") do
           comment = build(:comment, post: @post)
           comment.save
+
           assert_equal(["Post has comments disabled"], comment.errors.full_messages)
         end
       end
@@ -277,6 +292,7 @@ class CommentTest < ActiveSupport::TestCase
         should("prevent new comments") do
           comment = build(:comment, post: @post)
           comment.save
+
           assert_equal(["Post has comments locked"], comment.errors.full_messages)
         end
       end
@@ -289,6 +305,7 @@ class CommentTest < ActiveSupport::TestCase
         should("prevent new comments") do
           comment = build(:comment, post: @post)
           comment.save
+
           assert_equal(["Post has comments disabled"], comment.errors.full_messages)
         end
       end
@@ -321,6 +338,7 @@ class CommentTest < ActiveSupport::TestCase
       instance_exec do
         define_method(:verify_history) do |history, comment, edit_type, user = comment.creator_id|
           throw("history is nil (#{comment.id}:#{edit_type}:#{user}:#{comment.creator_id})") if history.nil?
+
           assert_equal(comment.body_history[history.version - 1], history.body, "history body did not match")
           assert_equal(edit_type, history.edit_type, "history edit_type did not match")
           assert_equal(user, history.updater_id, "history updater_id did not match")

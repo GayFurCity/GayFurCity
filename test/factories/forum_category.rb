@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:forum_category) do
-    association(:creator, factory: :admin_user)
+    creator(factory: %i[admin_user])
     sequence(:name) { |n| "forum_category_#{n}" }
   end
 end

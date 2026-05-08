@@ -11,6 +11,7 @@ module Users
 
       should("send the notice") do
         LoginReminderMailer.notice(@user).deliver_now
+
         assert_not(ActionMailer::Base.deliveries.empty?)
       end
     end

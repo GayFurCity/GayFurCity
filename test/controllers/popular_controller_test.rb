@@ -7,6 +7,7 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
     context("index action") do
       should("render") do
         get(popular_index_path)
+
         assert_response(:success)
       end
 
@@ -18,6 +19,7 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
     context("uploads action") do
       should("render") do
         get(uploads_popular_index_path)
+
         assert_response(:success)
       end
 
@@ -29,6 +31,7 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
     context("views action") do
       should("render") do
         get(views_popular_index_path)
+
         assert_response(:success)
       end
 
@@ -40,6 +43,7 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
     context("top_views action") do
       should("render") do
         get(top_views_popular_index_path)
+
         assert_response(:success)
       end
 
@@ -51,6 +55,7 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
     context("followed_tags action") do
       should("render") do
         get(followed_tags_popular_index_path)
+
         assert_response(:success)
       end
 
@@ -62,6 +67,7 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
     context("searches action") do
       should("render") do
         get(searches_popular_index_path)
+
         assert_response(:success)
       end
 
@@ -84,6 +90,7 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
     context("top_searches action") do
       should("render") do
         get(top_searches_popular_index_path)
+
         assert_response(:success)
       end
 
@@ -95,6 +102,7 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
     context("missed_searches action") do
       should("render") do
         get(missed_searches_popular_index_path)
+
         assert_response(:success)
       end
 
@@ -106,6 +114,7 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
     context("top_missed_searches action") do
       should("render") do
         get(missed_searches_popular_index_path)
+
         assert_response(:success)
       end
 

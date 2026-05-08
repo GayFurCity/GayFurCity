@@ -5,7 +5,7 @@ class NewsUpdatesController < ApplicationController
 
   def index
     @news_updates = authorize(NewsUpdate).html_includes(request, :creator)
-                                         .order("id desc")
+                                         .order(id: :desc)
                                          .paginate(params[:page], limit: params[:limit])
     respond_with(@news_updates)
   end

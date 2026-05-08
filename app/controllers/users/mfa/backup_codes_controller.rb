@@ -17,7 +17,7 @@ module Users
         @user = authorize(CurrentUser.user, policy_class: BackupCodePolicy)
         @user.regenerate_backup_codes!(request)
         respond_with(@user) do |format|
-          format.html { redirect_back(fallback_location: user_mfa_backup_codes_path, notice: "Backup codes regenerated, all previous codes are now invalid") }
+          format.html { redirect_back_or_to(user_mfa_backup_codes_path, notice: "Backup codes regenerated, all previous codes are now invalid") }
         end
       end
     end

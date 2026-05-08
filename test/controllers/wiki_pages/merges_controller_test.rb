@@ -27,6 +27,7 @@ module WikiPages
         should("work") do
           assert_difference({ "ModAction.count" => 2, "WikiPageVersion.count" => 1 }) do
             post_auth(merge_wiki_page_path(@wiki_page), @admin, params: { wiki_page: { target_wiki_page_id: @target.id } })
+
             assert_redirected_to(wiki_page_path(@target))
           end
           assert_equal(0, @wiki_page.versions.count)

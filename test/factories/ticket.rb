@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:ticket) do
-    association(:creator, factory: :user)
+    creator(factory: %i[user])
     reason { "test" }
   end
 end

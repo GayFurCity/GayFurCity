@@ -14,11 +14,11 @@ module UserMethods
 
     def with_user(instance, method, user, *args, **, &)
       default = { new: :creator, create: :creator, create!: :creator, update: :updater, update!: :updater, destroy: :destroyer, destroy!: :destroyer }.fetch(method)
-      attrs = args.select { |arg| arg.is_a?(Symbol) }
+      attrs = args.grep(Symbol)
       attrs = [default] if default && attrs.empty?
       other = args - attrs
-      hashes = other.select { |o| o.is_a?(Hash) }
-      params = other.select { |o| o.is_a?(ActionController::Parameters) }
+      hashes = other.grep(Hash)
+      params = other.grep(ActionController::Parameters)
       other -= hashes + params
       other.compact_blank!
       options = [attrs.index_with(user), *hashes, *params.map(&:to_hash)].inject(:merge)

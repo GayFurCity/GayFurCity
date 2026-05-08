@@ -6,10 +6,12 @@ module Downloads
   class FileTest < ActiveSupport::TestCase
     def assert_correct_escaping(input, output)
       file = Downloads::File.new(input)
+
       assert_equal(file.url.to_s, output)
 
       # Validate that no double-encoding is going on
       file = Downloads::File.new(file.url.to_s)
+
       assert_equal(file.url.to_s, output)
     end
 
@@ -71,6 +73,7 @@ module Downloads
         should("retry three times before giving up") do
           download = Downloads::File.new("https://example.com/1")
           stub_request(:get, "https://example.com/1").to_raise(Errno::ETIMEDOUT).times(2).then.to_return(body: "foo")
+
           assert_equal("foo", download.download!.read)
 
           download = Downloads::File.new("https://example.com/2")
@@ -84,6 +87,7 @@ module Downloads
           stub_request(:get, source).to_raise(Errno::ETIMEDOUT).then.to_return(body: "abc")
 
           tempfile = download.download!
+
           assert_equal("abc", tempfile.read)
         end
 
@@ -110,7 +114,8 @@ module Downloads
         stub_request(:get, source).to_return(body: "body")
 
         tempfile = download.download!
-        assert_equal(tempfile.read, "body")
+
+        assert_equal("body", tempfile.read)
       end
 
       should("correctly follow redirects") do
@@ -129,18 +134,21 @@ module Downloads
         should("correctly escapes cyrilic characters") do
           input = "https://d.furaffinity.net/art/peyzazhik/1629082282/1629082282.peyzazhik_заливать-гитару.jpg"
           output = "https://d.furaffinity.net/art/peyzazhik/1629082282/1629082282.peyzazhik_%D0%B7%D0%B0%D0%BB%D0%B8%D0%B2%D0%B0%D1%82%D1%8C-%D0%B3%D0%B8%D1%82%D0%B0%D1%80%D1%83.jpg"
+
           assert_correct_escaping(input, output)
         end
 
         should("correctly escapes square brackets") do
           input = "https://d.furaffinity.net/art/kinniro/1461084939/1461084939.kinniro_[commission]41.png"
           output = "https://d.furaffinity.net/art/kinniro/1461084939/1461084939.kinniro_%5Bcommission%5D41.png"
+
           assert_correct_escaping(input, output)
         end
 
         should("correctly escapes ＠") do
           input = "https://d.furaffinity.net/art/fr95/1635001690/1635001679.fr95_co＠f-r9512.png"
           output = "https://d.furaffinity.net/art/fr95/1635001690/1635001679.fr95_co%EF%BC%A0f-r9512.png"
+
           assert_correct_escaping(input, output)
         end
       end

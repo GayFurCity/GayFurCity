@@ -2,6 +2,7 @@
 
 class BulkUpdateRequestProcessor
   include(ActiveModel::Validations)
+
   class Error < RuntimeError; end
   attr_reader(:text, :topic_id, :context, :creator, :creator_ip_addr, :request)
 

@@ -84,9 +84,9 @@ class TagAlias < TagRelationship
 
   def self.to_aliased_query(query, overrides: nil, comments: false)
     # Remove tag types (newline syntax)
-    query.gsub!(/(^| )(-)?(#{TagCategory.mapping.keys.sort_by { |x| -x.size }.join('|')}):([\S])/i, '\1\2\4')
+    query.gsub!(/(^| )(-)?(#{TagCategory.mapping.keys.sort_by { |x| -x.size }.join('|')}):(\S)/i, '\1\2\4')
     # Remove tag types (comma syntax)
-    query.gsub!(/, (-)?(#{TagCategory.mapping.keys.sort_by { |x| -x.size }.join('|')}):([\S])/i, ', \1\3')
+    query.gsub!(/, (-)?(#{TagCategory.mapping.keys.sort_by { |x| -x.size }.join('|')}):(\S)/i, ', \1\3')
     lines = query.downcase.split("\n")
     processed = []
     lookup = []

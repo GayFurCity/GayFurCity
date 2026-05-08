@@ -32,7 +32,7 @@ module Tags
 
       if @tag_alias_request.invalid?
         respond_with(@tag_alias_request) do |format|
-          format.html { redirect_back(fallback_location: new_tag_alias_path, notice: @tag_alias_request.errors.full_messages.join("; ")) }
+          format.html { redirect_back_or_to(new_tag_alias_path, notice: @tag_alias_request.errors.full_messages.join("; ")) }
         end
       elsif @tag_alias_request.forum_topic
         respond_with(@tag_alias_request.tag_relationship, location: forum_topic_path(@tag_alias_request.forum_topic, page: @tag_alias_request.tag_relationship.forum_post.forum_topic_page, anchor: "forum_post_#{@tag_alias_request.tag_relationship.forum_post_id}"))

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_05_08_155823) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_09_060732) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -130,7 +130,6 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_08_155823) do
     t.string "title", null: false
     t.boolean "title_changed", default: false, null: false
     t.integer "version", default: 1, null: false
-    t.integer "integer", default: 1, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["bulk_update_request_id"], name: "index_bulk_update_request_versions_on_bulk_update_request_id"
@@ -243,7 +242,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_08_155823) do
     t.integer "post_replacement_per_post_limit_bypass", default: 20, null: false
     t.integer "compact_uploader_minimum_posts", default: 10, null: false
     t.integer "tag_query_limit", default: 40, null: false
-    t.jsonb "bur_entry_limit", default: {"10"=>50, "40"=>-1}, null: false
+    t.jsonb "bur_entry_limit", default: {"10" => 50, "40" => -1}, null: false
     t.integer "max_numbered_pages", default: 1000, null: false
     t.integer "max_per_page", default: 500, null: false
     t.integer "comment_max_size", default: 10000, null: false
@@ -267,8 +266,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_08_155823) do
     t.integer "disapproval_message_max_size", default: 250, null: false
     t.integer "max_upload_per_request", default: 75, null: false
     t.integer "max_file_size", default: 200, null: false
-    t.jsonb "max_file_sizes", default: {"gif"=>30, "jpg"=>100, "mp4"=>200, "png"=>100, "apng"=>30, "webm"=>200, "webp"=>100}, null: false
-    t.jsonb "max_mascot_file_sizes", default: {"jpg"=>1000, "png"=>1000, "webp"=>1000}, null: false
+    t.jsonb "max_file_sizes", default: {"gif" => 30, "jpg" => 100, "mp4" => 200, "png" => 100, "apng" => 30, "webm" => 200, "webp" => 100}, null: false
+    t.jsonb "max_mascot_file_sizes", default: {"jpg" => 1000, "png" => 1000, "webp" => 1000}, null: false
     t.integer "max_video_duration", default: 1800, null: false
     t.integer "max_image_resolution", default: 441, null: false
     t.integer "max_tags_per_post", default: 2000, null: false
@@ -291,10 +290,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_08_155823) do
     t.string "user_approved_wiki_page", default: "internal:user_approved", null: false
     t.string "user_rejected_wiki_page", default: "internal:user_rejected", null: false
     t.integer "records_per_page", default: 100, null: false
-    t.jsonb "tag_change_request_update_limit", default: {"15"=>500, "20"=>1000, "30"=>10000, "40"=>100000, "50"=>-1}, null: false
-    t.jsonb "followed_tag_limit", default: {"10"=>100, "15"=>500, "20"=>1000}, null: false
-    t.jsonb "tag_type_edit_limit", default: {"10"=>100, "15"=>1000, "20"=>10000, "40"=>-1}, null: false
-    t.jsonb "tag_type_edit_implicit_limit", default: {"10"=>100, "15"=>1000}, null: false
+    t.jsonb "tag_change_request_update_limit", default: {"15" => 500, "20" => 1000, "30" => 10000, "40" => 100000, "50" => -1}, null: false
+    t.jsonb "followed_tag_limit", default: {"10" => 100, "15" => 500, "20" => 1000}, null: false
+    t.jsonb "tag_type_edit_limit", default: {"10" => 100, "15" => 1000, "20" => 10000, "40" => -1}, null: false
+    t.jsonb "tag_type_edit_implicit_limit", default: {"10" => 100, "15" => 1000}, null: false
     t.integer "alias_category_change_cutoff", default: 10000, null: false
     t.integer "max_multi_count", default: 100, null: false
     t.string "takedown_email", default: "admin@gayfur.city", null: false
@@ -329,10 +328,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_08_155823) do
     t.string "app_description", default: "Your one-stop shop for gay furries.", null: false
     t.string "anonymous_user_name", default: "Anonymous", null: false
     t.string "system_user_name", default: "System", null: false
-    t.jsonb "image_width", default: {"max"=>40000, "min"=>300}, null: false
-    t.jsonb "image_height", default: {"max"=>40000, "min"=>300}, null: false
-    t.jsonb "mascot_width", default: {"max"=>1000, "min"=>250}, null: false
-    t.jsonb "mascot_height", default: {"max"=>1000, "min"=>250}, null: false
+    t.jsonb "image_width", default: {"max" => 40000, "min" => 300}, null: false
+    t.jsonb "image_height", default: {"max" => 40000, "min" => 300}, null: false
+    t.jsonb "mascot_width", default: {"max" => 1000, "min" => 250}, null: false
+    t.jsonb "mascot_height", default: {"max" => 1000, "min" => 250}, null: false
   end
 
   create_table "destroyed_posts", force: :cascade do |t|

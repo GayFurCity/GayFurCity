@@ -1,4 +1,4 @@
-\restrict gKdBJqbZT0miwnS4298ZYS1CJ5cGomr1seUjXIcgtbfMPM02HZ1wNTHQwLJhYE6
+\restrict YeI0ieIEmVXCTq8VDKpsSgNalJnnzCDJPF1TwEMRXYXX07Uw5EHleRgQjhLkkuq
 
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.9
@@ -376,7 +376,6 @@ CREATE TABLE public.bulk_update_request_versions (
     title character varying NOT NULL,
     title_changed boolean DEFAULT false NOT NULL,
     version integer DEFAULT 1 NOT NULL,
-    "integer" integer DEFAULT 1 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -7847,11 +7846,12 @@ ALTER TABLE ONLY public.help_pages
 -- PostgreSQL database dump complete
 --
 
-\unrestrict gKdBJqbZT0miwnS4298ZYS1CJ5cGomr1seUjXIcgtbfMPM02HZ1wNTHQwLJhYE6
+\unrestrict YeI0ieIEmVXCTq8VDKpsSgNalJnnzCDJPF1TwEMRXYXX07Uw5EHleRgQjhLkkuq
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260509060732'),
 ('20260508155823'),
 ('20260217212220'),
 ('20251227053741'),

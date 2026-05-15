@@ -15,8 +15,10 @@ class IpBansControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN) { |user| get_auth(new_ip_ban_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).get(new_ip_ban_path)
+        end
       end
     end
 
@@ -27,8 +29,11 @@ class IpBansControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| post_auth(ip_bans_path, user, params: { ip_ban: { ip_addr: "100.#{rand(0..255)}.#{rand(0..255)}.#{rand(0..255)}", reason: "xyz" } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).post(ip_bans_path).params { { ip_ban: { ip_addr: "100.#{rand(0..255)}.#{rand(0..255)}.#{rand(0..255)}", reason: "xyz" } } }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.post(ip_bans_path).params { { ip_ban: { ip_addr: "100.#{rand(0..255)}.#{rand(0..255)}.#{rand(0..255)}", reason: "xyz" } } }
+        end
       end
     end
 
@@ -49,8 +54,11 @@ class IpBansControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN) { |user| get_auth(ip_bans_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).get(ip_bans_path)
+          access.gte(User::Levels::ADMIN).json.get(ip_bans_path)
+        end
       end
 
       context("search parameters") do
@@ -62,12 +70,14 @@ class IpBansControllerTest < ActionDispatch::IntegrationTest
           @ip_ban = create(:ip_ban, creator: @creator, creator_ip_addr: "127.0.0.2", ip_addr: "1.2.3.4", reason: "foo")
         end
 
-        assert_search_param(:reason, "foo", -> { [@ip_ban] }, -> { @admin })
-        assert_search_param(:ip_addr, "1.2.3.4", -> { [@ip_ban] }, -> { @admin })
-        assert_search_param(:creator_id, -> { @creator.id }, -> { [@ip_ban] }, -> { @admin })
-        assert_search_param(:creator_name, -> { @creator.name }, -> { [@ip_ban] }, -> { @admin })
-        assert_search_param(:creator_ip_addr, "127.0.0.2", -> { [@ip_ban] }, -> { @admin })
-        assert_shared_search_params(-> { [@ip_ban] }, -> { @admin })
+        asserts do
+          search(:reason, "foo").records { [@ip_ban] }.user { @admin }
+          search(:ip_addr, "1.2.3.4").records { [@ip_ban] }.user { @admin }
+          search(:creator_id).value { @creator.id }.records { [@ip_ban] }.user { @admin }
+          search(:creator_name).value { @creator.name }.records { [@ip_ban] }.user { @admin }
+          search(:creator_ip_addr, "127.0.0.2").records { [@ip_ban] }.user { @admin }
+          search.shared.records { [@ip_ban] }.user { @admin }
+        end
       end
     end
 
@@ -82,8 +92,11 @@ class IpBansControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(ip_ban_path(create(:ip_ban, ip_addr: "100.#{rand(0..255)}.#{rand(0..255)}.#{rand(0..255)}")), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).delete { ip_ban_path(@ip_ban) }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.delete { ip_ban_path(@ip_ban) }.success(:no_content)
+        end
       end
     end
   end

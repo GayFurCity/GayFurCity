@@ -100,8 +100,10 @@ module Posts
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(post_events_path, user) }
+        context("access control") do\
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(post_events_path)
+          end
         end
 
         context("search parameters") do
@@ -115,12 +117,14 @@ module Posts
             @post_event = @post.events.last
           end
 
-          assert_search_param(:post_id, -> { @post.id }, -> { [@post_event] })
-          assert_search_param(:action, "deleted", -> { [@post_event] })
-          assert_search_param(:creator_id, -> { @creator.id }, -> { [@post_event] })
-          assert_search_param(:creator_name, -> { @creator.name }, -> { [@post_event] })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@post_event] }, -> { @admin })
-          assert_shared_search_params(-> { [@post_event] }, nil, %i[id created_at])
+          asserts do
+            search(:post_id).value { @post.id }.records { [@post_event] }
+            search(:action, "deleted").records { [@post_event] }
+            search(:creator_id).value { @creator.id }.records { [@post_event] }
+            search(:creator_name).value { @creator.name }.records { [@post_event] }
+            search(:ip_addr, "127.0.0.2").records { [@post_event] }.user { @admin }
+            search.shared(%i[id created_at]).records { [@post_event] }
+          end
         end
       end
     end

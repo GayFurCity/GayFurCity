@@ -23,8 +23,10 @@ module Users
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED) { |user| get_auth(new_user_name_change_request_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).get(new_user_name_change_request_path)
+          end
         end
       end
 
@@ -49,8 +51,11 @@ module Users
           assert_not(@user.force_name_change)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| post_auth(user_name_change_requests_path, user, params: { user_name_change_request: { desired_name: SecureRandom.hex(6) } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).post(user_name_change_requests_path).params { { user_name_change_request: { desired_name: SecureRandom.hex(6) } } }.success(:redirect)
+            access.gte(User::Levels::REJECTED).json.post(user_name_change_requests_path).params { { user_name_change_request: { desired_name: SecureRandom.hex(6) } } }
+          end
         end
       end
 
@@ -69,14 +74,28 @@ module Users
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED) do |user|
-            request = UserNameChangeRequest.create_with!(user,
-                                                         user_id:       user.id,
-                                                         original_name: user.name,
-                                                         desired_name:  "user_#{SecureRandom.hex(6)}",
-                                                         change_reason: "hello")
-            get_auth(user_name_change_request_path(request), user)
+        context("access control") do
+          asserts do
+            access do |builder|
+              builder.gte(User::Levels::REJECTED).get do |user|
+                request = UserNameChangeRequest.create_with!(user,
+                                                             user_id:       user.id,
+                                                             original_name: user.name,
+                                                             desired_name:  "user_#{SecureRandom.hex(6)}",
+                                                             change_reason: "hello")
+                user_name_change_request_path(request)
+              end
+            end
+            access do |builder|
+              builder.gte(User::Levels::REJECTED).json.get do |user|
+                request = UserNameChangeRequest.create_with!(user,
+                                                             user_id:       user.id,
+                                                             original_name: user.name,
+                                                             desired_name:  "user_#{SecureRandom.hex(6)}",
+                                                             change_reason: "hello")
+                user_name_change_request_path(request)
+              end
+            end
           end
         end
       end
@@ -89,10 +108,12 @@ module Users
             assert_response(:success)
           end
 
-          should("restrict access") do
-            assert_access(User::Levels::MODERATOR) { |user| get_auth(user_name_change_requests_path, user) }
+          context("access control") do
+            asserts do
+              access.gte(User::Levels::MODERATOR).get(user_name_change_requests_path)
+            end
           end
-
+          
           context("search parameters") do
             subject { user_name_change_requests_path }
             setup do
@@ -105,16 +126,18 @@ module Users
               @user_name_change_request = create(:user_name_change_request, user: @user, creator: @creator, creator_ip_addr: "127.0.0.2", approver: @approver, desired_name: "foo")
             end
 
-            assert_search_param(:original_name, -> { @user.name }, -> { [@user_name_change_request] }, -> { @mod })
-            assert_search_param(:desired_name, "foo", -> { [@user_name_change_request] }, -> { @mod })
-            assert_search_param(:user_id, -> { @user.id }, -> { [@user_name_change_request] }, -> { @mod })
-            assert_search_param(:user_name, -> { @user.name }, -> { [@user_name_change_request] }, -> { @mod })
-            assert_search_param(:creator_id, -> { @creator.id }, -> { [@user_name_change_request] }, -> { @mod })
-            assert_search_param(:creator_name, -> { @creator.name }, -> { [@user_name_change_request] }, -> { @mod })
-            assert_search_param(:ip_addr, "127.0.0.2", -> { [@user_name_change_request] }, -> { @admin })
-            assert_search_param(:approver_id, -> { @approver.id }, -> { [@user_name_change_request] }, -> { @mod })
-            assert_search_param(:approver_name, -> { @approver.name }, -> { [@user_name_change_request] }, -> { @mod })
-            assert_shared_search_params(-> { [@user_name_change_request] }, -> { @mod })
+            asserts do
+              search(:original_name).value { @user.name }.records { [@user_name_change_request] }.user { @mod }
+              search(:desired_name, "foo").records { [@user_name_change_request] }.user { @mod }
+              search(:user_id).value { @user.id }.records { [@user_name_change_request] }.user { @mod }
+              search(:user_name).value { @user.name }.records { [@user_name_change_request] }.user { @mod }
+              search(:creator_id).value { @creator.id }.records { [@user_name_change_request] }.user { @mod }
+              search(:creator_name).value { @creator.name }.records { [@user_name_change_request] }.user { @mod }
+              search(:ip_addr, "127.0.0.2").records { [@user_name_change_request] }.user { @admin }
+              search(:approver_id).value { @approver.id }.records { [@user_name_change_request] }.user { @mod }
+              search(:approver_name).value { @approver.name }.records { [@user_name_change_request] }.user { @mod }
+              search.shared.records { [@user_name_change_request] }.user { @mod }
+            end
           end
         end
       end

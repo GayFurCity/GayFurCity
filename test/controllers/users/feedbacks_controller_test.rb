@@ -19,8 +19,10 @@ module Users
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR) { |user| get_auth(new_user_feedback_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).get(new_user_feedback_path)
+          end
         end
       end
 
@@ -35,8 +37,10 @@ module Users
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR) { |user| get_auth(edit_user_feedback_path(@user_feedback), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).get {  edit_user_feedback_path(@user_feedback)}
+          end
         end
       end
 
@@ -59,8 +63,11 @@ module Users
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(user_feedbacks_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(user_feedbacks_path)
+            access.gte(User::Levels::ANONYMOUS).json.get(user_feedbacks_path)
+          end
         end
 
         context("search parameters") do
@@ -75,19 +82,21 @@ module Users
             @user_feedback = create(:user_feedback, user: @user, creator: @creator, creator_ip_addr: "127.0.0.2", updater: @updater, updater_ip_addr: "127.0.0.3", body: "foo", category: "neutral")
           end
 
-          assert_search_param(:body_matches, "foo", -> { [@user_feedback] })
-          assert_search_param(:category, "neutral", -> { [@user_feedback] })
-          assert_search_param(:deleted, "excluded", -> { [@user_feedback] }, -> { @mod })
-          assert_search_param(:deleted, "only", -> { [] }, -> { @mod })
-          assert_search_param(:user_id, -> { @user.id }, -> { [@user_feedback] })
-          assert_search_param(:user_name, -> { @user.name }, -> { [@user_feedback] })
-          assert_search_param(:creator_id, -> { @creator.id }, -> { [@user_feedback] })
-          assert_search_param(:creator_name, -> { @creator.name }, -> { [@user_feedback] })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@user_feedback] }, -> { @admin })
-          assert_search_param(:updater_id, -> { @updater.id }, -> { [@user_feedback] })
-          assert_search_param(:updater_name, -> { @updater.name }, -> { [@user_feedback] })
-          assert_search_param(:updater_ip_addr, "127.0.0.3", -> { [@user_feedback] }, -> { @admin })
-          assert_shared_search_params(-> { [@user_feedback] })
+          asserts do
+            search(:body_matches, "foo").records { [@user_feedback] }
+            search(:category, "neutral").records { [@user_feedback] }
+            search(:deleted, "excluded").records { [@user_feedback] }.user { @mod }
+            search(:deleted, "only").records { [] }.user { @mod }
+            search(:user_id).value { @user.id }.records { [@user_feedback] }
+            search(:user_name).value { @user.name }.records { [@user_feedback] }
+            search(:creator_id).value { @creator.id }.records { [@user_feedback] }
+            search(:creator_name).value { @creator.name }.records { [@user_feedback] }
+            search(:ip_addr, "127.0.0.2").records { [@user_feedback] }.user { @admin }
+            search(:updater_id).value { @updater.id }.records { [@user_feedback] }
+            search(:updater_name).value { @updater.name }.records { [@user_feedback] }
+            search(:updater_ip_addr, "127.0.0.3").records { [@user_feedback] }.user { @admin }
+            search.shared.records { [@user_feedback] }
+          end
         end
       end
 
@@ -98,34 +107,41 @@ module Users
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| post_auth(user_feedbacks_path, user, params: { user_feedback: { category: "positive", user_name: @user.name, body: "xxx" } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).post(user_feedbacks_path).params { { user_feedback: { category: "positive", user_name: @user.name, body: "xxx" } } }.success(:redirect)
+            access.gte(User::Levels::MODERATOR).json.post(user_feedbacks_path).params { { user_feedback: { category: "positive", user_name: @user.name, body: "xxx" } } }
+          end
         end
       end
 
       context("update action") do
-        should("update the feedback") do
-          @feedback = create(:user_feedback, user: @user, category: "negative", creator: @critic)
+        setup do
+          @user_feedback = create(:user_feedback, user: @user, category: "negative", creator: @critic)
+        end
 
+        should("update the feedback") do
           assert_no_difference("Notification.count") do
-            put_auth(user_feedback_path(@feedback), @critic, params: { id: @feedback.id, user_feedback: { category: "positive" } })
+            put_auth(user_feedback_path(@user_feedback), @critic, params: { id: @user_feedback.id, user_feedback: { category: "positive" } })
           end
 
-          assert_redirected_to(@feedback)
-          assert_equal("positive", @feedback.reload.category)
+          assert_redirected_to(@user_feedback)
+          assert_equal("positive", @user_feedback.reload.category)
           assert_equal("feedback_create", Notification.last.category)
         end
 
         should("send a new dmail") do
-          @feedback = create(:user_feedback, user: @user, category: "negative", creator: @critic)
           assert_difference("Notification.count", 1) do
-            put_auth(user_feedback_path(@feedback), @critic, params: { id: @feedback.id, user_feedback: { body: "changed", send_update_notification: true } })
+            put_auth(user_feedback_path(@user_feedback), @critic, params: { id: @user_feedback.id, user_feedback: { body: "changed", send_update_notification: true } })
           end
           assert_equal("feedback_update", Notification.last.category)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(user_feedback_path(create(:user_feedback, creator: @mod)), user, params: { user_feedback: { category: "positive" } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).put { user_feedback_path(@user_feedback) }.params({ user_feedback: { category: "positive" } }).success(:redirect)
+            access.gte(User::Levels::MODERATOR).json.put { user_feedback_path(@user_feedback) }.params({ user_feedback: { category: "positive" } })
+          end
         end
       end
 
@@ -188,8 +204,11 @@ module Users
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(user_feedback_path(create(:user_feedback, creator: @mod)), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).delete { user_feedback_path(@user_feedback) }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.delete { user_feedback_path(@user_feedback) }.success(:no_content)
+          end
         end
       end
 
@@ -220,8 +239,11 @@ module Users
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(delete_user_feedback_path(create(:user_feedback, creator: @mod)), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).put { delete_user_feedback_path(@user_feedback) }.success(:redirect)
+            access.gte(User::Levels::MODERATOR).json.put { delete_user_feedback_path(@user_feedback) }
+          end
         end
       end
 
@@ -252,8 +274,11 @@ module Users
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(undelete_user_feedback_path(create(:user_feedback, is_deleted: true, creator: @mod)), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).put { delete_user_feedback_path(@user_feedback) }.success(:redirect)
+            access.gte(User::Levels::MODERATOR).json.put { delete_user_feedback_path(@user_feedback) }
+          end
         end
       end
     end

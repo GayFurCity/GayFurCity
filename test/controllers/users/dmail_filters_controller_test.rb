@@ -35,8 +35,11 @@ module Users
           assert_not_equal("owned", @user2.reload.dmail_filter.try(&:words))
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| put_auth(users_dmail_filter_path, user, params: { dmail_filter: { words: "owned" } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).put(users_dmail_filter_path).params({ dmail_filter: { words: "owned" } }).success(:redirect)
+            access.gte(User::Levels::REJECTED).json.put(users_dmail_filter_path).params({ dmail_filter: { words: "owned" } })
+          end
         end
       end
     end

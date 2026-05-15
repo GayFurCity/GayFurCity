@@ -20,8 +20,10 @@ module Posts
           end
         end
 
-        should("restrict access") do
-          assert_access([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER], anonymous_response: :forbidden) { |user| post_auth(post_disapprovals_path, user, params: { post_disapproval: { post_id: @post.id, reason: "borderline_quality" }, format: :json }) }
+        context("access control") do
+          asserts do
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).json.post(post_disapprovals_path).params { { post_disapproval: { post_id: @post.id, reason: "borderline_quality" } } }
+          end
         end
       end
 
@@ -33,8 +35,10 @@ module Posts
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]) { |user| get_auth(post_disapprovals_path, user) }
+        context("access control") do
+          asserts do
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).get(post_disapprovals_path)
+          end
         end
 
         context("search parameters") do
@@ -48,15 +52,17 @@ module Posts
             @post_disapproval = create(:post_disapproval, post: @post, user: @creator, user_ip_addr: "127.0.0.2", message: "foo", reason: "other")
           end
 
-          assert_search_param(:post_id, -> { @post.id }, -> { [@post_disapproval] }, -> { @janitor })
-          assert_search_param(:message, "foo", -> { [@post_disapproval] }, -> { @janitor })
-          assert_search_param(:reason, "other", -> { [@post_disapproval] }, -> { @janitor })
-          assert_search_param(:post_tags_match, "foo", -> { [@post_disapproval] }, -> { @janitor })
-          assert_search_param(:has_message, "true", -> { [@post_disapproval] }, -> { @janitor })
-          assert_search_param(:creator_id, -> { @creator.id }, -> { [@post_disapproval] }, -> { @janitor })
-          assert_search_param(:creator_name, -> { @creator.name }, -> { [@post_disapproval] }, -> { @janitor })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@post_disapproval] }, -> { @admin })
-          assert_shared_search_params(-> { [@post_disapproval] }, -> { @janitor })
+          asserts do
+            search(:post_id).value { @post.id }.records { [@post_disapproval] }.user { @janitor }
+            search(:message, "foo").records { [@post_disapproval] }.user { @janitor }
+            search(:reason, "other").records { [@post_disapproval] }.user { @janitor }
+            search(:post_tags_match, "foo").records { [@post_disapproval] }.user { @janitor }
+            search(:has_message, "true").records { [@post_disapproval] }.user { @janitor }
+            search(:creator_id).value { @creator.id }.records { [@post_disapproval] }.user { @janitor }
+            search(:creator_name).value { @creator.name }.records { [@post_disapproval] }.user { @janitor }
+            search(:ip_addr, "127.0.0.2").records { [@post_disapproval] }.user { @admin }
+            search.shared.records { [@post_disapproval] }.user { @janitor }
+          end
         end
       end
     end

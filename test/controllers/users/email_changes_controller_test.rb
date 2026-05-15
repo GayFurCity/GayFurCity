@@ -57,8 +57,10 @@ module Users
           assert_predicate(@user.user_events.email_change, :exists?)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| post_auth(users_email_change_path, user, params: { email_change: { password: "password", email: "abc@ogres.net" } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).post(users_email_change_path).params({ email_change: { password: "password", email: "abc@ogres.net" } }).success(:redirect)
+          end
         end
       end
     end

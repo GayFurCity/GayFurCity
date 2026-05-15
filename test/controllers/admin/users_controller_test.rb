@@ -17,8 +17,10 @@ module Admin
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN) { |user| get_auth(edit_admin_user_path(@user), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).get { edit_admin_user_path(@user) }
+          end
         end
       end
 
@@ -136,8 +138,11 @@ module Admin
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(admin_user_path(@user), user, params: { user: { level: User::Levels::TRUSTED } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).put { admin_user_path(@user) }.params({ user: { level: User::Levels::TRUSTED } }).success(:redirect)
+            access.gte(User::Levels::ADMIN).json.put { admin_user_path(@user) }.params({ user: { level: User::Levels::TRUSTED } })
+          end
         end
       end
     end

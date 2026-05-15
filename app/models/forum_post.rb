@@ -199,13 +199,14 @@ class ForumPost < ApplicationRecord
   def editable_by?(user)
     return true if user.is_admin?
     return false if was_warned? || (is_aibur? && !tag_change_request.is_pending?)
+    return false if topic && !topic.can_reply?(user) # prevent editing if the category can_create level was changed after creation
     creator_id == user.id && visible?(user)
   end
 
   def can_hide?(user)
     return true if user.is_moderator?
     return false if is_aibur?
-    return false if was_warned?
+    return false if topic && !topic.can_reply?(user) # prevent hiding if the category can_create level was changed after creation
     user.id == creator_id
   end
 

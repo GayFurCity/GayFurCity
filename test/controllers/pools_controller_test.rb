@@ -24,8 +24,11 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(pools_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(pools_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(pools_path)
+        end
       end
 
       context("search parameters") do
@@ -40,18 +43,20 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
           @pool = create(:pool, creator: @creator, creator_ip_addr: "127.0.0.2", name: "foo", description: "[[bar]] qux", category: "series", is_ongoing: true, post_ids: [@post.id])
         end
 
-        assert_search_param(:is_ongoing, "true", -> { [@pool] })
-        assert_search_param(:category, "series", -> { [@pool] })
-        assert_search_param(:name_matches, "foo", -> { [@pool] })
-        assert_search_param(:description_matches, "qux", -> { [@pool] })
-        assert_search_param(:any_artist_name_matches, "baz", -> { [@pool] })
-        assert_search_param(:any_artist_name_like, "baz", -> { [@pool] })
-        assert_search_param(:linked_to, "bar", -> { [@pool] })
-        assert_search_param(:not_linked_to, "baz", -> { [@pool] })
-        assert_search_param(:creator_id, -> { @creator.id }, -> { [@pool] })
-        assert_search_param(:creator_name, -> { @creator.name }, -> { [@pool] })
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@pool] }, -> { @admin })
-        assert_shared_search_params(-> { [@pool] })
+        asserts do
+          search(:is_ongoing, "true").records { [@pool] }
+          search(:category, "series").records { [@pool] }
+          search(:name_matches, "foo").records { [@pool] }
+          search(:description_matches, "qux").records { [@pool] }
+          search(:any_artist_name_matches, "baz").records { [@pool] }
+          search(:any_artist_name_like, "baz").records { [@pool] }
+          search(:linked_to, "bar").records { [@pool] }
+          search(:not_linked_to, "baz").records { [@pool] }
+          search(:creator_id).value { @creator.id }.records { [@pool] }
+          search(:creator_name).value { @creator.name }.records { [@pool] }
+          search(:ip_addr, "127.0.0.2").records { [@pool] }.user { @admin }
+          search.shared.records { [@pool] }
+        end
       end
     end
 
@@ -62,8 +67,11 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(pool_path(@pool), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get { pool_path(@pool) }
+          access.gte(User::Levels::ANONYMOUS).json.get { pool_path(@pool) }
+        end
       end
     end
 
@@ -74,8 +82,10 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(gallery_pools_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(gallery_pools_path)
+        end
       end
     end
 
@@ -86,8 +96,10 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER) { |user| get_auth(new_pool_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).get(new_pool_path)
+        end
       end
     end
 
@@ -116,8 +128,11 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| post_auth(pools_path, user, params: { pool: { name: SecureRandom.hex(6) } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).post(pools_path).params { { pool: { name: SecureRandom.hex(6) } } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.post(pools_path).params { { pool: { name: SecureRandom.hex(6) } } }
+        end
       end
     end
 
@@ -128,8 +143,10 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER) { |user| get_auth(edit_pool_path(@pool), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).get { edit_pool_path(@pool) }
+        end
       end
     end
 
@@ -180,8 +197,11 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER) { |user| get_auth(new_pool_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).put { pool_path(@pool) }.params({ pool: { name: "foobar" } }).success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { pool_path(@pool) }.params({ pool: { name: "foobar" } })
+        end
       end
     end
 
@@ -193,8 +213,11 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::JANITOR, success_response: :redirect) { |user| delete_auth(pool_path(create(:pool)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::JANITOR).delete { pool_path(@pool) }.success(:redirect)
+          access.gte(User::Levels::JANITOR).json.delete { pool_path(@pool) }.success(:no_content)
+        end
       end
     end
 
@@ -225,10 +248,13 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:missing)
       end
 
-      should("restrict access") do
-        User::Levels.constants.length.times { |i| @pool.update_with(@user, name: "pool_#{i}") }
-        @versions = @pool.reload.versions.to_a
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| put_auth(revert_pool_path(@pool), user, params: { version_id: @versions.pop.id }) }
+      context("access control") do
+        setup { @pool.update(name: "pool_foobar") }
+
+        asserts do
+          access.gte(User::Levels::MEMBER).put { revert_pool_path(@pool) }.params { { version_id: @pool.versions.last.id } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { revert_pool_path(@pool) }.params { { version_id: @pool.versions.last.id } }
+        end
       end
     end
 
@@ -239,8 +265,10 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER) { |user| get_auth(edit_pool_order_path(@pool), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).get { edit_pool_order_path(@pool) }
+        end
       end
     end
   end

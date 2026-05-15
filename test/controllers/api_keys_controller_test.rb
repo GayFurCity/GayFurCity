@@ -47,8 +47,10 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(confirm_password_session_path(url: user_api_keys_path(@user)))
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED) { |user| get_auth(user_api_keys_path(@user), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).get { user_api_keys_path(@user) }
+        end
       end
     end
 
@@ -65,8 +67,10 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(new_session_path(url: new_user_api_key_path(@user)))
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED) { |user| get_auth(new_user_api_key_path(@user), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).get { new_user_api_key_path(@user) }
+        end
       end
     end
 
@@ -78,8 +82,11 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
         assert_equal("blah", @user.api_keys.last.name)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| post_auth(user_api_keys_path(user), user, params: { api_key: { name: "blah" } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).post { |user| user_api_keys_path(user) }.params({ api_key: { name: "blah" }}).success(:redirect)
+          access.gte(User::Levels::REJECTED).json.post { |user| user_api_keys_path(user) }.params({ api_key: { name: "blah" }})
+        end
       end
     end
 
@@ -96,8 +103,10 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
         assert_response(:not_found)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED) { |user| get_auth(edit_api_key_path(create(:api_key, user: user)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).get { |user| edit_api_key_path(create(:api_key, user: user)) }
+        end
       end
     end
 
@@ -115,8 +124,11 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
         assert_response(:not_found)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| put_auth(api_key_path(create(:api_key, user: user)), user, params: { api_key: { name: "blah" } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).put { |user| api_key_path(create(:api_key, user: user)) }.params({ api_key: { name: "blah" } }).success(:redirect)
+          access.gte(User::Levels::REJECTED).json.put { |user| api_key_path(create(:api_key, user: user)) }.params({ api_key: { name: "blah" } })
+        end
       end
     end
 
@@ -135,8 +147,11 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
         assert_not_nil(@api_key.reload)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| delete_auth(api_key_path(create(:api_key, user: user)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).delete { |user| api_key_path(create(:api_key, user: user)) }.success(:redirect)
+          access.gte(User::Levels::REJECTED).json.delete { |user| api_key_path(create(:api_key, user: user)) }
+        end
       end
     end
   end

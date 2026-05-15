@@ -41,8 +41,10 @@ module Pools
           assert_select("#pool-version-#{@versions[2].id}", false)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(pool_versions_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(pool_versions_path)
+          end
         end
 
         context("search parameters") do
@@ -56,12 +58,14 @@ module Pools
             @pool_version = @pool.versions.first
           end
 
-          assert_search_param(:pool_id, -> { @pool.id }, -> { [@pool_version] })
-          assert_search_param(:name_matches, "foo", -> { [@pool_version] })
-          assert_search_param(:description_matches, "bar", -> { [@pool_version] })
-          assert_search_param(:updater_id, -> { @updater.id }, -> { [@pool_version] })
-          assert_search_param(:updater_name, -> { @updater.name }, -> { [@pool_version] })
-          assert_shared_search_params(-> { [@pool_version] })
+          asserts do
+            search(:pool_id).value { @pool.id }.records { [@pool_version] }
+            search(:name_matches, "foo").records { [@pool_version] }
+            search(:description_matches, "bar").records { [@pool_version] }
+            search(:updater_id).value { @updater.id }.records { [@pool_version] }
+            search(:updater_name).value { @updater.name }.records { [@pool_version] }
+            search.shared.records { [@pool_version] }
+          end
         end
       end
 
@@ -88,9 +92,13 @@ module Pools
           assert_response(:bad_request)
         end
 
-        should("restrict access") do
-          GayFurCity.config.stubs(:disable_age_checks).returns(true)
-          assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| put_auth(undo_pool_version_path(@pool.versions.second), user) }
+        context("access control") do
+          setup { GayFurCity.config.stubs(:disable_age_checks).returns(true) }
+
+          asserts do
+            access.gte(User::Levels::MEMBER).put { undo_pool_version_path(@pool.versions.second) }.success(:redirect)
+            access.gte(User::Levels::MEMBER).json.put { undo_pool_version_path(@pool.versions.second) }
+          end
         end
       end
     end

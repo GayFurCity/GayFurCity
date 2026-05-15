@@ -18,8 +18,10 @@ module Posts
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MEMBER) { |user| get_auth(new_post_flag_path, user, params: { post_flag: { post_id: @post.id } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MEMBER).get(new_post_flag_path).params { { post_flag: { post_id: @post.id } } }
+          end
         end
       end
 
@@ -38,8 +40,11 @@ module Posts
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(post_flags_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(post_flags_path)
+            access.gte(User::Levels::ANONYMOUS).json.get(post_flags_path)
+          end
         end
 
         context("search parameters") do
@@ -53,16 +58,18 @@ module Posts
             @post_flag = create(:post_flag, post: @post, creator: @creator, creator_ip_addr: "127.0.0.2", is_deletion: false, reason_name: "uploading_guidelines", note: "bar", is_resolved: true)
           end
 
-          assert_search_param(:reason_matches, "uploading_guidelines", -> { [@post_flag] })
-          assert_search_param(:note_matches, "bar", -> { [@post_flag] }, -> { @janitor })
-          assert_search_param(:is_resolved, "true", -> { [@post_flag] })
-          assert_search_param(:post_id, -> { @post.id }, -> { [@post_flag] })
-          assert_search_param(:post_tags_match, "foo", -> { [@post_flag] })
-          assert_search_param(:type, "flag", -> { [@post_flag] })
-          assert_search_param(:creator_id, -> { @creator.id }, -> { [@post_flag] }, -> { @creator })
-          assert_search_param(:creator_name, -> { @creator.name }, -> { [@post_flag] }, -> { @creator })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@post_flag] }, -> { @admin })
-          assert_shared_search_params(-> { [@post_flag] })
+          asserts do
+            search(:reason_matches, "uploading_guidelines").records { [@post_flag] }
+            search(:note_matches, "bar").records { [@post_flag] }.user { @janitor }
+            search(:is_resolved, "true").records { [@post_flag] }
+            search(:post_id).value { @post.id }.records { [@post_flag] }
+            search(:post_tags_match, "foo").records { [@post_flag] }
+            search(:type, "flag").records { [@post_flag] }
+            search(:creator_id).value { @creator.id }.records { [@post_flag] }.user { @creator }
+            search(:creator_name).value { @creator.name }.records{ [@post_flag] }.user { @creator }
+            search(:ip_addr, "127.0.0.2").records { [@post_flag] }.user { @admin }
+            search.shared.records { [@post_flag] }
+          end
         end
       end
 
@@ -74,8 +81,11 @@ module Posts
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| post_auth(post_flags_path, user, params: { post_flag: { post_id: create(:post).id, reason_name: "dnp_artist" } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MEMBER).post(post_flags_path).params{ { post_flag: { post_id: create(:post).id, reason_name: "dnp_artist" } } }.success(:redirect)
+            access.gte(User::Levels::MEMBER).json.post(post_flags_path).params { { post_flag: { post_id: create(:post).id, reason_name: "dnp_artist" } } }
+          end
         end
       end
     end

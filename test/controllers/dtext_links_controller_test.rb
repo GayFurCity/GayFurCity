@@ -34,17 +34,19 @@ class DtextLinksControllerTest < ActionDispatch::IntegrationTest
           @external_wiki_link = @external_wiki.dtext_links.first
         end
 
-        assert_search_param(:link_type, DtextLink.link_types["wiki_link"], -> { [@forum_post_link, @pool_link, @wiki_link] })
-        assert_search_param(:link_type, DtextLink.link_types["external_link"], -> { [@external_wiki_link] })
-        assert_search_param(:link_target, -> { @target.title }, -> { [@forum_post_link, @pool_link, @wiki_link] })
-        assert_search_param(:link_target, "https://google.com", -> { [@external_wiki_link] })
-        assert_search_param(:model_type, "Pool", -> { [@pool_link] })
-        assert_search_param(:model_id, -> { @forum_post.id }, -> { [@forum_post_link] })
-        assert_search_param(:wiki_page_title, -> { @target.title }, -> { [@forum_post_link, @pool_link, @wiki_link] })
-        assert_search_param(:tag_name, -> { @target.title }, -> { [@forum_post_link, @pool_link, @wiki_link] })
-        assert_search_param(:has_linked_wiki, "true", -> { [@forum_post_link, @pool_link, @wiki_link] })
-        assert_search_param(:has_linked_tag, "true", -> { [@forum_post_link, @pool_link, @wiki_link] })
-        assert_shared_search_params(-> { [@external_wiki_link, @forum_post_link, @pool_link, @wiki_link] })
+        asserts do
+          search(:link_type, DtextLink.link_types["wiki_link"]).records { [@forum_post_link, @pool_link, @wiki_link] }
+          search(:link_type, DtextLink.link_types["external_link"]).records { [@external_wiki_link] }
+          search(:link_target).value { @target.title }.records { [@forum_post_link, @pool_link, @wiki_link] }
+          search(:link_target, "https://google.com").records { [@external_wiki_link] }
+          search(:model_type, "Pool").records { [@pool_link] }
+          search(:model_id).value { @forum_post.id }.records { [@forum_post_link] }
+          search(:wiki_page_title).value { @target.title }.records { [@forum_post_link, @pool_link, @wiki_link] }
+          search(:tag_name).value { @target.title }.records { [@forum_post_link, @pool_link, @wiki_link] }
+          search(:has_linked_wiki, "true").records { [@forum_post_link, @pool_link, @wiki_link] }
+          search(:has_linked_tag, "true").records { [@forum_post_link, @pool_link, @wiki_link] }
+          search.shared.records { [@external_wiki_link, @forum_post_link, @pool_link, @wiki_link] }
+        end
       end
     end
   end

@@ -17,8 +17,10 @@ module Tags
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MEMBER) { |user| get_auth(new_tag_implication_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MEMBER).get(new_tag_implication_path)
+          end
         end
       end
 
@@ -51,8 +53,11 @@ module Tags
           assert_redirected_to(forum_topic_path(topic, page: post.forum_topic_page, anchor: "forum_post_#{post.id}"))
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| post_auth(tag_implications_path, user, params: { tag_implication: { antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6) } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MEMBER).post(tag_implications_path).params { { tag_implication: { antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6), reason: "ccccc" } } }.success(:redirect)
+            access.gte(User::Levels::MEMBER).json.post(tag_implications_path).params { { tag_implication: { antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6), reason: "ccccc" } } }
+          end
         end
       end
 
@@ -67,8 +72,10 @@ module Tags
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN) { |user| get_auth(edit_tag_implication_path(@tag_implication), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).get { edit_tag_implication_path(@tag_implication) }
+          end
         end
       end
 
@@ -110,9 +117,13 @@ module Tags
           end
         end
 
-        should("restrict access") do
-          @tag_implication.update_column(:status, "pending")
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(tag_implication_path(@tag_implication), user, params: { tag_implication: { antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6) } }) }
+        context("access control") do
+          setup { @tag_implication.update_column(:status, "pending") }
+
+          asserts do
+            access.gte(User::Levels::ADMIN).put { tag_implication_path(@tag_implication) }.params { { tag_implication: { antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6) } } }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.put { tag_implication_path(@tag_implication) }.params { { tag_implication: { antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6) } } }
+          end
         end
       end
 
@@ -133,8 +144,11 @@ module Tags
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(tag_implications_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(tag_implications_path)
+            access.gte(User::Levels::ANONYMOUS).json.get(tag_implications_path)
+          end
         end
 
         context("search parameters") do
@@ -150,22 +164,24 @@ module Tags
             @tag_implication = create(:tag_implication, creator: @creator, creator_ip_addr: "127.0.0.2", updater: @updater, updater_ip_addr: "127.0.0.3", approver: @approver, status: "active", antecedent_name: "foo", consequent_name: "bar")
           end
 
-          assert_search_param(:antecedent_name, "foo", -> { [@tag_implication] })
-          assert_search_param(:consequent_name, "bar", -> { [@tag_implication] })
-          assert_search_param(:antecedent_tag_category, TagCategory.copyright, -> { [@tag_implication] })
-          assert_search_param(:consequent_tag_category, TagCategory.artist, -> { [@tag_implication] })
-          assert_search_param(:name_matches, "foo", -> { [@tag_implication] })
-          assert_search_param(:name_matches, "bar", -> { [@tag_implication] })
-          assert_search_param(:status, "active", -> { [@tag_implication] })
-          assert_search_param(:creator_id, -> { @creator.id }, -> { [@tag_implication] })
-          assert_search_param(:creator_name, -> { @creator.name }, -> { [@tag_implication] })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@tag_implication] }, -> { @admin })
-          assert_search_param(:updater_id, -> { @updater.id }, -> { [@tag_implication] })
-          assert_search_param(:updater_name, -> { @updater.name }, -> { [@tag_implication] })
-          assert_search_param(:updater_ip_addr, "127.0.0.3", -> { [@tag_implication] }, -> { @admin })
-          assert_search_param(:approver_id, -> { @approver.id }, -> { [@tag_implication] })
-          assert_search_param(:approver_name, -> { @approver.name }, -> { [@tag_implication] })
-          assert_shared_search_params(-> { [@tag_implication] })
+          asserts do
+            search(:antecedent_name, "foo").records { [@tag_implication] }
+            search(:consequent_name, "bar").records { [@tag_implication] }
+            search(:antecedent_tag_category, TagCategory.copyright).records { [@tag_implication] }
+            search(:consequent_tag_category, TagCategory.artist).records { [@tag_implication] }
+            search(:name_matches, "foo").records { [@tag_implication] }
+            search(:name_matches, "bar").records { [@tag_implication] }
+            search(:status, "active").records { [@tag_implication] }
+            search(:creator_id).value { @creator.id }.records { [@tag_implication] }
+            search(:creator_name).value { @creator.name }.records { [@tag_implication] }
+            search(:ip_addr, "127.0.0.2").records { [@tag_implication] }.user { @admin }
+            search(:updater_id).value { @updater.id }.records { [@tag_implication] }
+            search(:updater_name).value { @updater.name }.records { [@tag_implication] }
+            search(:updater_ip_addr, "127.0.0.3").records { [@tag_implication] }.user { @admin }
+            search(:approver_id).value { @approver.id }.records { [@tag_implication] }
+            search(:approver_name).value { @approver.name }.records { [@tag_implication] }
+            search.shared.records { [@tag_implication] }
+          end
         end
       end
 
@@ -193,8 +209,11 @@ module Tags
           assert_equal("pending", @tag_implication.status)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(approve_tag_implication_path(create(:tag_implication, antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6), status: "pending", creator: @admin)), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).put { approve_tag_implication_path(@tag_implication) }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.put { approve_tag_implication_path(@tag_implication) }
+          end
         end
       end
 
@@ -211,8 +230,11 @@ module Tags
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(tag_implication_path(create(:tag_implication, antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6), status: "pending", creator: @admin)), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).delete { tag_implication_path(@tag_implication) }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.delete { tag_implication_path(@tag_implication) }.success(:no_content)
+          end
         end
       end
     end

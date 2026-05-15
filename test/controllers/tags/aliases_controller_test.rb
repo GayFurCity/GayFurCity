@@ -17,8 +17,10 @@ module Tags
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MEMBER) { |user| get_auth(new_tag_alias_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MEMBER).get(new_tag_alias_path)
+          end
         end
       end
 
@@ -38,8 +40,11 @@ module Tags
           assert_redirected_to(forum_topic_path(topic, page: post.forum_topic_page, anchor: "forum_post_#{post.id}"))
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| post_auth(tag_aliases_path, user, params: { tag_alias: { antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6) } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MEMBER).post(tag_aliases_path).params { { tag_alias: { antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6), reason: "ccccc" } } }.success(:redirect)
+            access.gte(User::Levels::MEMBER).json.post(tag_aliases_path).params { { tag_alias: { antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6), reason: "ccccc" } } }
+          end
         end
       end
 
@@ -54,8 +59,10 @@ module Tags
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN) { |user| get_auth(edit_tag_alias_path(@tag_alias), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).get { edit_tag_alias_path(@tag_alias) }
+          end
         end
       end
 
@@ -97,9 +104,12 @@ module Tags
           end
         end
 
-        should("restrict access") do
-          @tag_alias.update_column(:status, "pending")
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(tag_alias_path(@tag_alias), user, params: { tag_alias: { antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6) } }) }
+        context("access control") do
+          setup { @tag_alias.update_column(:status, "pending") }
+          asserts do
+            access.gte(User::Levels::ADMIN).put { tag_alias_path(@tag_alias) }.params { { tag_alias: { antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6) } } }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.put { tag_alias_path(@tag_alias) }.params { { tag_alias: { antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6) } } }
+          end
         end
       end
 
@@ -120,8 +130,11 @@ module Tags
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(tag_aliases_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(tag_aliases_path)
+            access.gte(User::Levels::ANONYMOUS).json.get(tag_aliases_path)
+          end
         end
 
         context("search parameters") do
@@ -137,22 +150,24 @@ module Tags
             @tag_alias = create(:tag_alias, creator: @creator, creator_ip_addr: "127.0.0.2", updater: @updater, updater_ip_addr: "127.0.0.3", approver: @approver, status: "active", antecedent_name: "foo", consequent_name: "bar")
           end
 
-          assert_search_param(:antecedent_name, "foo", -> { [@tag_alias] })
-          assert_search_param(:consequent_name, "bar", -> { [@tag_alias] })
-          assert_search_param(:antecedent_tag_category, TagCategory.copyright, -> { [@tag_alias] })
-          assert_search_param(:consequent_tag_category, TagCategory.artist, -> { [@tag_alias] })
-          assert_search_param(:name_matches, "foo", -> { [@tag_alias] })
-          assert_search_param(:name_matches, "bar", -> { [@tag_alias] })
-          assert_search_param(:status, "active", -> { [@tag_alias] })
-          assert_search_param(:creator_id, -> { @creator.id }, -> { [@tag_alias] })
-          assert_search_param(:creator_name, -> { @creator.name }, -> { [@tag_alias] })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@tag_alias] }, -> { @admin })
-          assert_search_param(:updater_id, -> { @updater.id }, -> { [@tag_alias] })
-          assert_search_param(:updater_name, -> { @updater.name }, -> { [@tag_alias] })
-          assert_search_param(:updater_ip_addr, "127.0.0.3", -> { [@tag_alias] }, -> { @admin })
-          assert_search_param(:approver_id, -> { @approver.id }, -> { [@tag_alias] })
-          assert_search_param(:approver_name, -> { @approver.name }, -> { [@tag_alias] })
-          assert_shared_search_params(-> { [@tag_alias] })
+          asserts do
+            search(:antecedent_name, "foo").records { [@tag_alias] }
+            search(:consequent_name, "bar").records { [@tag_alias] }
+            search(:antecedent_tag_category, TagCategory.copyright).records { [@tag_alias] }
+            search(:consequent_tag_category, TagCategory.artist).records { [@tag_alias] }
+            search(:name_matches, "foo").records { [@tag_alias] }
+            search(:name_matches, "bar").records { [@tag_alias] }
+            search(:status, "active").records { [@tag_alias] }
+            search(:creator_id).value { @creator.id }.records { [@tag_alias] }
+            search(:creator_name).value { @creator.name }.records { [@tag_alias] }
+            search(:ip_addr, "127.0.0.2").records { [@tag_alias] }.user { @admin }
+            search(:updater_id).value { @updater.id }.records { [@tag_alias] }
+            search(:updater_name).value { @updater.name }.records { [@tag_alias] }
+            search(:updater_ip_addr, "127.0.0.3").records { [@tag_alias] }.user { @admin }
+            search(:approver_id).value { @approver.id }.records { [@tag_alias] }
+            search(:approver_name).value { @approver.name }.records { [@tag_alias] }
+            search.shared.records { [@tag_alias] }
+          end
         end
       end
 
@@ -180,8 +195,11 @@ module Tags
           assert_equal("pending", @tag_alias.status)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(approve_tag_alias_path(create(:tag_alias, antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6), status: "pending", creator: @admin)), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).put { approve_tag_alias_path(@tag_alias) }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.put { approve_tag_alias_path(@tag_alias) }
+          end
         end
       end
 
@@ -198,8 +216,11 @@ module Tags
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(tag_alias_path(create(:tag_alias, antecedent_name: SecureRandom.hex(6), consequent_name: SecureRandom.hex(6), status: "pending", creator: @admin)), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).delete { tag_alias_path(@tag_alias) }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.delete { tag_alias_path(@tag_alias) }.success(:no_content)
+          end
         end
       end
     end

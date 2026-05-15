@@ -39,8 +39,11 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(users_path(search: { name: "test" }))
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(users_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(users_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(users_path)
+        end
       end
 
       context("search parameters") do
@@ -53,18 +56,20 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
           @user.update_columns(avatar_id: @post.id)
         end
 
-        assert_search_param(:level, User::Levels::MEMBER, -> { [@user] }, -> { @user }, ignore: %w[updated_at last_logged_in_at])
-        assert_search_param(:avatar_id, -> { @post.id }, -> { [@user] }, -> { @user }, ignore: %w[updated_at last_logged_in_at])
-        assert_search_param(:email_matches, "foo@example.com", -> { [@user] }, -> { @admin }, ignore: %w[updated_at last_logged_in_at])
-        assert_search_param(:name_matches, "bar", -> { [@user] }, -> { @user }, ignore: %w[updated_at last_logged_in_at])
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@user] }, -> { @admin }, ignore: %w[updated_at last_logged_in_at])
-        assert_search_param(:about_me, "baz", -> { [@user] }, -> { @user }, ignore: %w[updated_at last_logged_in_at])
-        assert_search_param(:min_level, User::Levels::MEMBER, -> { [@admin, @user] }, -> { @user }, ignore: %w[updated_at last_logged_in_at])
-        assert_search_param(:max_level, User::Levels::MEMBER, -> { [@user] }, -> { @user }, ignore: %w[updated_at last_logged_in_at])
-        assert_search_param(:can_approve_posts, "true", -> { [@admin] }, -> { @user }, ignore: %w[updated_at last_logged_in_at])
-        assert_search_param(:unrestricted_uploads, "true", -> { [@admin] }, -> { @user }, ignore: %w[updated_at last_logged_in_at])
-        assert_search_param(:can_manage_aibur, "true", -> { [@admin] }, -> { @user }, ignore: %w[updated_at last_logged_in_at])
-        assert_shared_search_params(-> { [@admin, @user] }, -> { @user }, ignore: %w[updated_at last_logged_in_at])
+        asserts do
+          search(:level, User::Levels::MEMBER).records { [@user] }.user { @user }.ignore(%w[updated_at last_logged_in_at])
+          search(:avatar_id).value { @post.id }.records { [@user] }.user { @user }.ignore(%w[updated_at last_logged_in_at])
+          search(:email_matches, "foo@example.com").records { [@user] }.user { @admin }.ignore(%w[updated_at last_logged_in_at])
+          search(:name_matches, "bar").records { [@user] }.user { @user }.ignore(%w[updated_at last_logged_in_at])
+          search(:ip_addr, "127.0.0.2").records { [@user] }.user { @admin }.ignore(%w[updated_at last_logged_in_at])
+          search(:about_me, "baz").records { [@user] }.user { @user }.ignore(%w[updated_at last_logged_in_at])
+          search(:min_level, User::Levels::MEMBER).records { [@admin, @user] }.user { @user }.ignore(%w[updated_at last_logged_in_at])
+          search(:max_level, User::Levels::MEMBER).records { [@user] }.user { @user }.ignore(%w[updated_at last_logged_in_at])
+          search(:can_approve_posts, "true").records { [@admin] }.user { @user }.ignore(%w[updated_at last_logged_in_at])
+          search(:unrestricted_uploads, "true").records { [@admin] }.user { @user }.ignore(%w[updated_at last_logged_in_at])
+          search(:can_manage_aibur, "true").records { [@admin] }.user { @user }.ignore(%w[updated_at last_logged_in_at])
+          search.shared.records { [@admin, @user] }.user { @user }.ignore(%w[updated_at last_logged_in_at])
+        end
       end
     end
 
@@ -98,8 +103,11 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         assert_nil(json["last_logged_in_at"])
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(user_path(@user), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get { user_path(@user) }
+          access.gte(User::Levels::ANONYMOUS).json.get { user_path(@user) }
+        end
       end
     end
 
@@ -194,8 +202,10 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED) { |user| get_auth(edit_users_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).get(edit_users_path)
+        end
       end
     end
 
@@ -245,8 +255,11 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         assert_predicate(@user.user_events.password_change, :exists?)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| post_auth(update_users_path, user, params: { user: { favorite_tags: "xyz" } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).post(update_users_path).params({ user: { favorite_tags: "xyz" } }).success(:redirect)
+          access.gte(User::Levels::REJECTED).json.post(update_users_path).params({ user: { favorite_tags: "xyz" } })
+        end
       end
     end
 
@@ -259,8 +272,10 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         assert_equal("body { display:none !important; }", @response.body.strip)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, anonymous_response: :forbidden) { |user| get_auth(custom_style_users_path(format: :css), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).get(custom_style_users_path).format(:css).anonymous(:forbidden)
+        end
       end
     end
 
@@ -278,8 +293,11 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         assert_not(@user.reload.is_banned?)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(unban_user_path(create(:banned_user)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MODERATOR).put { unban_user_path(create(:banned_user)) }.success(:redirect)
+          access.gte(User::Levels::MODERATOR).json.put { unban_user_path(create(:banned_user)) }
+        end
       end
     end
   end

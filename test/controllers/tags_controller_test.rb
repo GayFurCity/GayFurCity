@@ -16,8 +16,10 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER) { |user| get_auth(edit_tag_path(@tag), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).get { edit_tag_path(@tag) }
+        end
       end
     end
 
@@ -44,8 +46,11 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(tags_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(tags_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(tags_path)
+        end
       end
 
       context("search parameters") do
@@ -62,18 +67,20 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
           @artist = create(:artist, name: "bar")
         end
 
-        assert_search_param(:is_locked, "true", -> { [@artist_tag] })
-        assert_search_param(:category, TagCategory.general, -> { [@general_tag] })
-        assert_search_param(:category, "#{TagCategory.general},#{TagCategory.artist}", -> { [@artist_tag, @general_tag] })
-        assert_search_param(:name, "foo", -> { [@general_tag] })
-        assert_search_param(:name_matches, "bar", -> { [@artist_tag] })
-        assert_search_param(:fuzzy_name_matches, "ba", -> { [@copyright_tag, @artist_tag] })
-        assert_search_param(:has_wiki, "true", -> { [@general_tag] })
-        assert_search_param(:has_artist, "true", -> { [@artist_tag] })
-        assert_search_param(:creator_id, -> { @creator.id }, -> { [@copyright_tag, @artist_tag, @general_tag] })
-        assert_search_param(:creator_name, -> { @creator.name }, -> { [@copyright_tag, @artist_tag, @general_tag] })
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@copyright_tag, @artist_tag, @general_tag] }, -> { @admin })
-        assert_shared_search_params(-> { [@copyright_tag, @artist_tag, @general_tag] })
+        asserts do
+          search(:is_locked, "true").records { [@artist_tag] }
+          search(:category, TagCategory.general).records { [@general_tag] }
+          search(:category, "#{TagCategory.general},#{TagCategory.artist}").records { [@artist_tag, @general_tag] }
+          search(:name, "foo").records { [@general_tag] }
+          search(:name_matches, "bar").records { [@artist_tag] }
+          search(:fuzzy_name_matches, "ba").records { [@copyright_tag, @artist_tag] }
+          search(:has_wiki, "true").records { [@general_tag] }
+          search(:has_artist, "true").records { [@artist_tag] }
+          search(:creator_id).value { @creator.id }.records { [@copyright_tag, @artist_tag, @general_tag] }
+          search(:creator_name).value { @creator.name }.records { [@copyright_tag, @artist_tag, @general_tag] }
+          search(:ip_addr, "127.0.0.2").records { [@copyright_tag, @artist_tag, @general_tag] }.user { @admin }
+          search.shared.records { [@copyright_tag, @artist_tag, @general_tag] }
+        end
       end
     end
 
@@ -84,8 +91,11 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(tag_path(@tag), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get { tag_path(@tag) }
+          access.gte(User::Levels::ANONYMOUS).json.get { tag_path(@tag) }
+        end
       end
     end
 
@@ -162,8 +172,11 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         assert_equal(TagCategory.general, @tag.reload.category)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| put_auth(tag_path(@tag), user, params: { tag: { category: TagCategory.general } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).put { tag_path(@tag) }.params({ tag: { category: TagCategory.general } }).success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { tag_path(@tag) }.params({ tag: { category: TagCategory.general } })
+        end
       end
     end
 
@@ -199,8 +212,11 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         assert_equal("cannot follow more than 0 tags", response.parsed_body.dig("errors", "user").first)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| put_auth(follow_tag_path(@tag), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).put { follow_tag_path(@tag) }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { follow_tag_path(@tag) }
+        end
       end
     end
 
@@ -216,10 +232,20 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         assert_not(@user.followed_tags.exists?(tag: @tag))
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) do |user|
-          @tag.follow!(@user)
-          put_auth(unfollow_tag_path(@tag), user)
+      context("access control") do
+        asserts do
+          access do |builder|
+            builder.gte(User::Levels::MEMBER).success(:redirect).put do |user|
+              @tag.follow!(user)
+              unfollow_tag_path(@tag)
+            end
+          end
+          access do |builder|
+            builder.gte(User::Levels::MEMBER).json.put do |user|
+              @tag.follow!(user)
+              unfollow_tag_path(@tag)
+            end
+          end
         end
       end
     end
@@ -232,8 +258,11 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER) { |user| get_auth(followers_tag_path(@tag), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).get { followers_tag_path(@tag) }
+          access.gte(User::Levels::MEMBER).json.get { followers_tag_path(@tag) }
+        end
       end
     end
 
@@ -261,8 +290,11 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:forbidden)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER) { |user| get_auth(followed_tags_path, user, params: { user_id: @user.id }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).get(followed_tags_path).params { |user| { user_id: user.id } }
+          access.gte(User::Levels::MEMBER).json.get(followed_tags_path).params { |user| { user_id: user.id } }
+        end
       end
     end
 
@@ -273,8 +305,11 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(meta_search_tags_path, user, params: { name: "long_hair" }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(meta_search_tags_path).params({ name: "long_hair" })
+          access.gte(User::Levels::ANONYMOUS).json.get(meta_search_tags_path).params({ name: "long_hair" })
+        end
       end
     end
   end

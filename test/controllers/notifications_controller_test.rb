@@ -14,8 +14,11 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
         get_auth(notifications_path, @user)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED) { |user| get_auth(notifications_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).get(notifications_path)
+          access.gte(User::Levels::REJECTED).json.get(notifications_path)
+        end
       end
 
       context("search parameters") do
@@ -26,8 +29,10 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
           @notification = create(:notification, category: "default", user: @user)
         end
 
-        assert_search_param(:category, "default", -> { [@notification] }, -> { @user })
-        assert_shared_search_params(-> { [@notification] }, -> { @user })
+        asserts do
+          search(:category, "default").records { [@notification] }.user { @user }
+          search.shared.records { [@notification] }.user { @user }
+        end
       end
     end
 
@@ -38,8 +43,11 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(@notification.view_link)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| get_auth(notification_path(create(:notification, user: user)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).get { |user| notification_path(create(:notification, user: user)) }.success(:redirect)
+          access.gte(User::Levels::REJECTED).json.get { |user| notification_path(create(:notification, user: user)) }
+        end
       end
     end
 
@@ -53,8 +61,11 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
         assert_equal(0, @user.reload.unread_notification_count)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| delete_auth(notification_path(create(:notification, user: user)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).delete { |user| notification_path(create(:notification, user: user)) }.success(:redirect)
+          access.gte(User::Levels::REJECTED).json.delete { |user| notification_path(create(:notification, user: user)) }
+        end
       end
     end
 
@@ -68,8 +79,11 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
         assert_equal(0, @user.reload.unread_notification_count)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| put_auth(mark_as_read_notification_path(create(:notification, user: user)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).put { |user| mark_as_read_notification_path(create(:notification, user: user)) }.success(:redirect)
+          access.gte(User::Levels::REJECTED).json.put { |user| mark_as_read_notification_path(create(:notification, user: user)) }
+        end
       end
     end
 
@@ -85,8 +99,11 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
         assert_equal(0, @user.reload.unread_notification_count)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| put_auth(mark_all_as_read_notifications_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).put(mark_all_as_read_notifications_path).success(:redirect)
+          access.gte(User::Levels::REJECTED).json.put(mark_all_as_read_notifications_path)
+        end
       end
     end
   end

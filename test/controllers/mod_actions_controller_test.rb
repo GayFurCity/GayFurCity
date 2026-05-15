@@ -15,10 +15,12 @@ class ModActionsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(mod_actions_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(mod_actions_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(mod_actions_path)
+        end
       end
-
       context("search parameters") do
         subject { mod_actions_path }
         setup do
@@ -30,14 +32,16 @@ class ModActionsControllerTest < ActionDispatch::IntegrationTest
           @mod_action2 = create(:mod_action, action: "bar", creator: @creator, creator_ip_addr: "127.0.0.2", subject: @user)
         end
 
-        assert_search_param(:action, "foo", -> { [@mod_action1] })
-        assert_search_param(:action, "foo,bar", -> { [@mod_action2, @mod_action1] })
-        assert_search_param(:subject_id, -> { @user.id }, -> { [@mod_action2, @mod_action1] })
-        assert_search_param(:subject_type, "User", -> { [@mod_action2, @mod_action1] })
-        assert_search_param(:creator_id, -> { @creator.id }, -> { [@mod_action2, @mod_action1] })
-        assert_search_param(:creator_name, -> { @creator.name }, -> { [@mod_action2, @mod_action1] })
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@mod_action2, @mod_action1] }, -> { @admin })
-        assert_shared_search_params(-> { [@mod_action2, @mod_action1] })
+        asserts do
+          search(:action, "foo").records { [@mod_action1] }
+          search(:action, "foo,bar").records { [@mod_action2, @mod_action1] }
+          search(:subject_id).value { @user.id }.records { [@mod_action2, @mod_action1] }
+          search(:subject_type, "User").records { [@mod_action2, @mod_action1] }
+          search(:creator_id).value { @creator.id }.records { [@mod_action2, @mod_action1] }
+          search(:creator_name).value { @creator.name }.records { [@mod_action2, @mod_action1] }
+          search(:ip_addr, "127.0.0.2").records { [@mod_action2, @mod_action1] }.user { @admin }
+          search.shared.records { [@mod_action2, @mod_action1] }
+        end
       end
     end
 
@@ -48,8 +52,11 @@ class ModActionsControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(mod_actions_path(search: { id: @mod_action.id }))
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS, success_response: :redirect, anonymous_response: :redirect) { |user| get_auth(mod_action_path(@mod_action), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get { mod_action_path(@mod_action) }.success(:redirect).anonymous(:redirect)
+          access.gte(User::Levels::ANONYMOUS).json.get { mod_action_path(@mod_action) }
+        end
       end
     end
   end

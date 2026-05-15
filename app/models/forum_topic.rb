@@ -13,7 +13,6 @@ class ForumTopic < ApplicationRecord
   has_one(:last_post, -> { order(id: :desc) }, class_name: "ForumPost", foreign_key: "topic_id", inverse_of: :topic)
   has_many(:statuses, class_name: "ForumTopicStatus")
   before_validation(:initialize_original_post_creator, on: :create)
-  before_validation(:initialize_is_hidden, on: :create)
   validate(:category_valid)
   validates(:title, :creator_id, presence: true)
   validates_associated(:original_post, message: ->(topic, meta) { format_associated_message(topic, meta, :original_post) })
@@ -243,25 +242,23 @@ class ForumTopic < ApplicationRecord
   def editable_by?(user)
     return true if user.is_admin?
     return false unless visible?(user) && original_post&.editable_by?(user)
+    return false unless category.can_create_within?(user) # prevent editing if the category can_create level was changed after creation
     creator_id == user.id
   end
 
   def can_reply?(user)
-    user.level >= category.can_create
+    category.can_create_within?(user)
   end
 
   def can_hide?(user)
     return true if user.is_moderator?
     return false if original_post&.is_aibur?
+    return false unless category.can_create_within?(user) # prevent hiding if the category can_create level was changed after creation
     user.id == creator_id
   end
 
   def can_delete?(user)
     user.is_admin?
-  end
-
-  def initialize_is_hidden
-    self.is_hidden = false if is_hidden.nil?
   end
 
   def initialize_original_post_creator

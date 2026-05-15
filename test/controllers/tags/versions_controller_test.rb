@@ -38,10 +38,12 @@ module Tags
           assert_select("#tag-version-#{@versions[2].id}", false)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(tag_versions_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(tag_versions_path)
+          end
         end
-
+        
         context("search parameters") do
           subject { tag_versions_path }
           setup do
@@ -52,12 +54,14 @@ module Tags
             @tag_version = @tag.versions.first
           end
 
-          assert_search_param(:tag_id, -> { @tag.id }, -> { [@tag_version] })
-          assert_search_param(:tag_name, "foo", -> { [@tag_version] })
-          assert_search_param(:updater_id, -> { @updater.id }, -> { [@tag_version] })
-          assert_search_param(:updater_name, -> { @updater.name }, -> { [@tag_version] })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@tag_version] }, -> { @admin })
-          assert_shared_search_params(-> { [@tag_version] }, nil, %i[id created_at])
+          asserts do
+            search(:tag_id).value { @tag.id }.records { [@tag_version] }
+            search(:tag_name, "foo").records { [@tag_version] }
+            search(:updater_id).value { @updater.id }.records { [@tag_version] }
+            search(:updater_name).value { @updater.name }.records { [@tag_version] }
+            search(:ip_addr, "127.0.0.2").records { [@tag_version] }.user { @admin }
+            search.shared(%i[id created_at]).records { [@tag_version] }
+          end
         end
       end
     end

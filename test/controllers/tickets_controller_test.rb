@@ -45,21 +45,23 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
           @ticket = create(:ticket, creator: @creator, creator_ip_addr: "127.0.0.2", handler: @handler, handler_ip_addr: "127.0.0.3", claimant: @claimant, reason: "foo", status: "approved", model: @forum_post)
         end
 
-        assert_search_param(:model_type, "ForumPost", -> { [@ticket] }, -> { @creator })
-        assert_search_param(:model_id, -> { @forum_post.id }, -> { [@ticket] }, -> { @creator })
-        assert_search_param(:reason, "foo", -> { [@ticket] }, -> { @mod })
-        assert_search_param(:status, "approved", -> { [@ticket] }, -> { @creator })
-        assert_search_param(:creator_id, -> { @creator.id }, -> { [@ticket] }, -> { @creator })
-        assert_search_param(:creator_name, -> { @creator.name }, -> { [@ticket] }, -> { @creator })
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@ticket] }, -> { @admin })
-        assert_search_param(:handler_id, -> { @handler.id }, -> { [@ticket] }, -> { @mod })
-        assert_search_param(:handler_name, -> { @handler.name }, -> { [@ticket] }, -> { @mod })
-        assert_search_param(:handler_ip_addr, "127.0.0.3", -> { [@ticket] }, -> { @admin })
-        assert_search_param(:claimant_id, -> { @claimant.id }, -> { [@ticket] }, -> { @mod })
-        assert_search_param(:claimant_name, -> { @claimant.name }, -> { [@ticket] }, -> { @mod })
-        assert_search_param(:accused_id, -> { @accused.id }, -> { [@ticket] }, -> { @mod })
-        assert_search_param(:accused_name, -> { @accused.name }, -> { [@ticket] }, -> { @mod })
-        assert_shared_search_params(-> { [@ticket] }, -> { @creator })
+        asserts do
+          search(:model_type, "ForumPost").records { [@ticket] }.user { @creator }
+          search(:model_id).value { @forum_post.id }.records { [@ticket] }.user { @creator }
+          search(:reason, "foo").records { [@ticket] }.user { @mod }
+          search(:status, "approved").records { [@ticket] }.user { @creator }
+          search(:creator_id).value { @creator.id }.records { [@ticket] }.user { @creator }
+          search(:creator_name).value { @creator.name }.records { [@ticket] }.user { @creator }
+          search(:ip_addr, "127.0.0.2").records { [@ticket] }.user { @admin }
+          search(:handler_id).value { @handler.id }.records { [@ticket] }.user { @mod }
+          search(:handler_name).value { @handler.name }.records { [@ticket] }.user { @mod }
+          search(:handler_ip_addr, "127.0.0.3").records { [@ticket] }.user { @admin }
+          search(:claimant_id).value { @claimant.id }.records { [@ticket] }.user { @mod }
+          search(:claimant_name).value { @claimant.name }.records { [@ticket] }.user { @mod }
+          search(:accused_id).value { @accused.id }.records { [@ticket] }.user { @mod }
+          search(:accused_name).value { @accused.name }.records { [@ticket] }.user { @mod }
+          search.shared.records { [@ticket] }.user { @creator }
+        end
       end
     end
 
@@ -90,8 +92,11 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(ticket_path(@ticket), user, params: { ticket: { response: SecureRandom.hex(6) } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MODERATOR).put { ticket_path(@ticket) }.params { { ticket: { response: SecureRandom.hex(6) } } }.success(:redirect)
+          access.gte(User::Levels::MODERATOR).json.put { ticket_path(@ticket) }.params { { ticket: { response: SecureRandom.hex(6) } } }
+        end
       end
     end
 

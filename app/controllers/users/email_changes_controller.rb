@@ -2,6 +2,8 @@
 
 module Users
   class EmailChangesController < ApplicationController
+    respond_to(:html)
+    
     def new
     end
 

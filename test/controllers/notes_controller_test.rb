@@ -35,8 +35,11 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(notes_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(notes_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(notes_path)
+        end
       end
 
       context("search parameters") do
@@ -50,17 +53,18 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
           @note = create(:note, creator: @creator, creator_ip_addr: "127.0.0.2", post: @post, body: "bar", is_active: true)
         end
 
-        assert_search_param(:body_matches, "bar", -> { [@note] })
-        assert_search_param(:is_active, "true", -> { [@note] })
-        assert_search_param(:post_id, -> { @post.id }, -> { [@note] })
-        assert_search_param(:post_tags_match, "foo", -> { [@note] })
-        assert_search_param(:post_note_updater_id, -> { @creator.id }, -> { [@note] })
-        assert_search_param(:post_note_updater_name, -> { @creator.name }, -> { [@note] })
-        assert_search_param(:creator_id, -> { @creator.id }, -> { [@note] })
-        assert_search_param(:creator_name, -> { @creator.name }, -> { [@note] })
-        assert_search_param(:post_id, -> { @post.id }, -> { [@note] })
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@note] }, -> { @admin })
-        assert_shared_search_params(-> { [@note] })
+        asserts do
+          search(:body_matches, "bar").records { [@note] }
+          search(:is_active, "true").records { [@note] }
+          search(:post_id).value { @post.id }.records { [@note] }
+          search(:post_tags_match, "foo").records { [@note] }
+          search(:post_note_updater_id).value { @creator.id }.records { [@note] }
+          search(:post_note_updater_name).value { @creator.name }.records { [@note] }
+          search(:creator_id).value { @creator.id }.records { [@note] }
+          search(:creator_name).value { @creator.name }.records { [@note] }
+          search(:ip_addr, "127.0.0.2").records { [@note] }.user { @admin }
+          search.shared.records { [@note] }
+        end
       end
     end
 
@@ -71,8 +75,11 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS, success_response: :redirect, anonymous_response: :redirect) { |user| get_auth(note_path(@note), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get { note_path(@note) }.success(:redirect).anonymous(:redirect)
+          access.gte(User::Levels::ANONYMOUS).json.get { note_path(@note) }
+        end
       end
     end
 
@@ -102,8 +109,11 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| post_auth(notes_path, user, params: { note: { x: 0, y: 0, width: 10, height: 10, body: "abc", post_id: @post.id } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).post(notes_path).params { { note: { x: 0, y: 0, width: 10, height: 10, body: "abc", post_id: @post.id } } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.post(notes_path).params { { note: { x: 0, y: 0, width: 10, height: 10, body: "abc", post_id: @post.id } } }
+        end
       end
     end
 
@@ -140,8 +150,11 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| put_auth(note_path(@note), user, params: { note: { body: "xyz" } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).put { note_path(@note) }.params({ note: { body: "xyz"} }).success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { note_path(@note) }.params({ note: { body: "xyz"} })
+        end
       end
     end
 
@@ -171,8 +184,11 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| delete_auth(note_path(@note), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).delete { note_path(@note) }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.delete { note_path(@note) }.success(:no_content)
+        end
       end
     end
 
@@ -219,8 +235,11 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| put_auth(revert_note_path(@note), user, params: { version_id: @note.versions.first.id }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).put { revert_note_path(@note) }.params { { version_id: @note.versions.first.id } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { revert_note_path(@note) }.params { { version_id: @note.versions.first.id } }
+        end
       end
     end
   end

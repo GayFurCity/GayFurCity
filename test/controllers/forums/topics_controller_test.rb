@@ -59,8 +59,11 @@ module Forums
           assert_equal(2, @forum_topic.last_page)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(forum_topic_path(@forum_topic), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get { forum_topic_path(@forum_topic) }
+            access.gte(User::Levels::ANONYMOUS).json.get { forum_topic_path(@forum_topic) }
+          end
         end
       end
 
@@ -115,19 +118,21 @@ module Forums
             @forum_topic.reload
           end
 
-          assert_search_param(:title_matches, "foo", -> { [@forum_topic] })
-          assert_search_param(:title, "foo", -> { [@forum_topic] })
-          assert_search_param(:category_id, -> { @forum_topic.category_id }, -> { [@forum_topic] })
-          assert_search_param(:is_sticky, "true", -> { [@forum_topic] })
-          assert_search_param(:is_locked, "false", -> { [@forum_topic] })
-          assert_search_param(:is_hidden, "false", -> { [@forum_topic] })
-          assert_search_param(:creator_id, -> { @creator.id }, -> { [@forum_topic] })
-          assert_search_param(:creator_name, -> { @creator.name }, -> { [@forum_topic] })
-          assert_search_param(:creator_ip_addr, "127.0.0.2", -> { [@forum_topic] }, -> { @admin })
-          assert_search_param(:updater_id, -> { @updater.id }, -> { [@forum_topic] })
-          assert_search_param(:updater_name, -> { @updater.name }, -> { [@forum_topic] })
-          assert_search_param(:updater_ip_addr, "127.0.0.3", -> { [@forum_topic] }, -> { @admin })
-          assert_shared_search_params(-> { [@forum_topic] })
+          asserts do
+            search(:title_matches, "foo").records { [@forum_topic] }
+            search(:title, "foo").records { [@forum_topic] }
+            search(:category_id).value { @forum_topic.category_id }.records { [@forum_topic] }
+            search(:is_sticky, "true").records { [@forum_topic] }
+            search(:is_locked, "false").records { [@forum_topic] }
+            search(:is_hidden, "false").records { [@forum_topic] }
+            search(:creator_id).value { @creator.id }.records { [@forum_topic] }
+            search(:creator_name).value { @creator.name }.records { [@forum_topic] }
+            search(:creator_ip_addr, "127.0.0.2").records { [@forum_topic] }.user { @admin }
+            search(:updater_id).value { @updater.id }.records { [@forum_topic] }
+            search(:updater_name).value { @updater.name }.records { [@forum_topic] }
+            search(:updater_ip_addr, "127.0.0.3").records { [@forum_topic] }.user { @admin }
+            search.shared.records { [@forum_topic] }
+          end
         end
       end
 
@@ -148,6 +153,29 @@ module Forums
           get_auth(edit_forum_topic_path(@forum_topic), @other_user)
 
           assert_response(:forbidden)
+        end
+
+        context("access control") do
+          context("for creator") do
+            setup { @category = create(:forum_category, can_view: User::Levels::ANONYMOUS, can_create: User::Levels::MEMBER) }
+
+            asserts do
+              access do |builder|
+                builder.gte(User::Levels::MEMBER).get do |user|
+                  topic = create(:forum_topic, category: @category)
+                  topic.update_columns(creator_id: user.id)
+                  topic.original_post.update_columns(creator_id: user.id)
+                  edit_forum_topic_path(topic)
+                end
+              end
+            end
+          end
+
+          context("for non-creator") do
+            asserts do
+              access.gte(User::Levels::ADMIN).get { edit_forum_topic_path(@forum_topic) }
+            end
+          end
         end
       end
 
@@ -195,6 +223,38 @@ module Forums
           assert_predicate(@forum_topic.original_post.reload, :has_voting?)
           assert_equal("found unpermitted parameter: :allow_voting", @response.parsed_body["message"])
         end
+
+        context("access control") do
+          context("for creator") do
+            setup { @category = create(:forum_category, can_view: User::Levels::ANONYMOUS, can_create: User::Levels::MEMBER) }
+
+            asserts do
+              access do |builder|
+                builder.gte(User::Levels::MEMBER).params({ forum_topic: { title: "xaxaxa" } }).success(:redirect).put do |user|
+                  topic = create(:forum_topic, category: @category)
+                  topic.update_columns(creator_id: user.id)
+                  topic.original_post.update_columns(creator_id: user.id)
+                  forum_topic_path(topic)
+                end
+              end
+              access do |builder|
+                builder.gte(User::Levels::MEMBER).json.params({ forum_topic: { title: "xaxaxa" } }).put do |user|
+                  topic = create(:forum_topic, category: @category)
+                  topic.update_columns(creator_id: user.id)
+                  topic.original_post.update_columns(creator_id: user.id)
+                  forum_topic_path(topic)
+                end
+              end
+            end
+          end
+
+          context("for non-creator") do
+            asserts do
+              access.gte(User::Levels::ADMIN).put { forum_topic_path(@forum_topic) }.params({ forum_topic: { title: "xaxaxa" } }).success(:redirect)
+              access.gte(User::Levels::ADMIN).json.put { forum_topic_path(@forum_topic) }.params({ forum_topic: { title: "xaxaxa" } })
+            end
+          end
+        end
       end
 
       context("new action") do
@@ -202,6 +262,12 @@ module Forums
           get_auth(new_forum_topic_path, @user)
 
           assert_response(:success)
+        end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MEMBER).get(new_forum_topic_path)
+          end
         end
       end
 
@@ -247,6 +313,26 @@ module Forums
           assert_predicate(@forum_topic.original_post, :allow_voting?)
           assert_redirected_to(forum_topic_path(@forum_topic))
         end
+
+        context("access control") do
+          context("in unrestricted category") do
+            setup { @category = create(:forum_category, can_view: User::Levels::ANONYMOUS, can_create: User::Levels::MEMBER) }
+
+            asserts do
+              access.gte(User::Levels::MEMBER).post(forum_topics_path).params { { forum_topic: { title: "bababa", category_id: @category.id, original_post_attributes: { body: "xaxaxa" } } } }.success(:redirect)
+              access.gte(User::Levels::MEMBER).json.post(forum_topics_path).params { { forum_topic: { title: "bababa", category_id: @category.id, original_post_attributes: { body: "xaxaxa" } } } }
+            end
+          end
+
+          context("in restricted category") do
+            setup { @category = create(:forum_category, can_view: User::Levels::ANONYMOUS, can_create: User::Levels::ADMIN) }
+
+            asserts do
+              access.gte(User::Levels::ADMIN).post(forum_topics_path).params { { forum_topic: { title: "bababa", category_id: @category.id, original_post_attributes: { body: "xaxaxa" } } } }.success(:redirect)
+              access.gte(User::Levels::ADMIN).json.post(forum_topics_path).params { { forum_topic: { title: "bababa", category_id: @category.id, original_post_attributes: { body: "xaxaxa" } } } }
+            end
+          end
+        end
       end
 
       context("destroy action") do
@@ -291,6 +377,13 @@ module Forums
             assert_nil(@bur.reload.forum_topic_id)
           end
         end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).delete { forum_topic_path(@forum_topic) }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.delete { forum_topic_path(@forum_topic) }.success(:no_content)
+          end
+        end
       end
 
       context("hide action") do
@@ -310,8 +403,36 @@ module Forums
           assert_equal("hide", EditHistory.last.edit_type)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(hide_forum_topic_path(@forum_topic), user) }
+        context("access control") do
+          context("for creator") do
+            setup { @category = create(:forum_category, can_view: User::Levels::ANONYMOUS, can_create: User::Levels::MEMBER) }
+
+            asserts do
+              access do |builder|
+                builder.gte(User::Levels::MEMBER).success(:redirect).put do |user|
+                  topic = create(:forum_topic, category: @category)
+                  topic.update_columns(creator_id: user.id)
+                  topic.original_post.update_columns(creator_id: user.id)
+                  hide_forum_topic_path(topic)
+                end
+              end
+              access do |builder|
+                builder.gte(User::Levels::MEMBER).json.success(:no_content).put do |user|
+                  topic = create(:forum_topic, category: @category)
+                  topic.update_columns(creator_id: user.id)
+                  topic.original_post.update_columns(creator_id: user.id)
+                  hide_forum_topic_path(topic)
+                end
+              end
+            end
+          end
+
+          context("for non-creator") do
+            asserts do
+              access.gte(User::Levels::MODERATOR).put { hide_forum_topic_path(@forum_topic) }.success(:redirect)
+              access.gte(User::Levels::MODERATOR).json.put { hide_forum_topic_path(@forum_topic) }.success(:no_content)
+            end
+          end
         end
       end
 
@@ -329,8 +450,11 @@ module Forums
           assert_not(@forum_topic.is_hidden?)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(unhide_forum_topic_path(@forum_topic), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).put { unhide_forum_topic_path(@forum_topic) }.success(:redirect)
+            access.gte(User::Levels::MODERATOR).json.put { unhide_forum_topic_path(@forum_topic) }.success(:no_content)
+          end
         end
       end
 
@@ -344,8 +468,11 @@ module Forums
           assert_predicate(@forum_topic, :is_locked?)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(lock_forum_topic_path(@forum_topic), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).put { lock_forum_topic_path(@forum_topic) }.success(:redirect)
+            access.gte(User::Levels::MODERATOR).json.put { lock_forum_topic_path(@forum_topic) }.success(:no_content)
+          end
         end
       end
 
@@ -363,8 +490,11 @@ module Forums
           assert_not(@forum_topic.is_locked?)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(unlock_forum_topic_path(@forum_topic), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).put { unlock_forum_topic_path(@forum_topic) }.success(:redirect)
+            access.gte(User::Levels::MODERATOR).json.put { unlock_forum_topic_path(@forum_topic) }.success(:no_content)
+          end
         end
       end
 
@@ -378,8 +508,11 @@ module Forums
           assert_predicate(@forum_topic, :is_sticky?)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(sticky_forum_topic_path(@forum_topic), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).put { sticky_forum_topic_path(@forum_topic) }.success(:redirect)
+            access.gte(User::Levels::MODERATOR).json.put { sticky_forum_topic_path(@forum_topic) }.success(:no_content)
+          end
         end
       end
 
@@ -397,8 +530,11 @@ module Forums
           assert_not(@forum_topic.is_sticky?)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(unsticky_forum_topic_path(@forum_topic), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).put { unsticky_forum_topic_path(@forum_topic) }.success(:redirect)
+            access.gte(User::Levels::MODERATOR).json.put { unsticky_forum_topic_path(@forum_topic) }.success(:no_content)
+          end
         end
       end
 
@@ -420,6 +556,13 @@ module Forums
         should("not create a new status entry if one already exists") do
           assert_no_difference("ForumTopicStatus.count") do
             put_auth(subscribe_forum_topic_path(@forum_topic), @user)
+          end
+        end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).put { subscribe_forum_topic_path(@forum_topic) }.success(:redirect)
+            access.gte(User::Levels::REJECTED).json.put { subscribe_forum_topic_path(@forum_topic) }.success(:no_content)
           end
         end
       end
@@ -444,6 +587,13 @@ module Forums
             put_auth(mute_forum_topic_path(@forum_topic), @user, params: { _method: "PUT" })
           end
         end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).put { mute_forum_topic_path(@forum_topic) }.success(:redirect)
+            access.gte(User::Levels::REJECTED).json.put { mute_forum_topic_path(@forum_topic) }.success(:no_content)
+          end
+        end
       end
 
       context("mark_as_read action") do
@@ -456,8 +606,11 @@ module Forums
           assert(@user.forum_category_visits.exists?(forum_category: @forum_topic.category))
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| put_auth(mark_as_read_forum_topic_path(@forum_topic), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).put { mark_as_read_forum_topic_path(@forum_topic) }.success(:redirect)
+            access.gte(User::Levels::REJECTED).json.put { mark_as_read_forum_topic_path(@forum_topic) }.success(:no_content)
+          end
         end
       end
     end

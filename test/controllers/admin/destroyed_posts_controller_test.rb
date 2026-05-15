@@ -20,6 +20,13 @@ module Admin
 
           assert_response(:success)
         end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).get(admin_destroyed_posts_path)
+            access.gte(User::Levels::ADMIN).json.get(admin_destroyed_posts_path)
+          end
+        end
       end
 
       context("show action") do
@@ -27,6 +34,13 @@ module Admin
           get_auth(admin_destroyed_post_path(@post), @admin)
 
           assert_redirected_to(admin_destroyed_posts_path(search: { post_id: @post.id }))
+        end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).get { admin_destroyed_post_path(@post) }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.get { admin_destroyed_post_path(@post) }
+          end
         end
       end
 
@@ -46,6 +60,13 @@ module Admin
             assert_redirected_to(admin_destroyed_posts_path)
             assert(@destroyed_post.reload.notify)
             assert_equal("enable_post_notifications", StaffAuditLog.last.action)
+          end
+        end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::OWNER).put { admin_destroyed_post_path(@post) }.params({ destroyed_post: { notify: "true" } }).success(:redirect)
+            access.gte(User::Levels::OWNER).json.put { admin_destroyed_post_path(@post) }.params({ destroyed_post: { notify: "true" } })
           end
         end
       end

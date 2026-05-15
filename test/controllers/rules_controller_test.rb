@@ -18,8 +18,11 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(rules_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(rules_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(rules_path)
+        end
       end
     end
 
@@ -30,8 +33,10 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN) { |user| get_auth(new_rule_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).get(new_rule_path)
+        end
       end
     end
 
@@ -56,8 +61,11 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
         assert_equal(@category.name, mod_action.category_name)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| post_auth(rules_path, user, params: { rule: { name: SecureRandom.hex(6), description: SecureRandom.hex(6), category_id: @category.id } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).post(rules_path).params { { rule: { name: SecureRandom.hex(6), description: SecureRandom.hex(6), category_id: @category.id } } }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.post(rules_path).params { { rule: { name: SecureRandom.hex(6), description: SecureRandom.hex(6), category_id: @category.id } } }
+        end
       end
     end
 
@@ -68,8 +76,10 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN) { |user| get_auth(edit_rule_path(@rule), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).get { edit_rule_path(@rule) }
+        end
       end
     end
 
@@ -95,8 +105,11 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
         assert_equal(old, mod_action.old_name)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(rule_path(@rule), user, params: { rule: { name: SecureRandom.hex(6), description: SecureRandom.hex(6) } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).put { rule_path(@rule) }.params { { rule: { name: SecureRandom.hex(6), description: SecureRandom.hex(6) } } }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.put { rule_path(@rule) }.params { { rule: { name: SecureRandom.hex(6), description: SecureRandom.hex(6) } } }
+        end
       end
     end
 
@@ -121,8 +134,11 @@ class RulesControllerTest < ActionDispatch::IntegrationTest
         assert_equal(@rule.description, mod_action.description)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(rule_path(create(:rule)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).delete { rule_path(@rule) }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.delete { rule_path(@rule) }.success(:no_content)
+        end
       end
     end
   end

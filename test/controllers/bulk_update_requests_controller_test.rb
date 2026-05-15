@@ -16,8 +16,36 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER) { |user| get_auth(new_bulk_update_request_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).get(new_bulk_update_request_path)
+        end
+      end
+    end
+
+    context("edit action") do
+      setup do
+        @bulk_update_request = create(:bulk_update_request, creator: @user)
+      end
+
+      should("render") do
+        get_auth(edit_bulk_update_request_path(@bulk_update_request), @user)
+
+        assert_response(:success)
+      end
+
+      context("access control") do
+        setup { Config.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
+
+        asserts do
+          access.gte(User::Levels::MEMBER).get { |user| edit_bulk_update_request_path(create(:bulk_update_request, creator: user, skip_forum: true)) }
+        end
+      end
+
+      context("access control (not creator)") do
+        asserts do
+          access.gte(User::Levels::ADMIN).get { edit_bulk_update_request_path(@bulk_update_request) }
+        end
       end
     end
 
@@ -28,8 +56,11 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| post_auth(bulk_update_requests_path, user, params: { bulk_update_request: { script: "alias aaa -> bbb", title: "xxx", reason: "xxxxx" } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).post(bulk_update_requests_path).params { { bulk_update_request: { script: "alias aaa -> bbb", title: "xxx", reason: "xxxxx" } } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.post(bulk_update_requests_path).params { { bulk_update_request: { script: "alias aaa -> bbb", title: "xxx", reason: "xxxxx" } } }
+        end
       end
     end
 
@@ -46,8 +77,20 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
         assert_equal("alias zzz -> 222", @bulk_update_request.script)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(bulk_update_request_path(@bulk_update_request), user, params: { bulk_update_request: { script: "alias xxx -> 333" } }) }
+      context("access control") do
+        setup { Config.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
+
+        asserts do
+          access.gte(User::Levels::MEMBER).put { |user| bulk_update_request_path(create(:bulk_update_request, creator: user, skip_forum: true)) }.params { { bulk_update_request: { script: "alias xxx -> 333" } } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { |user| bulk_update_request_path(create(:bulk_update_request, creator: user, skip_forum: true)) }.params { { bulk_update_request: { script: "alias xxx -> 333" } } }
+        end
+      end
+
+      context("access control (not creator)") do
+        asserts do
+          access.gte(User::Levels::ADMIN).put { bulk_update_request_path(@bulk_update_request) }.params { { bulk_update_request: { script: "alias xxx -> 333" } } }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.put { bulk_update_request_path(@bulk_update_request) }.params { { bulk_update_request: { script: "alias xxx -> 333" } } }
+        end
       end
     end
 
@@ -62,8 +105,11 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(bulk_update_requests_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(bulk_update_requests_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(bulk_update_requests_path)
+        end
       end
 
       context("search parameters") do
@@ -80,20 +126,22 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
           @bulk_update_request = create(:bulk_update_request, creator: @creator, creator_ip_addr: "127.0.0.2", updater: @updater, updater_ip_addr: "127.0.0.3", approver: @approver, status: "approved", title: "foo", script: "alias bar -> baz", forum_topic: @forum_topic, forum_post: @forum_post, skip_forum: true)
         end
 
-        assert_search_param(:forum_topic_id, -> { @forum_topic.id }, -> { [@bulk_update_request] })
-        assert_search_param(:forum_post_id, -> { @forum_post.id }, -> { [@bulk_update_request] })
-        assert_search_param(:status, "approved", -> { [@bulk_update_request] })
-        assert_search_param(:title_matches, "foo", -> { [@bulk_update_request] })
-        assert_search_param(:script_matches, "bar", -> { [@bulk_update_request] })
-        assert_search_param(:creator_ip_addr, "127.0.0.2", -> { [@bulk_update_request] }, -> { @admin })
-        assert_search_param(:updater_ip_addr, "127.0.0.3", -> { [@bulk_update_request] }, -> { @admin })
-        assert_search_param(:creator_id, -> { @creator.id }, -> { [@bulk_update_request] })
-        assert_search_param(:creator_name, -> { @creator.name }, -> { [@bulk_update_request] })
-        assert_search_param(:updater_id, -> { @updater.id }, -> { [@bulk_update_request] })
-        assert_search_param(:updater_name, -> { @updater.name }, -> { [@bulk_update_request] })
-        assert_search_param(:approver_id, -> { @approver.id }, -> { [@bulk_update_request] })
-        assert_search_param(:approver_name, -> { @approver.name }, -> { [@bulk_update_request] })
-        assert_shared_search_params(-> { [@bulk_update_request] })
+        asserts do
+          search(:forum_topic_id).value { @forum_topic.id }.records { [@bulk_update_request] }
+          search(:forum_post_id).value { @forum_post.id }.records { [@bulk_update_request] }
+          search(:status, "approved").records { [@bulk_update_request] }
+          search(:title_matches, "foo").records { [@bulk_update_request] }
+          search(:script_matches, "bar").records{ [@bulk_update_request] }
+          search(:creator_ip_addr, "127.0.0.2").records { [@bulk_update_request] }.user { @admin }
+          search(:updater_ip_addr, "127.0.0.3").records { [@bulk_update_request] }.user { @admin }
+          search(:creator_id).value { @creator.id }.records { [@bulk_update_request] }
+          search(:creator_name).value { @creator.name }.records { [@bulk_update_request] }
+          search(:updater_id).value { @updater.id }.records { [@bulk_update_request] }
+          search(:updater_name).value { @updater.name }.records { [@bulk_update_request] }
+          search(:approver_id).value { @approver.id }.records { [@bulk_update_request] }
+          search(:approver_name).value { @approver.name }.records { [@bulk_update_request] }
+          search.shared.records { [@bulk_update_request] }
+        end
       end
     end
 
@@ -132,8 +180,20 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(bulk_update_request_path(create(:bulk_update_request, skip_forum: true)), user) }
+      context("access control") do
+        setup { Config.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
+
+        asserts do
+          access.gte(User::Levels::MEMBER).delete { |user| bulk_update_request_path(create(:bulk_update_request, creator: user, skip_forum: true)) }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.delete { |user| bulk_update_request_path(create(:bulk_update_request, creator: user, skip_forum: true)) }.success(:no_content)
+        end
+      end
+
+      context("access control (not creator)") do
+        asserts do
+          access.gte(User::Levels::ADMIN).delete { bulk_update_request_path(@bulk_update_request) }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.delete { bulk_update_request_path(@bulk_update_request) }.success(:no_content)
+        end
       end
     end
 
@@ -179,8 +239,11 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| post_auth(approve_bulk_update_request_path(create(:bulk_update_request, skip_forum: true)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).post { approve_bulk_update_request_path(@bulk_update_request) }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.post { approve_bulk_update_request_path(@bulk_update_request) }
+        end
       end
     end
 
@@ -208,8 +271,32 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:missing)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(revert_bulk_update_request_path(@bulk_update_request), user, params: { version_id: @bulk_update_request.versions.first.id }) }
+      context("access control") do
+        setup { Config.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
+
+        asserts do
+          access do |builder|
+            builder.gte(User::Levels::MEMBER).put do |user|
+              bur = create(:bulk_update_request, creator: user, skip_forum: true)
+              bur.update_with(user, script: "alias foo -> bar")
+              revert_bulk_update_request_path(bur)
+            end.params { { version_id: BulkUpdateRequest.last.versions.first.id } }.success(:redirect)
+          end
+          access do |builder|
+            builder.gte(User::Levels::MEMBER).json.put do |user|
+              bur = create(:bulk_update_request, creator: user, skip_forum: true)
+              bur.update_with(user, script: "alias foo -> bar")
+              revert_bulk_update_request_path(bur)
+            end.params { { version_id: BulkUpdateRequest.last.versions.first.id } }
+          end
+        end
+      end
+
+      context("access control (not creator)") do
+        asserts do
+          access.gte(User::Levels::ADMIN).put { revert_bulk_update_request_path(@bulk_update_request) }.params { { version_id: @bulk_update_request.versions.first.id } }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.put { revert_bulk_update_request_path(@bulk_update_request) }.params { { version_id: @bulk_update_request.versions.first.id } }
+        end
       end
     end
   end

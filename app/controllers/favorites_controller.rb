@@ -60,6 +60,7 @@ class FavoritesController < ApplicationController
     CurrentUser.user.clear_favorites
     respond_to do |format|
       format.html { redirect_to(favorites_path, notice: "Your favorites are being cleared. Give it some time if you have a lot") }
+      format.json { head(204) }
     end
   end
 

@@ -115,8 +115,10 @@ module Moderator
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR) { |user| get_auth(moderator_dashboard_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).get(moderator_dashboard_path)
+          end
         end
       end
     end

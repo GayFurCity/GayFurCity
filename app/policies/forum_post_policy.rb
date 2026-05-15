@@ -6,39 +6,39 @@ class ForumPostPolicy < ApplicationPolicy
   end
 
   def new?
-    min_level? && (!record.is_a?(ForumPost) || record.topic.blank? || record.topic.can_reply?(user))
+    unbanned? &&  min_level? && (!record.is_a?(ForumPost) || record.topic.blank? || record.topic.can_reply?(user))
   end
 
   def create?
-    min_level? && (!record.is_a?(ForumPost) || (record.topic.present? && record.topic.can_reply?(user)))
+    unbanned? && min_level? && (!record.is_a?(ForumPost) || (record.topic.present? && record.topic.can_reply?(user)))
   end
 
   def update?
-    min_level? && (!record.is_a?(ForumPost) || record.editable_by?(user))
+    unbanned? && min_level? && (!record.is_a?(ForumPost) || record.editable_by?(user))
   end
 
   def destroy?
-    min_level? && (!record.is_a?(ForumPost) || record.can_delete?(user))
+    unbanned? && min_level? && (!record.is_a?(ForumPost) || record.can_delete?(user))
   end
 
   def hide?
-    min_level? && (!record.is_a?(ForumPost) || record.can_hide?(user))
+    unbanned? && min_level? && (!record.is_a?(ForumPost) || record.can_hide?(user))
   end
 
   def unhide?
-    user.is_moderator? && min_level? && (!record.is_a?(ForumPost) || record.can_hide?(user))
+    unbanned? && min_level? && user.is_moderator? && (!record.is_a?(ForumPost) || record.can_hide?(user))
   end
 
   def warning?
-    min_level? && user.is_moderator?
+    unbanned? && min_level? && user.is_moderator?
   end
 
   def mark_spam?
-    user.is_moderator?
+    unbanned? && min_level? && user.is_moderator?
   end
 
   def mark_not_spam?
-    user.is_moderator?
+    unbanned? && min_level? && user.is_moderator?
   end
 
   def min_level?

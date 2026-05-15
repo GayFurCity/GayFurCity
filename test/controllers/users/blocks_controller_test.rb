@@ -30,8 +30,11 @@ module Users
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED) { |user| get_auth(user_blocks_path(user), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).get { |user| user_blocks_path(user) }
+            access.gte(User::Levels::REJECTED).json.get { |user| user_blocks_path(user) }
+          end
         end
       end
 
@@ -115,8 +118,11 @@ module Users
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| post_auth(user_blocks_path(user), user, params: { user_block: { target_id: @user.id, hide_comments: true } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).post { |user| user_blocks_path(user) }.params { { user_block: { target_id: @user.id, hide_comments: true } } }.success(:redirect)
+            access.gte(User::Levels::REJECTED).json.post { |user| user_blocks_path(user) }.params { { user_block: { target_id: @user.id, hide_comments: true } } }
+          end
         end
       end
 
@@ -205,8 +211,11 @@ module Users
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| put_auth(user_block_path(user, create(:user_block, user: user, target: @user)), user, params: { user_block: { hide_comments: true } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).put { |user| user_block_path(user, create(:user_block, user: user, target: @user)) }.params({ user_block: { hide_comments: true } }).success(:redirect)
+            access.gte(User::Levels::REJECTED).json.put { |user| user_block_path(user, create(:user_block, user: user, target: @user)) }.params({ user_block: { hide_comments: true } })
+          end
         end
       end
 
@@ -264,8 +273,11 @@ module Users
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| delete_auth(user_block_path(user, create(:user_block, user: user, target: @user)), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).delete { |user| user_block_path(user, create(:user_block, user: user, target: @user)) }.success(:redirect)
+            access.gte(User::Levels::REJECTED).json.delete { |user| user_block_path(user, create(:user_block, user: user, target: @user)) }.success(:no_content)
+          end
         end
       end
     end

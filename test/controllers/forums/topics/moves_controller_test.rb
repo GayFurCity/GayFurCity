@@ -16,8 +16,10 @@ module Forums
             get_auth(move_forum_topic_path(@forum_topic), @mod)
           end
 
-          should("restrict access") do
-            assert_access(User::Levels::MODERATOR) { |user| get_auth(move_forum_topic_path(@forum_topic), user) }
+          context("access control") do
+            asserts do
+              access.gte(User::Levels::MODERATOR).get { move_forum_topic_path(@forum_topic) }
+            end
           end
         end
 
@@ -58,8 +60,11 @@ module Forums
             assert_equal(@category.id, @forum_topic.category.id)
           end
 
-          should("restrict access") do
-            assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(hide_forum_topic_path(create(:forum_topic, creator: @mod)), user, params: { forum_topic: { category_id: create(:forum_category).id } }) }
+          context("access control") do
+            asserts do
+              access.gte(User::Levels::MODERATOR).post { move_forum_topic_path(@forum_topic) }.params { { forum_topic: { category_id: @category2.id } } }.success(:redirect)
+              access.gte(User::Levels::MODERATOR).json.post { move_forum_topic_path(@forum_topic) }.params { { forum_topic: { category_id: @category2.id } } }
+            end
           end
         end
       end

@@ -64,8 +64,10 @@ module Posts
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(posts_iqdb_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(posts_iqdb_path)
+          end
         end
       end
     end

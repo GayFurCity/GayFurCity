@@ -17,8 +17,10 @@ class BansControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MODERATOR) { |user| get_auth(new_ban_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MODERATOR).get(new_ban_path)
+        end
       end
     end
 
@@ -29,8 +31,10 @@ class BansControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MODERATOR) { |user| get_auth(edit_ban_path(@ban), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MODERATOR).get { edit_ban_path(@ban) }
+        end
       end
     end
 
@@ -41,8 +45,10 @@ class BansControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(ban_path(@ban), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get { ban_path(@ban) }
+        end
       end
     end
 
@@ -59,8 +65,10 @@ class BansControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(bans_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(bans_path)
+        end
       end
 
       context("search parameters") do
@@ -74,14 +82,16 @@ class BansControllerTest < ActionDispatch::IntegrationTest
           @ban = create(:ban, user: @user, banner: @creator, banner_ip_addr: "127.0.0.2", reason: "foo", is_permaban: true)
         end
 
-        assert_search_param(:expired, "false", -> { [@ban] })
-        assert_search_param(:reason_matches, "foo", -> { [@ban] })
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@ban] }, -> { @admin })
-        assert_search_param(:banner_id, -> { @creator.id }, -> { [@ban] })
-        assert_search_param(:banner_name, -> { @creator.name }, -> { [@ban] })
-        assert_search_param(:user_id, -> { @user.id }, -> { [@ban] })
-        assert_search_param(:user_name, -> { @user.name }, -> { [@ban] })
-        assert_shared_search_params(-> { [@ban] })
+        asserts do
+          search(:expired, "false").records { [@ban] }
+          search(:reason_matches, "foo").records { [@ban] }
+          search(:ip_addr, "127.0.0.2").records { [@ban] }.user{ @admin }
+          search(:banner_id).value { @creator.id }.records { [@ban] }
+          search(:banner_name).value { @creator.name }.records { [@ban] }
+          search(:user_id).value { @user.id }.records { [@ban] }
+          search(:user_name).value { @user.name }.records { [@ban] }
+          search.shared.records { [@ban] }
+        end
       end
     end
 
@@ -97,8 +107,11 @@ class BansControllerTest < ActionDispatch::IntegrationTest
         assert_equal(%w[user_feedback_create user_ban ban_create], ModAction.last(3).pluck(:action))
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| post_auth(bans_path, user, params: { ban: { duration: 60, reason: "xxx", user_id: create(:user).id } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MODERATOR).post(bans_path).params { { ban: { duration: 60, reason: "xxx", user_id: create(:user).id } } }.success(:redirect)
+          #access.levels([]).post(bans_path).params { { ban: { duration: 60, reason: "xxx", user_id: create(:user).id } } }
+        end
       end
     end
 
@@ -113,8 +126,11 @@ class BansControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(ban_path(@ban))
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(ban_path(@ban), user, params: { ban: { reason: "xxx", duration: 60 } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MODERATOR).put { ban_path(@ban) }.params { { ban: { reason: "xxx", duration: 60 } } }.success(:redirect)
+          # access.levels([]).json.put { ban_path(@ban) }.params { { ban: { reason: "xxx", duration: 60 } } }
+        end
       end
     end
 
@@ -126,8 +142,11 @@ class BansControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(bans_path)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| delete_auth(ban_path(create(:ban, user: @user, banner: @mod)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MODERATOR).delete { ban_path(create(:ban, user: @user, banner: @mod)) }.success(:redirect)
+          # access.gte([]).json.delete { ban_path(create(:ban, user: @user, banner: @mod)) }.success(:no_content)
+        end
       end
     end
   end

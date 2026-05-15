@@ -18,8 +18,10 @@ module WikiPages
           get_auth(merge_wiki_page_path(@wiki_page), @admin)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN) { |user| get_auth(merge_wiki_page_path(@wiki_page), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).get { merge_wiki_page_path(@wiki_page) }
+          end
         end
       end
 
@@ -36,9 +38,11 @@ module WikiPages
           assert_equal(%w[wiki_page_merge wiki_page_delete], ModAction.last(2).map(&:action))
         end
 
-        should("restrict access") do
-          @wiki_pages = create_list(:wiki_page, User::Levels.constants.length)
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| post_auth(merge_wiki_page_path(@wiki_pages.shift), user, params: { wiki_page: { target_wiki_page_id: @target.id } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).post { merge_wiki_page_path(@wiki_page) }.params { { wiki_page: { target_wiki_page_id: @target.id } } }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.post { merge_wiki_page_path(@wiki_page) }.params { { wiki_page: { target_wiki_page_id: @target.id } } }
+          end
         end
       end
     end

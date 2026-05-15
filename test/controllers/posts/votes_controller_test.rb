@@ -41,8 +41,10 @@ module Posts
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED) { |user| get_auth(url_for(controller: "posts/votes", action: "index", only_path: true), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).get(url_for(controller: "posts/votes", action: "index", only_path: true))
+          end
         end
 
         context("search parameters") do
@@ -58,17 +60,19 @@ module Posts
             @vote2 = create(:post_vote, post: @post, score: -1, user: @voter2, user_ip_addr: "127.0.0.2", is_locked: false)
           end
 
-          assert_search_param(:post_id, -> { @post.id }, -> { [@vote] }, -> { @voter })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@vote2, @vote] }, -> { @admin })
-          assert_search_param(:score, "1", -> { [@vote] }, -> { @voter })
-          assert_search_param(:timeframe, "1", -> { [@vote] }, -> { @voter })
-          assert_search_param(:duplicates_only, "true", -> { [@vote2, @vote] }, -> { @admin })
-          assert_search_param(:post_creator_id, -> { @post.creator_id }, -> { [@vote] }, -> { @voter })
-          assert_search_param(:post_creator_name, -> { @post.creator_name }, -> { [@vote] }, -> { @voter })
-          assert_search_param(:user_id, -> { @voter.id }, -> { [@vote] }, -> { @voter })
-          assert_search_param(:user_name, -> { @voter.name }, -> { [@vote] }, -> { @voter })
-          assert_search_param(:is_locked, "false", -> { [@vote] }, -> { @voter })
-          assert_shared_search_params(-> { [@vote] }, -> { @voter })
+          asserts do
+            search(:post_id).value { @post.id }.records { [@vote] }.user { @voter }
+            search(:ip_addr, "127.0.0.2").records { [@vote2, @vote] }.user { @admin }
+            search(:score, "1").records { [@vote] }.user { @voter }
+            search(:timeframe, "1").records { [@vote] }.user { @voter }
+            search(:duplicates_only, "true").records { [@vote2, @vote] }.user { @admin }
+            search(:post_creator_id).value { @post.creator_id }.records { [@vote] }.user { @voter }
+            search(:post_creator_name).value { @post.creator_name }.records { [@vote] }.user { @voter }
+            search(:user_id).value { @voter.id }.records { [@vote] }.user { @voter }
+            search(:user_name).value { @voter.name }.records { [@vote] }.user { @voter }
+            search(:is_locked, "false").records { [@vote] }.user { @voter }
+            search.shared.records { [@vote] }.user { @voter }
+          end
         end
       end
 
@@ -127,8 +131,10 @@ module Posts
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED) { |user| post_auth(post_votes_path(@post), user, params: { score: 1 }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).post { post_votes_path(@post) }.params({ score: 1 })
+          end
         end
       end
 
@@ -162,12 +168,10 @@ module Posts
           assert_equal(@user2.id, log.voter_id)
         end
 
-        should("restrict access") do
-          @votes = []
-          User::Levels.constants.length.times do
-            @votes << create(:post_vote, post: @post, user: create(:user), score: 1)
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).json.post(lock_post_votes_path).params { { ids: @vote.id } }
           end
-          assert_access(User::Levels::MODERATOR) { |user| post_auth(lock_post_votes_path, user, params: { ids: @votes.shift.id }) }
         end
       end
 
@@ -204,14 +208,12 @@ module Posts
           assert_equal(1, log.vote)
           assert_equal(@user2.id, log.voter_id)
         end
-      end
-
-      should("restrict access") do
-        @votes = []
-        User::Levels.constants.length.times do
-          @votes << create(:post_vote, post: @post, user: create(:user), score: 1)
+  
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).json.post(delete_post_votes_path).params { { ids: @vote.id } }
+          end
         end
-        assert_access(User::Levels::ADMIN) { |user| post_auth(delete_post_votes_path, user, params: { ids: @votes.shift.id }) }
       end
     end
   end

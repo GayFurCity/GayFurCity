@@ -16,8 +16,11 @@ module Admin
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR) { |user| get_auth(admin_config_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).get(admin_config_path)
+            access.gte(User::Levels::MODERATOR).json.get(admin_config_path)
+          end
         end
       end
 
@@ -28,8 +31,10 @@ module Admin
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::OWNER, anonymous_response: :forbidden) { |user| put_auth(admin_config_path, user, params: { config: { comment_limit: 1 }, format: :json }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::OWNER).json.put(admin_config_path).params({ config: { comment_limit: 1 } })
+          end
         end
       end
     end

@@ -19,9 +19,20 @@ module Forums
           assert_redirected_to(forum_topics_path(search: { category_id: @category.id }))
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS, success_response: :redirect, anonymous_response: :redirect) { |user| get_auth(forum_category_path(@category), user) }
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| get_auth(forum_category_path(@category2), user) }
+        context("access control") do
+          context("for public category") do
+            asserts do
+              access.gte(User::Levels::ANONYMOUS).get { forum_category_path(@category) }.success(:redirect).anonymous(:redirect)
+              access.gte(User::Levels::ANONYMOUS).json.get { forum_category_path(@category) }
+            end
+          end
+
+          context("for restricted category") do
+            asserts do
+              access.gte(User::Levels::ADMIN).get { forum_category_path(@category2) }.success(:redirect)
+              access.gte(User::Levels::ADMIN).json.get { forum_category_path(@category2) }
+            end
+          end
         end
       end
 
@@ -39,8 +50,11 @@ module Forums
           assert_equal([@category.id], @response.parsed_body.pluck("id"))
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(forum_categories_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(forum_categories_path)
+            access.gte(User::Levels::ANONYMOUS).json.get(forum_categories_path)
+          end
         end
       end
 
@@ -51,8 +65,10 @@ module Forums
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN) { |user| get_auth(edit_forum_category_path(@category), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).get { edit_forum_category_path(@category) }
+          end
         end
       end
 
@@ -64,8 +80,11 @@ module Forums
           assert_equal("foobar", @category.reload.name)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(forum_category_path(@category), user, params: { name: SecureRandom.hex(6) }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).put { forum_category_path(@category) }.params { { name: SecureRandom.hex(6) } }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.put { forum_category_path(@category) }.params { { name: SecureRandom.hex(6) } }
+          end
         end
       end
 
@@ -76,8 +95,10 @@ module Forums
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN) { |user| get_auth(new_forum_category_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).get(new_forum_category_path)
+          end
         end
       end
 
@@ -91,8 +112,11 @@ module Forums
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| post_auth(forum_categories_path, user, params: { name: SecureRandom.hex(6) }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).post(forum_categories_path).params { { forum_category: { name: SecureRandom.hex(6) } } }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.post(forum_categories_path).params { { forum_category: { name: SecureRandom.hex(6) } } }
+          end
         end
       end
 
@@ -106,9 +130,11 @@ module Forums
             end
           end
 
-          should("restrict access") do
-            @categories = create_list(:forum_category, User::Levels.constants.length)
-            assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(forum_category_path(@categories.shift), user) }
+          context("access control") do
+            asserts do
+              access.gte(User::Levels::ADMIN).delete { forum_category_path(@category) }.success(:redirect)
+              access.gte(User::Levels::ADMIN).json.delete { forum_category_path(@category) }.success(:no_content)
+            end
           end
         end
 
@@ -157,8 +183,11 @@ module Forums
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| post_auth(move_all_topics_forum_category_path(@category3), user, params: { forum_category: { new_category_id: @category4.id } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).post { move_all_topics_forum_category_path(@category3) }.params { { forum_category: { new_category_id: @category4.id } } }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.post { move_all_topics_forum_category_path(@category3) }.params { { forum_category: { new_category_id: @category4.id } } }.success(:no_content)
+          end
         end
       end
 
@@ -172,8 +201,11 @@ module Forums
           assert(@admin.forum_category_visits.exists?(forum_category: @category))
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| put_auth(mark_as_read_forum_category_path(@category), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).put { mark_as_read_forum_category_path(@category) }.success(:redirect)
+            access.gte(User::Levels::REJECTED).json.put { mark_as_read_forum_category_path(@category) }.success(:no_content)
+          end
         end
       end
 
@@ -189,8 +221,11 @@ module Forums
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| put_auth(mark_all_as_read_forum_categories_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).put(mark_all_as_read_forum_categories_path).success(:redirect)
+            access.gte(User::Levels::REJECTED).json.put(mark_all_as_read_forum_categories_path).success(:no_content)
+          end
         end
       end
     end

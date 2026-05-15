@@ -42,8 +42,11 @@ module Posts
           assert_select("#post-version-#{@versions[2].id}")
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(post_versions_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(post_versions_path)
+            access.gte(User::Levels::ANONYMOUS).json.get(post_versions_path)
+          end
         end
       end
     end

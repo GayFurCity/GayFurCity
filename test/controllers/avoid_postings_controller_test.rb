@@ -19,10 +19,11 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(avoid_postings_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(avoid_postings_path)
+        end
       end
-
       context("search parameters") do
         subject { avoid_postings_path }
         setup do
@@ -36,18 +37,20 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
           @avoid_posting = create(:avoid_posting, is_active: true, details: "bar", staff_notes: "baz", artist: @artist, creator: @user, creator_ip_addr: "127.0.0.2", updater: @updater, updater_ip_addr: "127.0.0.3")
         end
 
-        assert_search_param(:is_active, "true", -> { [@avoid_posting] })
-        assert_search_param(:artist_id, -> { @artist.id }, -> { [@avoid_posting] })
-        assert_search_param(:artist_name, "foo", -> { [@avoid_posting] })
-        assert_search_param(:details, "bar", -> { [@avoid_posting] })
-        assert_search_param(:staff_notes, "baz", -> { [@avoid_posting] }, -> { @janitor })
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@avoid_posting] }, -> { @admin })
-        assert_search_param(:updater_ip_addr, "127.0.0.3", -> { [@avoid_posting] }, -> { @admin })
-        assert_search_param(:creator_id, -> { @user.id }, -> { [@avoid_posting] })
-        assert_search_param(:creator_name, -> { @user.name }, -> { [@avoid_posting] })
-        assert_search_param(:updater_id, -> { @updater.id }, -> { [@avoid_posting] })
-        assert_search_param(:updater_name, -> { @updater.name }, -> { [@avoid_posting] })
-        assert_shared_search_params(-> { [@avoid_posting] })
+        asserts do
+          search(:is_active, "true").records { [@avoid_posting] }
+          search(:artist_id).value { @artist.id }.records { [@avoid_posting] }
+          search(:artist_name, "foo").records { [@avoid_posting] }
+          search(:details, "bar").records { [@avoid_posting] }
+          search(:staff_notes, "baz").records { [@avoid_posting] }.user { @janitor }
+          search(:ip_addr, "127.0.0.2").records { [@avoid_posting] }.user { @admin }
+          search(:updater_ip_addr, "127.0.0.3").records { [@avoid_posting] }.user { @admin }
+          search(:creator_id).value { @user.id }.records { [@avoid_posting] }
+          search(:creator_name).value { @user.name }.records { [@avoid_posting] }
+          search(:updater_id).value { @updater.id }.records { [@avoid_posting] }
+          search(:updater_name).value { @updater.name }.records { [@avoid_posting] }
+          search.shared.records { [@avoid_posting] }
+        end
       end
     end
 
@@ -64,8 +67,10 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(avoid_posting_path(@avoid_posting), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get { avoid_posting_path(@avoid_posting) }
+        end
       end
     end
 
@@ -76,8 +81,10 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::OWNER) { |user| get_auth(edit_avoid_posting_path(@avoid_posting), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::OWNER).get { edit_avoid_posting_path(@avoid_posting) }
+        end
       end
     end
 
@@ -88,8 +95,10 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::OWNER) { |user| get_auth(new_avoid_posting_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::OWNER).get(new_avoid_posting_path)
+        end
       end
     end
 
@@ -165,8 +174,11 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(avoid_posting_path(avoid_posting))
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::OWNER, success_response: :redirect) { |user| post_auth(avoid_postings_path, user, params: { avoid_posting: { artist_attributes: { name: SecureRandom.hex(6) } } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::OWNER).post(avoid_postings_path).params { { avoid_posting: { artist_attributes: { name: SecureRandom.hex(6) } } } }.success(:redirect)
+          access.gte(User::Levels::OWNER).json.post(avoid_postings_path).params { { avoid_posting: { artist_attributes: { name: SecureRandom.hex(6) } } } }
+        end
       end
     end
 
@@ -191,8 +203,11 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         assert_equal("foobar", @avoid_posting.artist.reload.name)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::OWNER, success_response: :redirect) { |user| put_auth(avoid_posting_path(@avoid_posting), user, params: { avoid_posting: { details: "test" } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::OWNER).put { avoid_posting_path(@avoid_posting) }.params({ avoid_posting: { details: "test" } }).success(:redirect)
+          access.gte(User::Levels::OWNER).json.put { avoid_posting_path(@avoid_posting) }.params({ avoid_posting: { details: "test" } })
+        end
       end
     end
 
@@ -206,8 +221,11 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         assert_equal("avoid_posting_delete", ModAction.last.action)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::OWNER, success_response: :redirect) { |user| put_auth(delete_avoid_posting_path(@avoid_posting), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::OWNER).put { delete_avoid_posting_path(@avoid_posting) }.success(:redirect)
+          access.gte(User::Levels::OWNER).json.put { delete_avoid_posting_path(@avoid_posting) }
+        end
       end
     end
 
@@ -223,8 +241,11 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         assert_equal("avoid_posting_undelete", ModAction.last.action)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::OWNER, success_response: :redirect) { |user| put_auth(undelete_avoid_posting_path(@avoid_posting), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::OWNER).put { undelete_avoid_posting_path(@avoid_posting) }.success(:redirect)
+          access.gte(User::Levels::OWNER).json.put { undelete_avoid_posting_path(@avoid_posting) }
+        end
       end
     end
 
@@ -238,8 +259,11 @@ class AvoidPostingsControllerTest < ActionDispatch::IntegrationTest
         assert_equal("avoid_posting_destroy", ModAction.last.action)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::OWNER, success_response: :redirect) { |user| delete_auth(avoid_posting_path(create(:avoid_posting)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::OWNER).delete { avoid_posting_path(create(:avoid_posting)) }.success(:redirect)
+          access.gte(User::Levels::OWNER).json.delete { avoid_posting_path(create(:avoid_posting)) }.success(:no_content)
+        end
       end
     end
   end

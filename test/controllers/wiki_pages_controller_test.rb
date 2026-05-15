@@ -23,8 +23,11 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(wiki_pages_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(wiki_pages_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(wiki_pages_path)
+        end
       end
 
       context("search parameters") do
@@ -39,20 +42,22 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
           @wiki_page = create(:wiki_page, title: "foo", body: "[[bar]] baz", protection_level: User::Levels::TRUSTED, creator: @creator, creator_ip_addr: "127.0.0.2", updater: @updater, updater_ip_addr: "127.0.0.3", parent: @parent.title)
         end
 
-        assert_search_param(:title, "foo", -> { [@wiki_page] })
-        assert_search_param(:title_matches, "foo", -> { [@wiki_page] })
-        assert_search_param(:body_matches, "baz", -> { [@wiki_page] })
-        assert_search_param(:protection_level, User::Levels::TRUSTED, -> { [@wiki_page] })
-        assert_search_param(:parent, "bar", -> { [@wiki_page] })
-        assert_search_param(:linked_to, "bar", -> { [@wiki_page] })
-        assert_search_param(:not_linked_to, "bar", -> { [@parent] })
-        assert_search_param(:creator_id, -> { @creator.id }, -> { [@wiki_page] })
-        assert_search_param(:creator_name, -> { @creator.name }, -> { [@wiki_page] })
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@wiki_page] }, -> { @admin })
-        assert_search_param(:updater_id, -> { @updater.id }, -> { [@wiki_page] })
-        assert_search_param(:updater_name, -> { @updater.name }, -> { [@wiki_page] })
-        assert_search_param(:updater_ip_addr, "127.0.0.3", -> { [@wiki_page] }, -> { @admin })
-        assert_shared_search_params(-> { [@wiki_page, @parent] })
+        asserts do
+          search(:title, "foo").records { [@wiki_page] }
+          search(:title_matches, "foo").records { [@wiki_page] }
+          search(:body_matches, "baz").records { [@wiki_page] }
+          search(:protection_level, User::Levels::TRUSTED).records { [@wiki_page] }
+          search(:parent, "bar").records { [@wiki_page] }
+          search(:linked_to, "bar").records { [@wiki_page] }
+          search(:not_linked_to, "bar").records { [@parent] }
+          search(:creator_id).value { @creator.id }.records { [@wiki_page] }
+          search(:creator_name).value { @creator.name }.records { [@wiki_page] }
+          search(:ip_addr, "127.0.0.2").records { [@wiki_page] }.user { @admin }
+          search(:updater_id).value { @updater.id }.records { [@wiki_page] }
+          search(:updater_name).value { @updater.name }.records { [@wiki_page] }
+          search(:updater_ip_addr, "127.0.0.3").records { [@wiki_page] }.user { @admin }
+          search.shared.records { [@wiki_page, @parent] }
+        end
       end
     end
 
@@ -88,8 +93,11 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(wiki_page_path(@wiki_page), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get { wiki_page_path(@wiki_page) }
+          access.gte(User::Levels::ANONYMOUS).json.get { wiki_page_path(@wiki_page) }
+        end
       end
     end
 
@@ -106,8 +114,10 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(show_or_new_wiki_pages_path, user, params: { title: "gay" }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(show_or_new_wiki_pages_path).params({ title: "what" })
+        end
       end
     end
 
@@ -118,8 +128,10 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER) { |user| get_auth(new_wiki_page_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).get(new_wiki_page_path)
+        end
       end
     end
 
@@ -130,13 +142,18 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("respect protections") do
-        @wiki_page.update_columns(protection_level: User::Levels::ADMIN)
-        assert_access(User::Levels::ADMIN) { |user| get_auth(edit_wiki_page_path(@wiki_page), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).get { edit_wiki_page_path(@wiki_page) }
+        end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER) { |user| get_auth(edit_wiki_page_path(@wiki_page), user) }
+      context("protected access control") do
+        setup { @wiki_page.update_columns(protection_level: User::Levels::ADMIN) }
+
+        asserts do
+          access.gte(User::Levels::ADMIN).get { edit_wiki_page_path(@wiki_page) }
+        end
       end
     end
 
@@ -147,8 +164,11 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| post_auth(wiki_pages_path, user, params: { wiki_page: { title: SecureRandom.hex(6), body: SecureRandom.hex(6) } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).post(wiki_pages_path).params { { wiki_page: { title: SecureRandom.hex(6), body: SecureRandom.hex(6) } } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.post(wiki_pages_path).params { { wiki_page: { title: SecureRandom.hex(6), body: SecureRandom.hex(6) } } }
+        end
       end
     end
 
@@ -198,13 +218,20 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         assert_nil(@wiki_page.reload.protection_level)
       end
 
-      should("respect protections") do
-        @wiki_page.update_columns(protection_level: User::Levels::ADMIN)
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(wiki_page_path(@wiki_page), user, params: { wiki_page: { body: SecureRandom.hex(6) } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).put { wiki_page_path(@wiki_page) }.params { { wiki_page: { body: SecureRandom.hex(6) } } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { wiki_page_path(@wiki_page) }.params { { wiki_page: { body: SecureRandom.hex(6) } } }
+        end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| put_auth(wiki_page_path(@wiki_page), user, params: { wiki_page: { body: SecureRandom.hex(6) } }) }
+      context("protections access control") do
+        setup { @wiki_page.update_columns(protection_level: User::Levels::ADMIN) }
+
+        asserts do
+          access.gte(User::Levels::ADMIN).put { wiki_page_path(@wiki_page) }.params { { wiki_page: { body: SecureRandom.hex(6) } } }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.put { wiki_page_path(@wiki_page) }.params { { wiki_page: { body: SecureRandom.hex(6) } } }
+        end
       end
     end
 
@@ -218,14 +245,20 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         assert_raises(ActiveRecord::RecordNotFound) { @wiki_page.reload }
       end
 
-      should("respect protections") do
-        @wiki_pages = create_list(:wiki_page, User::Levels.constants.length, protection_level: User::Levels::OWNER, creator: @owner)
-        assert_access(User::Levels::OWNER, success_response: :redirect) { |user| delete_auth(wiki_page_path(@wiki_pages.shift), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).delete { wiki_page_path(@wiki_page) }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.delete { wiki_page_path(@wiki_page) }.success(:no_content)
+        end
       end
 
-      should("restrict access") do
-        @wiki_pages = create_list(:wiki_page, User::Levels.constants.length)
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(wiki_page_path(@wiki_pages.shift), user) }
+      context("protections access control") do
+        setup { @wiki_page = create(:wiki_page, protection_level: User::Levels::OWNER, creator: @owner) }
+
+        asserts do
+          access.gte(User::Levels::OWNER).delete { wiki_page_path(@wiki_page) }.success(:redirect)
+          access.gte(User::Levels::OWNER).json.delete { wiki_page_path(@wiki_page) }.success(:no_content)
+        end
       end
     end
 
@@ -260,13 +293,20 @@ class WikiPagesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:missing)
       end
 
-      should("respect protections") do
-        @wiki_page.update_column(:protection_level, User::Levels::ADMIN)
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(revert_wiki_page_path(@wiki_page), user, params: { version_id: @wiki_page.versions.first.id }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).put { revert_wiki_page_path(@wiki_page) }.params { { version_id: @wiki_page.versions.first.id } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { revert_wiki_page_path(@wiki_page) }.params { { version_id: @wiki_page.versions.first.id } }
+        end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| put_auth(revert_wiki_page_path(@wiki_page), user, params: { version_id: @wiki_page.versions.first.id }) }
+      context("protections access control") do
+        setup { @wiki_page.update_column(:protection_level, User::Levels::ADMIN) }
+
+        asserts do
+          access.gte(User::Levels::ADMIN).put { revert_wiki_page_path(@wiki_page) }.params { { version_id: @wiki_page.versions.first.id } }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.put { revert_wiki_page_path(@wiki_page) }.params { { version_id: @wiki_page.versions.first.id } }
+        end
       end
     end
   end

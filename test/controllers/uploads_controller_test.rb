@@ -37,9 +37,12 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        GayFurCity.config.stubs(:disable_age_checks).returns(true)
-        assert_access(User::Levels::MEMBER) { |user| get_auth(new_upload_path, user) }
+      context("access control") do
+        setup { GayFurCity.config.stubs(:disable_age_checks).returns(true) }
+
+        asserts do
+          access.gte(User::Levels::MEMBER).get(new_upload_path)
+        end
       end
     end
 
@@ -54,8 +57,11 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::JANITOR) { |user| get_auth(uploads_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::JANITOR).get(uploads_path)
+          access.gte(User::Levels::JANITOR).json.get(uploads_path)
+        end
       end
 
       context("search parameters") do
@@ -70,20 +76,22 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
           @upload = create(:upload, uploader: @uploader, uploader_ip_addr: "127.0.0.2", source: "https://google.com", rating: "e", parent_id: @parent.id, tag_string: "tagme", backtrace: "foo", post: @post)
         end
 
-        assert_search_param(:source, "https://google.com", -> { [@upload] }, -> { @janitor })
-        assert_search_param(:source_matches, "https://google.com", -> { [@upload] }, -> { @janitor })
-        assert_search_param(:rating, "e", -> { [@upload] }, -> { @janitor })
-        assert_search_param(:parent_id, -> { @parent.id }, -> { [@upload] }, -> { @janitor })
-        assert_search_param(:post_id, -> { @post.id }, -> { [@upload] }, -> { @janitor })
-        assert_search_param(:status, "active", -> { [@upload] }, -> { @janitor })
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@upload] }, -> { @admin })
-        assert_search_param(:has_post, "true", -> { [@upload] }, -> { @janitor })
-        assert_search_param(:post_tags_match, "tagme", -> { [@upload] }, -> { @janitor })
-        assert_search_param(:backtrace, "foo", -> { [@upload] }, -> { @janitor })
-        assert_search_param(:tag_string, "tagme", -> { [@upload] }, -> { @janitor })
-        assert_search_param(:uploader_id, -> { @uploader.id }, -> { [@upload] }, -> { @janitor })
-        assert_search_param(:uploader_name, -> { @uploader.name }, -> { [@upload] }, -> { @janitor })
-        assert_shared_search_params(-> { [@upload] }, -> { @janitor })
+        asserts do
+          search(:source, "https://google.com").records { [@upload] }.user { @janitor }
+          search(:source_matches, "https://google.com").records { [@upload] }.user { @janitor }
+          search(:rating, "e").records { [@upload] }.user { @janitor }
+          search(:parent_id).value { @parent.id }.records { [@upload] }.user { @janitor }
+          search(:post_id).value { @post.id }.records { [@upload] }.user { @janitor }
+          search(:status, "active").records { [@upload] }.user { @janitor }
+          search(:ip_addr, "127.0.0.2").records { [@upload] }.user { @admin }
+          search(:has_post, "true").records { [@upload] }.user { @janitor }
+          search(:post_tags_match, "tagme").records { [@upload] }.user { @janitor }
+          search(:backtrace, "foo").records { [@upload] }.user { @janitor }
+          search(:tag_string, "tagme").records { [@upload] }.user { @janitor }
+          search(:uploader_id).value { @uploader.id }.records { [@upload] }.user { @janitor }
+          search(:uploader_name).value { @uploader.name }.records { [@upload] }.user { @janitor }
+          search.shared.records { [@upload] }.user { @janitor }
+        end
       end
     end
 
@@ -105,8 +113,11 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(post_path(@upload.post))
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::JANITOR) { |user| get_auth(upload_path(@pending), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::JANITOR).get { upload_path(@pending) }
+          access.gte(User::Levels::JANITOR).json.get { upload_path(@pending) }
+        end
       end
     end
 
@@ -162,12 +173,14 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
         # end
       end
 
-      should("restrict access") do
-        file = fixture_file_upload("test.jpg")
-        GayFurCity.config.stubs(:disable_age_checks).returns(true)
-        assert_access(User::Levels::MEMBER, anonymous_response: :forbidden) do |user|
-          [Upload, PostVersion, Post, UploadMediaAsset].each(&:delete_all)
-          post_auth(uploads_path, user, params: { upload: { file: file, tag_string: "aaa", rating: "q", source: "aaa" }, format: :json })
+      context("access control") do
+        setup do
+          @file = fixture_file_upload("test.jpg")
+          GayFurCity.config.stubs(:disable_age_checks).returns(true)
+        end
+
+        asserts do
+          access.gte(User::Levels::MEMBER).json.post(uploads_path).params { { upload: { file: @file, tag_string: "aaa", rating: "q", source: "aaa" } } }
         end
       end
     end

@@ -51,8 +51,11 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(posts_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(posts_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(posts_path)
+        end
       end
     end
 
@@ -69,9 +72,12 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        @posts = create_list(:post, 2)
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(show_seq_post_path(@posts.first.id, params: { seq: "next" }), user) }
+      context("access control") do
+        setup { @posts = create_list(:post, 2) }
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get { show_seq_post_path(@posts.first) }.params({ seq: "next" })
+          access.gte(User::Levels::ANONYMOUS).json.get { show_seq_post_path(@posts.first) }.params({ seq: "next" })
+        end
       end
     end
 
@@ -94,8 +100,11 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         assert_not_includes(@response.body, %{<img src=x onerror=alert("xss")>})
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(post_path(@post), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get { post_path(@post) }
+          access.gte(User::Levels::ANONYMOUS).json.get { post_path(@post) }
+        end
       end
     end
 
@@ -173,8 +182,11 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| put_auth(post_path(@post), user, params: { post: { tag_string: "bbb" } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).put { post_path(@post) }.params({ post: { tag_string: "bbb" } }).success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { post_path(@post) }.params({ post: { tag_string: "bbb" } })
+        end
       end
     end
 
@@ -223,8 +235,11 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| put_auth(revert_post_path(@post), user, params: { version_id: @post.versions.first.id }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).put { revert_post_path(@post) }.params { { version_id: @post.versions.first.id } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { revert_post_path(@post) }.params { { version_id: @post.versions.first.id } }
+        end
       end
     end
 
@@ -235,8 +250,10 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]) { |user| get_auth(delete_post_path(@post), user) }
+      context("access control") do
+        asserts do
+          access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).get { delete_post_path(@post) }
+        end
       end
     end
 
@@ -256,8 +273,13 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         assert_predicate(@post.reload, :is_deleted?)
       end
 
-      should("restrict access") do
-        assert_access([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER], success_response: :redirect) { |user| delete_auth(post_path(@post), user) }
+      context("access control") do
+        setup { create(:post_flag, post: @post) }
+
+        asserts do
+          access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).delete { post_path(@post) }.success(:redirect)
+          access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).json.delete { post_path(@post) }
+        end
       end
     end
 
@@ -274,8 +296,13 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         assert_predicate(@post.uploader.notifications.post_undelete, :exists?)
       end
 
-      should("restrict access") do
-        assert_access([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER], success_response: :redirect) { |user| put_auth(undelete_post_path(create(:post, is_deleted: true)), user) }
+      context("access control") do
+        setup { @post.delete!(@user, "test delete") }
+
+        asserts do
+          access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).put { undelete_post_path(@post) }.success(:redirect)
+          access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).json.put { undelete_post_path(@post) }
+        end
       end
     end
 
@@ -296,8 +323,11 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         assert_equal("test", DestroyedPost.last.reason)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(expunge_post_path(create(:post)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).put { expunge_post_path(@post) }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.put { expunge_post_path(@post) }
+        end
       end
     end
 
@@ -350,8 +380,11 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| post_auth(add_to_pool_post_path(@post), user, params: { pool_id: @pool.id }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).post { add_to_pool_post_path(@post) }.params { { pool_id: @pool.id } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.post { add_to_pool_post_path(@post) }.params { { pool_id: @pool.id } }
+        end
       end
     end
 
@@ -406,8 +439,11 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| post_auth(remove_from_pool_post_path(@post), user, params: { pool_id: @pool.id }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).post { remove_from_pool_post_path(@post) }.params { { pool_id: @pool.id } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.post { remove_from_pool_post_path(@post) }.params { { pool_id: @pool.id } }
+        end
       end
     end
 
@@ -418,8 +454,10 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::JANITOR) { |user| get_auth(uploaders_posts_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::JANITOR).get(uploaders_posts_path)
+        end
       end
     end
 
@@ -430,8 +468,11 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(deleted_posts_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(deleted_posts_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(deleted_posts_path)
+        end
       end
     end
   end

@@ -22,8 +22,11 @@ module Artists
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(artist_versions_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(artist_versions_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(artist_versions_path)
+        end
       end
 
       context("search parameters") do
@@ -38,13 +41,14 @@ module Artists
           @artist_version = @artist.versions.first
         end
 
-        assert_search_param(:artist_id, -> { @artist.id }, -> { [@artist_version] })
-        assert_search_param(:artist_name, -> { @artist.name }, -> { [@artist_version] })
-        assert_search_param(:artist_name, -> { @artist.name }, -> { [@artist_version] })
-        assert_search_param(:updater_id, -> { @updater.id }, -> { [@artist_version] })
-        assert_search_param(:updater_name, -> { @updater.name }, -> { [@artist_version] })
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@artist_version] }, -> { @admin })
-        assert_shared_search_params(-> { [@artist_version] })
+        asserts do
+          search(:artist_id).value { @artist.id }.records { [@artist_version] }
+          search(:artist_name).value { @artist.name }.records { [@artist_version] }
+          search(:updater_id).value { @updater.id }.records { [@artist_version] }
+          search(:updater_name).value { @updater.name }.records { [@artist_version] }
+          search(:ip_addr, "127.0.0.2").records { [@artist_version] }.user { @admin }
+          search.shared.records { [@artist_version] }
+        end
       end
     end
   end

@@ -60,8 +60,10 @@ module Admin
           assert_response(:forbidden)
         end
 
-        should("restrict access") do
-          assert_access([User::Levels::OWNER]) { |user| get_auth(application_admin_logs_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::OWNER).get(application_admin_logs_path)
+          end
         end
       end
 
@@ -81,9 +83,9 @@ module Admin
           assert_response(:forbidden)
         end
 
-        should("restrict access") do
-          assert_access([User::Levels::OWNER], success_response: :success, anonymous_response: :forbidden) do |user|
-            get_auth(application_status_admin_logs_path(format: :json), user)
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::OWNER).json.get(application_status_admin_logs_path)
           end
         end
       end
@@ -131,8 +133,10 @@ module Admin
           assert_response(:forbidden)
         end
 
-        should("restrict access") do
-          assert_access([User::Levels::OWNER]) { |user| get_auth(request_admin_logs_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::OWNER).get(request_admin_logs_path)
+          end
         end
       end
 
@@ -152,9 +156,9 @@ module Admin
           assert_response(:forbidden)
         end
 
-        should("restrict access") do
-          assert_access([User::Levels::OWNER], success_response: :success, anonymous_response: :forbidden) do |user|
-            get_auth(request_status_admin_logs_path(format: :json), user)
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::OWNER).json.get(request_status_admin_logs_path)
           end
         end
       end

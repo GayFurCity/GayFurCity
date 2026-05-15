@@ -18,8 +18,11 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(help_pages_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(help_pages_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(help_pages_path)
+        end
       end
     end
 
@@ -54,8 +57,11 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
         assert_response(:not_found)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(help_page_path(@help), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get { help_page_path(@help) }
+          access.gte(User::Levels::ANONYMOUS).json.get { help_page_path(@help) }
+        end
       end
     end
 
@@ -66,8 +72,10 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN) { |user| get_auth(new_help_page_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).get(new_help_page_path)
+        end
       end
     end
 
@@ -78,8 +86,11 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(HelpPage.last)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| post_auth(help_pages_path, user, params: { help_page: { name: SecureRandom.hex(6), wiki_page_id: create(:wiki_page).id } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).post(help_pages_path).params { { help_page: { name: SecureRandom.hex(6), wiki_page_id: create(:wiki_page).id } } }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.post(help_pages_path).params { { help_page: { name: SecureRandom.hex(6), wiki_page_id: create(:wiki_page).id } } }
+        end
       end
     end
 
@@ -90,8 +101,10 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN) { |user| get_auth(edit_help_page_path(@help), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).get { edit_help_page_path(@help) }
+        end
       end
     end
 
@@ -103,8 +116,11 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
         assert_equal("test2", @help.reload.name)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(help_page_path(@help), user, params: { help_page: { name: "test" } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).put { help_page_path(@help) }.params({ help_page: { name: "test" } }).success(:redirect)
+          access.gte(User::Levels::ADMIN).json.put { help_page_path(@help) }.params({ help_page: { name: "test" } })
+        end
       end
     end
 
@@ -116,8 +132,11 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
         assert_raises(ActiveRecord::RecordNotFound) { @help.reload }
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(help_page_path(create(:help_page)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).delete { help_page_path(@help) }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.delete { help_page_path(@help) }.success(:no_content)
+        end
       end
     end
   end

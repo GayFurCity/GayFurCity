@@ -28,8 +28,11 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED) { |user| get_auth(favorites_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).get(favorites_path)
+          access.gte(User::Levels::REJECTED).json.get(favorites_path)
+        end
       end
     end
 
@@ -50,8 +53,11 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| post_auth(favorites_path, user, params: { post_id: @post.id }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).post(favorites_path).params { { post_id: @post.id } }.success(:redirect)
+          access.gte(User::Levels::REJECTED).json.post(favorites_path).params { { post_id: @post.id } }
+        end
       end
     end
 
@@ -67,8 +73,11 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| delete_auth(favorite_path(@post), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).delete { favorite_path(@post) }.success(:redirect)
+          access.gte(User::Levels::REJECTED).json.delete { favorite_path(@post) }
+        end
       end
     end
 
@@ -96,8 +105,11 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:too_many_requests)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| put_auth(clear_favorites_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).put(clear_favorites_path).success(:redirect)
+          access.gte(User::Levels::REJECTED).json.put(clear_favorites_path).success(:no_content)
+        end
       end
     end
   end

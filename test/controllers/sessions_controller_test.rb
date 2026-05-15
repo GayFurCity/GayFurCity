@@ -11,8 +11,11 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN) { |user| get_auth(user_sessions_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).get(user_sessions_path)
+          access.gte(User::Levels::ADMIN).json.get(user_sessions_path)
+        end
       end
 
       # we can't test session searching due to get_auth creating a session we can't account for

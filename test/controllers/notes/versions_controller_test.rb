@@ -31,8 +31,10 @@ module Notes
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(note_versions_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(note_versions_path)
+          end
         end
 
         context("search parameters") do
@@ -46,14 +48,16 @@ module Notes
             @note_version = @note.versions.first
           end
 
-          assert_search_param(:post_id, -> { @note.post.id }, -> { [@note_version] })
-          assert_search_param(:note_id, -> { @note.id }, -> { [@note_version] })
-          assert_search_param(:is_active, "true", -> { [@note_version] })
-          assert_search_param(:body_matches, "foo", -> { [@note_version] })
-          assert_search_param(:updater_id, -> { @updater.id }, -> { [@note_version] })
-          assert_search_param(:updater_name, -> { @updater.name }, -> { [@note_version] })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@note_version] }, -> { @admin })
-          assert_shared_search_params(-> { [@note_version] })
+          asserts do
+            search(:post_id).value { @note.post.id }.records { [@note_version] }
+            search(:note_id).value { @note.id }.records { [@note_version] }
+            search(:is_active, "true").records { [@note_version] }
+            search(:body_matches, "foo").records { [@note_version] }
+            search(:updater_id).value { @updater.id }.records { [@note_version] }
+            search(:updater_name).value { @updater.name }.records { [@note_version] }
+            search(:ip_addr, "127.0.0.2").records { [@note_version] }.user { @admin }
+            search.shared.records { [@note_version] }
+          end
         end
       end
     end

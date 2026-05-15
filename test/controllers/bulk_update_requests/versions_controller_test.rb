@@ -37,8 +37,11 @@ module BulkUpdateRequests
           assert_select("#bulk-update-request-version-#{@versions[2].id}", false)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(bulk_update_request_versions_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(bulk_update_request_versions_path)
+            access.gte(User::Levels::ANONYMOUS).json.get(bulk_update_request_versions_path)
+          end
         end
 
         context("search parameters") do
@@ -52,11 +55,13 @@ module BulkUpdateRequests
             @bulk_update_request_version = @bulk_update_request.versions.first
           end
 
-          assert_search_param(:bulk_update_request_id, -> { @bulk_update_request.id }, -> { [@bulk_update_request_version] })
-          assert_search_param(:updater_id, -> { @updater.id }, -> { [@bulk_update_request_version] })
-          assert_search_param(:updater_name, -> { @updater.name }, -> { [@bulk_update_request_version] })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@bulk_update_request_version] }, -> { @admin })
-          assert_shared_search_params(-> { [@bulk_update_request_version] })
+          asserts do
+            search(:bulk_update_request_id).value { @bulk_update_request.id }.records { [@bulk_update_request_version] }
+            search(:updater_id).value { @updater.id }.records { [@bulk_update_request_version] }
+            search(:updater_name).value { @updater.name }.records { [@bulk_update_request_version] }
+            search(:ip_addr, "127.0.0.2").records { [@bulk_update_request_version] }.user { @admin }
+            search.shared.records { [@bulk_update_request_version] }
+          end
         end
       end
 
@@ -82,8 +87,11 @@ module BulkUpdateRequests
           assert_response(:bad_request)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(undo_bulk_update_request_version_path(@bulk_update_request.versions.second), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).put { undo_bulk_update_request_version_path(@bulk_update_request.versions.second) }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.put { undo_bulk_update_request_version_path(@bulk_update_request.versions.second) }
+          end
         end
       end
     end

@@ -12,8 +12,11 @@ class TakedownsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(takedowns_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(takedowns_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(takedowns_path)
+        end
       end
 
       context("search parameters") do
@@ -37,24 +40,26 @@ class TakedownsControllerTest < ActionDispatch::IntegrationTest
                              status: "approved", post_ids: @post.id.to_s)
         end
 
-        assert_search_param(:source, "https://google.com", -> { [@takedown] }, -> { @janitor })
-        assert_search_param(:reason, "foo", -> { [@takedown] }, -> { @janitor })
-        assert_search_param(:instructions, "bar", -> { [@takedown] }, -> { @janitor })
-        assert_search_param(:notes, "baz", -> { [@takedown] }, -> { @janitor })
-        assert_search_param(:reason_hidden, "false", -> { [@takedown] }, -> { @janitor })
-        assert_search_param(:email, "qux@example.com", -> { [@takedown] }, -> { @owner })
-        assert_search_param(:vericode, "abc123", -> { [@takedown] }, -> { @owner })
-        assert_search_param(:status, "approved", -> { [@takedown] })
-        assert_search_param(:post_id, -> { @post.id }, -> { [@takedown] }, -> { @janitor })
-        assert_search_param(:creator_id, -> { @creator.id }, -> { [@takedown] }, -> { @janitor })
-        assert_search_param(:creator_name, -> { @creator.name }, -> { [@takedown] }, -> { @janitor })
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@takedown] }, -> { @admin })
-        assert_search_param(:updater_id, -> { @updater.id }, -> { [@takedown] }, -> { @janitor })
-        assert_search_param(:updater_name, -> { @updater.name }, -> { [@takedown] }, -> { @janitor })
-        assert_search_param(:updater_ip_addr, "127.0.0.3", -> { [@takedown] }, -> { @admin })
-        assert_search_param(:approver_id, -> { @approver.id }, -> { [@takedown] })
-        assert_search_param(:approver_name, -> { @approver.name }, -> { [@takedown] })
-        assert_shared_search_params(-> { [@takedown] })
+        asserts do
+          search(:source, "https://google.com").records { [@takedown] }.user { @janitor }
+          search(:reason, "foo").records { [@takedown] }.user { @janitor }
+          search(:instructions, "bar").records { [@takedown] }.user { @janitor }
+          search(:notes, "baz").records { [@takedown] }.user { @janitor }
+          search(:reason_hidden, "false").records { [@takedown] }.user { @janitor }
+          search(:email, "qux@example.com").records { [@takedown] }.user { @owner }
+          search(:vericode, "abc123").records { [@takedown] }.user { @owner }
+          search(:status, "approved").records { [@takedown] }
+          search(:post_id).value { @post.id }.records { [@takedown] }.user { @janitor }
+          search(:creator_id).value { @creator.id }.records { [@takedown] }.user { @janitor }
+          search(:creator_name).value { @creator.name }.records { [@takedown] }.user { @janitor }
+          search(:ip_addr, "127.0.0.2").records { [@takedown] }.user { @admin }
+          search(:updater_id).value { @updater.id }.records { [@takedown] }.user { @janitor }
+          search(:updater_name).value { @updater.name }.records { [@takedown] }.user { @janitor }
+          search(:updater_ip_addr, "127.0.0.3").records { [@takedown] }.user { @admin }
+          search(:approver_id).value { @approver.id }.records { [@takedown] }
+          search(:approver_name).value { @approver.name }.records { [@takedown] }
+          search.shared.records { [@takedown] }
+        end
       end
     end
 

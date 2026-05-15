@@ -4,7 +4,7 @@ require("test_helper")
 
 module Comments
   class VotesControllerTest < ActionDispatch::IntegrationTest
-    context("A comment votes controller") do
+    context("The comment votes controller") do
       setup do
         @user = create(:user)
         @post = create(:post, uploader: @user)
@@ -40,8 +40,11 @@ module Comments
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MEMBER) { |user| get_auth(url_for(controller: "comments/votes", action: "index", only_path: true), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MEMBER).get(url_for(controller: "comments/votes", action: "index", only_path: true))
+            access.gte(User::Levels::MEMBER).json.get(url_for(controller: "comments/votes", action: "index", only_path: true))
+          end
         end
 
         context("search parameters") do
@@ -57,17 +60,19 @@ module Comments
             @vote2 = create(:comment_vote, comment: @comment, score: -1, user: @voter2, user_ip_addr: "127.0.0.2", is_locked: false)
           end
 
-          assert_search_param(:comment_id, -> { @comment.id }, -> { [@vote] }, -> { @voter })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@vote2, @vote] }, -> { @admin })
-          assert_search_param(:score, "1", -> { [@vote] }, -> { @voter })
-          assert_search_param(:timeframe, "1", -> { [@vote] }, -> { @voter })
-          assert_search_param(:duplicates_only, "true", -> { [@vote2, @vote] }, -> { @admin })
-          assert_search_param(:comment_creator_id, -> { @comment.creator_id }, -> { [@vote] }, -> { @voter })
-          assert_search_param(:comment_creator_name, -> { @comment.creator_name }, -> { [@vote] }, -> { @voter })
-          assert_search_param(:user_id, -> { @voter.id }, -> { [@vote] }, -> { @voter })
-          assert_search_param(:user_name, -> { @voter.name }, -> { [@vote] }, -> { @voter })
-          assert_search_param(:is_locked, "false", -> { [@vote] }, -> { @voter })
-          assert_shared_search_params(-> { [@vote] }, -> { @voter })
+          asserts do
+            search(:comment_id).value { @comment.id }.records { [@vote] }.user { @voter }
+            search(:ip_addr, "127.0.0.2").records { [@vote2, @vote] }.user { @admin }
+            search(:score, "1").records { [@vote] }.user { @voter }
+            search(:timeframe, "1").records { [@vote] }.user { @voter }
+            search(:duplicates_only, "true").records { [@vote2, @vote] }.user { @admin }
+            search(:comment_creator_id).value { @comment.creator_id }.records { [@vote] }.user { @voter }
+            search(:comment_creator_name).value { @comment.creator_name }.records { [@vote] }.user { @voter }
+            search(:user_id).value { @voter.id }.records { [@vote] }.user { @voter }
+            search(:user_name).value { @voter.name }.records { [@vote] }.user { @voter }
+            search(:is_locked, "false").records{ [@vote] }.user { @voter }
+            search.shared.records { [@vote] }.user { @voter }
+          end
         end
       end
 
@@ -127,8 +132,10 @@ module Comments
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MEMBER) { |user| post_auth(comment_votes_path(@comment), user, params: { score: 1 }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MEMBER).json.post { comment_votes_path(@comment) }.params({ score: 1 })
+          end
         end
       end
 
@@ -162,12 +169,10 @@ module Comments
           assert_equal(@user2.id, log.voter_id)
         end
 
-        should("restrict access") do
-          @votes = []
-          User::Levels.constants.length.times do
-            @votes << create(:comment_vote, comment: @comment, score: 1)
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).json.post(lock_comment_votes_path).params { { ids: @vote.id } }
           end
-          assert_access(User::Levels::MODERATOR) { |user| post_auth(lock_comment_votes_path, user, params: { ids: @votes.shift.id }) }
         end
       end
 
@@ -205,12 +210,10 @@ module Comments
           assert_equal(@user2.id, log.voter_id)
         end
 
-        should("restrict access") do
-          @votes = []
-          User::Levels.constants.length.times do
-            @votes << create(:comment_vote, comment: @comment, user: create(:user), score: 1)
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).json.post(delete_comment_votes_path).params { { ids: @vote.id } }
           end
-          assert_access(User::Levels::ADMIN) { |user| post_auth(delete_comment_votes_path, user, params: { ids: @votes.shift.id }) }
         end
       end
     end

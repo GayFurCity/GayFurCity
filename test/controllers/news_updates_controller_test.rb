@@ -16,8 +16,11 @@ class NewsUpdatesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(news_updates_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(news_updates_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(news_updates_path)
+        end
       end
     end
 
@@ -28,8 +31,10 @@ class NewsUpdatesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN) { |user| get_auth(new_news_update_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).get(new_news_update_path)
+        end
       end
     end
 
@@ -40,8 +45,10 @@ class NewsUpdatesControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN) { |user| get_auth(edit_news_update_path(@news_update), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).get { edit_news_update_path(@news_update) }
+        end
       end
     end
 
@@ -52,8 +59,11 @@ class NewsUpdatesControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(news_updates_path)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(news_update_path(@news_update), user, params: { news_update: { message: "zzz" } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).put { news_update_path(@news_update) }.params({ news_update: { message: "zzz" } }).success(:redirect)
+          access.gte(User::Levels::ADMIN).json.put { news_update_path(@news_update) }.params({ news_update: { message: "zzz" } })
+        end
       end
     end
 
@@ -65,8 +75,11 @@ class NewsUpdatesControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(news_updates_path)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| post_auth(news_updates_path, user, params: { news_update: { message: "zzz" } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).post(news_updates_path).params({ news_update: { message: "zzz" } }).success(:redirect)
+          access.gte(User::Levels::ADMIN).json.post(news_updates_path).params({ news_update: { message: "zzz" } })
+        end
       end
     end
 
@@ -78,8 +91,11 @@ class NewsUpdatesControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(news_updates_path)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(news_update_path(create(:news_update)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).delete { news_update_path(@news_update) }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.delete { news_update_path(@news_update) }.success(:no_content)
+        end
       end
     end
   end

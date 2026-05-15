@@ -26,8 +26,10 @@ module Artists
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(artist_urls_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(artist_urls_path)
+          end
         end
 
         context("search parameters") do
@@ -41,14 +43,16 @@ module Artists
             @artist_url = @artist.urls.first
           end
 
-          assert_search_param(:artist_id, -> { @artist.id }, -> { [@artist_url] }, include: %i[artist])
-          assert_search_param(:artist_name, -> { @artist.name }, -> { [@artist_url] }, include: %i[artist])
-          assert_search_param(:is_active, "true", -> { [@artist_url] }, include: %i[artist])
-          assert_search_param(:url, "https://google.com", -> { [@artist_url] }, include: %i[artist])
-          assert_search_param(:url_matches, "https://google.com", -> { [@artist_url] }, include: %i[artist])
-          assert_search_param(:normalized_url, "http://google.com", -> { [@artist_url] }, include: %i[artist])
-          assert_search_param(:normalized_url_matches, "http://google.com", -> { [@artist_url] }, include: %i[artist])
-          assert_shared_search_params(-> { [@artist_url] }, include: %i[artist])
+          asserts do
+            search(:artist_id).value { @artist.id }.records { [@artist_url] }.include(%i[artist])
+            search(:artist_name).value { @artist.name }.records { [@artist_url] }.include(%i[artist])
+            search(:is_active, "true").records { [@artist_url] }.include(%i[artist])
+            search(:url, "https://google.com").records { [@artist_url] }.include(%i[artist])
+            search(:url_matches, "https://google.com").records { [@artist_url] }.include(%i[artist])
+            search(:normalized_url, "http://google.com").records { [@artist_url] }.include(%i[artist])
+            search(:normalized_url_matches, "http://google.com").records { [@artist_url] }.include(%i[artist])
+            search.shared.records { [@artist_url] }.include(%i[artist])
+          end
         end
       end
     end

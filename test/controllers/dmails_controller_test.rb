@@ -40,8 +40,10 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED) { |user| get_auth(new_dmail_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).get(new_dmail_path)
+        end
       end
     end
 
@@ -70,8 +72,11 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED) { |user| get_auth(dmails_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).get(dmails_path)
+          access.gte(User::Levels::REJECTED).json.get(dmails_path)
+        end
       end
 
       context("search parameters") do
@@ -84,20 +89,22 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
           @owner = create(:owner_user)
         end
 
-        assert_search_param(:title_matches, "foo", -> { [@dmail] }, -> { @to })
-        assert_search_param(:message_matches, "bar", -> { [@dmail] }, -> { @to })
-        assert_search_param(:is_read, "true", -> { [@dmail] }, -> { @to })
-        assert_search_param(:is_deleted, "false", -> { [@dmail] }, -> { @to })
-        assert_search_param(:is_spam, "false", -> { [@dmail] }, -> { @owner })
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@dmail] }, -> { @owner })
-        assert_search_param(:read, "true", -> { [@dmail] }, -> { @to })
-        assert_search_param(:to_id, -> { @to.id }, -> { [@dmail] }, -> { @to })
-        assert_search_param(:to_name, -> { @to.name }, -> { [@dmail] }, -> { @to })
-        assert_search_param(:from_id, -> { @from.id }, -> { [@dmail] }, -> { @to })
-        assert_search_param(:from_name, -> { @from.name }, -> { [@dmail] }, -> { @to })
-        assert_search_param(:owner_id, -> { @to.id }, -> { [@dmail] }, -> { @to })
-        assert_search_param(:owner_name, -> { @to.name }, -> { [@dmail] }, -> { @to })
-        assert_shared_search_params(-> { [@dmail] }, -> { @to })
+        asserts do
+          search(:title_matches, "foo").records { [@dmail] }.user { @to }
+          search(:message_matches, "bar").records { [@dmail] }.user { @to }
+          search(:is_read, "true").records { [@dmail] }.user { @to }
+          search(:is_deleted, "false").records { [@dmail] }.user { @to }
+          search(:is_spam, "false").records { [@dmail] }.user { @owner }
+          search(:ip_addr, "127.0.0.2").records { [@dmail] }.user { @owner }
+          search(:read, "true").records { [@dmail] }.user { @to }
+          search(:to_id).value { @to.id }.records { [@dmail] }.user { @to }
+          search(:to_name).value { @to.name }.records { [@dmail] }.user { @to }
+          search(:from_id).value { @from.id }.records { [@dmail] }.user { @to }
+          search(:from_name).value { @from.name }.records { [@dmail] }.user { @to }
+          search(:owner_id).value { @to.id }.records { [@dmail] }.user { @to }
+          search(:owner_name).value { @to.name }.records { [@dmail] }.user { @to }
+          search.shared.records { [@dmail] }.user { @to }
+        end
       end
     end
 
@@ -144,8 +151,11 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:forbidden)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED) { |user| get_auth(dmail_path(create(:dmail, owner: user, to: user, from: create(:user))), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).get { |user| dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
+          access.gte(User::Levels::REJECTED).json.get { |user| dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
+        end
       end
     end
 
@@ -158,8 +168,11 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         assert_predicate(@dmail.owner.notifications.last, :is_read?)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED) { |user| put_auth(mark_as_read_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).put { |user| mark_as_read_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
+          access.gte(User::Levels::REJECTED).json.put { |user| mark_as_read_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
+        end
       end
     end
 
@@ -184,8 +197,11 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         assert_predicate(@dmail.owner, :has_unread_notifications?)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| put_auth(mark_as_unread_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).put { |user| mark_as_unread_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }.success(:redirect)
+          access.gte(User::Levels::REJECTED).json.put { |user| mark_as_unread_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
+        end
       end
     end
 
@@ -203,9 +219,11 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        @admin = create(:admin_user)
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| post_auth(dmails_path, user, params: { dmail: { to_id: @admin.id, title: "abc", body: "abc" } }) }
+      context("access control") do
+        setup { @admin = create(:admin_user) }
+        asserts do
+          access.gte(User::Levels::REJECTED).post(dmails_path).params { { dmail: { to_id: @admin.id, title: "abc", body: "abc" } } }.success(:redirect)
+        end
       end
     end
 
@@ -226,8 +244,11 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         assert_not(@dmail.is_deleted)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::REJECTED, success_response: :redirect) { |user| delete_auth(dmail_path(create(:dmail, owner: user, to: user, from: create(:user))), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::REJECTED).delete { |user| dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }.success(:redirect)
+          access.gte(User::Levels::REJECTED).json.delete { |user| dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }.success(:no_content)
+        end
       end
     end
 
@@ -314,9 +335,12 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
           assert_predicate(@mod_dmail.reload, :is_spam?)
         end
 
-        should("restrict access") do
-          SpamDetector.any_instance.stubs(:spam!).returns(true)
-          assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(mark_spam_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))), user) }
+        context("access control") do
+          setup { SpamDetector.any_instance.stubs(:spam!).returns(true) }
+          asserts do
+            access.gte(User::Levels::MODERATOR).put { |user| mark_spam_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }.success(:redirect)
+            access.gte(User::Levels::MODERATOR).json.put { |user| mark_spam_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
+          end
         end
       end
 
@@ -344,8 +368,11 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
           assert_not(@mod_dmail.reload.is_spam?)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(mark_not_spam_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).put { |user| mark_not_spam_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }.success(:redirect)
+            access.gte(User::Levels::MODERATOR).json.put { |user| mark_not_spam_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
+          end
         end
       end
     end

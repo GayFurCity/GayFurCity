@@ -16,8 +16,10 @@ module Users
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MEMBER) { |user| get_auth(new_users_count_fixes_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MEMBER).get(new_users_count_fixes_path)
+          end
         end
       end
 
@@ -38,8 +40,11 @@ module Users
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| post_auth(users_count_fixes_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MEMBER).post(users_count_fixes_path).success(:redirect)
+            access.gte(User::Levels::MEMBER).json.post(users_count_fixes_path)
+          end
         end
       end
     end

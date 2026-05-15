@@ -12,8 +12,11 @@ module Tags
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED) { |user| get_auth(related_tags_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).get(related_tags_path)
+            access.gte(User::Levels::REJECTED).json.get(related_tags_path)
+          end
         end
       end
     end

@@ -38,8 +38,23 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(comments_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(comments_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(comments_path)
+        end
+      end
+
+      context("access control (group_by=comment)") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).json.get(comments_path(group_by: "comment"))
+        end
+      end
+
+      context("access control (group_by=post)") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).json.get(comments_path(group_by: "post"))
+        end
       end
 
       context("search parameters") do
@@ -58,23 +73,25 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
           @comment = create(:comment, creator: @creator, creator_ip_addr: "127.0.0.2", updater: @updater, updater_ip_addr: "127.0.0.3", post: @post, body: "bar", is_hidden: false, is_sticky: true, is_spam: false)
         end
 
-        assert_search_param(:body_matches, "bar", -> { [@comment] })
-        assert_search_param(:post_id, -> { @post.id }, -> { [@comment] })
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@comment] }, -> { @admin })
-        assert_search_param(:updater_ip_addr, "127.0.0.3", -> { [@comment] }, -> { @admin })
-        assert_search_param(:is_hidden, "false", -> { [@comment] }, -> { @mod })
-        assert_search_param(:is_sticky, "true", -> { [@comment] })
-        assert_search_param(:is_spam, "false", -> { [@comment] }, -> { @mod })
-        assert_search_param(:post_tags_match, "foo", -> { [@comment] })
-        assert_search_param(:post_note_updater_id, -> { @note_updater.id }, -> { [@comment] })
-        assert_search_param(:post_note_updater_name, -> { @note_updater.name }, -> { [@comment] })
-        assert_search_param(:creator_id, -> { @creator.id }, -> { [@comment] })
-        assert_search_param(:creator_name, -> { @creator.name }, -> { [@comment] })
-        assert_search_param(:updater_id, -> { @updater.id }, -> { [@comment] })
-        assert_search_param(:updater_name, -> { @updater.name }, -> { [@comment] })
-        assert_search_param(:poster_id, -> { @uploader.id }, -> { [@comment] })
-        assert_search_param(:poster_name, -> { @uploader.name }, -> { [@comment] })
-        assert_shared_search_params(-> { [@comment] })
+        asserts do
+          search(:body_matches, "bar").records { [@comment] }
+          search(:post_id).value { @post.id }.records { [@comment] }
+          search(:ip_addr, "127.0.0.2").records { [@comment] }.user { @admin }
+          search(:updater_ip_addr, "127.0.0.3").records { [@comment] }.user { @admin }
+          search(:is_hidden, "false").records { [@comment] }.user { @mod }
+          search(:is_sticky, "true").records { [@comment] }
+          search(:is_spam, "false").records { [@comment] }.user { @mod }
+          search(:post_tags_match, "foo").records { [@comment] }
+          search(:post_note_updater_id).value { @note_updater.id }.records { [@comment] }
+          search(:post_note_updater_name).value { @note_updater.name }.records { [@comment] }
+          search(:creator_id).value { @creator.id }.records { [@comment] }
+          search(:creator_name).value { @creator.name }.records { [@comment] }
+          search(:updater_id).value { @updater.id }.records { [@comment] }
+          search(:updater_name).value { @updater.name }.records { [@comment] }
+          search(:poster_id).value { @uploader.id }.records { [@comment] }
+          search(:poster_name).value { @uploader.name }.records { [@comment] }
+          search.shared.records { [@comment] }
+        end
       end
     end
 
@@ -85,8 +102,10 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(search_comments_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(search_comments_path)
+        end
       end
     end
 
@@ -109,8 +128,11 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         assert_not_includes(@response.body, %{<img src=x onerror=alert("xss")>})
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(comment_path(@comment), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get { comment_path(@comment) }
+          access.gte(User::Levels::ANONYMOUS).json.get { comment_path(@comment) }
+        end
       end
     end
 
@@ -121,8 +143,16 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN) { |user| get_auth(edit_comment_path(@comment), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).get { |user| edit_comment_path(create(:comment, creator: user, post: @post)) }
+        end
+      end
+
+      context("access control (not creator)") do
+        asserts do
+          access.gte(User::Levels::ADMIN).get { edit_comment_path(@comment) }
+        end
       end
     end
 
@@ -180,8 +210,18 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         assert_equal(@post.id, @comment.post_id)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(comment_path(@comment), user, params: { comment: { body: "abc" } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).put { |user| comment_path(create(:comment, creator: user)) }.params { { comment: { body: "abc" } } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { |user| comment_path(create(:comment, creator: user)) }.params { { comment: { body: "abc" } } }
+        end
+      end
+
+      context("access control (not creator)") do
+        asserts do
+          access.gte(User::Levels::ADMIN).put { comment_path(@comment) }.params { { comment: { body: "abc" } } }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.put { comment_path(@comment) }.params { { comment: { body: "abc" } } }
+        end
       end
     end
 
@@ -192,8 +232,10 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER) { |user| get_auth(new_comment_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).get(new_comment_path)
+        end
       end
     end
 
@@ -214,8 +256,11 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(comments_path)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| post_auth(comments_path, user, params: { comment: { body: "abc", post_id: @post.id } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).post(comments_path).params { { comment: { body: "abc", post_id: @post.id } } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.post(comments_path).params { { comment: { body: "abc", post_id: @post.id } } }
+        end
       end
     end
 
@@ -227,8 +272,18 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         assert_predicate(@comment.reload, :is_hidden?)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(hide_comment_path(@comment), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).put { |user| hide_comment_path(create(:comment, creator: user)) }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { |user| hide_comment_path(create(:comment, creator: user)) }
+        end
+      end
+
+      context("access control (not creator)") do
+        asserts do
+          access.gte(User::Levels::MODERATOR).put { hide_comment_path(@comment) }.success(:redirect)
+          access.gte(User::Levels::MODERATOR).json.put { hide_comment_path(@comment) }
+        end
       end
     end
 
@@ -251,8 +306,11 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         assert(@comment.reload.is_hidden)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| put_auth(unhide_comment_path(@comment), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MODERATOR).put { unhide_comment_path(@comment) }.success(:redirect)
+          access.gte(User::Levels::MODERATOR).json.put { unhide_comment_path(@comment) }
+        end
       end
     end
 
@@ -274,8 +332,11 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(comment_path(create(:comment)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).delete { comment_path(@comment) }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.delete { comment_path(@comment) }.success(:no_content)
+        end
       end
     end
 
@@ -357,9 +418,12 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
           assert_predicate(@comment.reload, :is_spam?)
         end
 
-        should("restrict access") do
-          SpamDetector.any_instance.stubs(:spam!).returns(true)
-          assert_access(User::Levels::MODERATOR) { |user| put_auth(mark_spam_comment_path(@comment), user) }
+        context("access control") do
+          setup { SpamDetector.any_instance.stubs(:spam!).returns(true) }
+
+          asserts do
+            access.gte(User::Levels::MODERATOR).json.put { mark_spam_comment_path(@comment) }
+          end
         end
       end
 
@@ -387,8 +451,10 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
           assert_not(@comment.reload.is_spam?)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MODERATOR) { |user| put_auth(mark_not_spam_comment_path(@comment), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MODERATOR).json.put { mark_not_spam_comment_path(@comment) }
+          end
         end
       end
     end
@@ -427,8 +493,10 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
         assert_nil(@comment.reload.warning_user_id)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MODERATOR) { |user| put_auth(warning_comment_path(@comment), user, params: { record_type: "warning" }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MODERATOR).json.put { warning_comment_path(@comment) }.params { { record_type: "warning" } }
+        end
       end
     end
   end

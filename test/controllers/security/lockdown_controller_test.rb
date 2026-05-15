@@ -23,6 +23,12 @@ module Security
 
           assert_response(:success)
         end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).get(security_root_path)
+          end
+        end
       end
 
       context("panic action") do
@@ -31,6 +37,12 @@ module Security
 
           Security::Lockdown::BOOLEAN_TYPES.each do |type|
             assert(Security::Lockdown.public_send("#{type}_disabled?"), type) # rubocop:disable Minitest/AssertWithExpectedArgument -- type is being used as the message
+          end
+        end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).put(panic_security_lockdown_index_path).success(:redirect)
           end
         end
       end
@@ -43,6 +55,12 @@ module Security
             assert(Security::Lockdown.public_send("#{type}_disabled?"), type) # rubocop:disable Minitest/AssertWithExpectedArgument -- type is being used as the message
           end
         end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).put(enact_security_lockdown_index_path).params { { lockdown: Security::Lockdown::BOOLEAN_TYPES.index_with { |_type| true } } }.success(:redirect)
+          end
+        end
       end
 
       context("uploading limits action") do
@@ -51,6 +69,12 @@ module Security
 
           assert_equal(Security::Lockdown.uploads_min_level, User::Levels::TRUSTED)
         end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).put(enact_security_lockdown_index_path).params { { uploads_min_level: { min_level: User::Levels::TRUSTED } } }.success(:redirect)
+          end
+        end
       end
 
       context("hide pending posts action") do
@@ -58,6 +82,12 @@ module Security
           put_auth(uploads_hide_pending_security_lockdown_index_path, @admin, params: { uploads_hide_pending: { duration: 24 } })
 
           assert_equal(24, Security::Lockdown.hide_pending_posts_for)
+        end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).put(uploads_hide_pending_security_lockdown_index_path).params { { uploads_hide_pending: { duration: 24 } } }.success(:redirect)
+          end
         end
       end
     end

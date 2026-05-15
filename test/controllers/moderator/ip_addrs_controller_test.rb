@@ -36,14 +36,18 @@ module Moderator
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN) { |user| get_auth(moderator_ip_addrs_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).get(moderator_ip_addrs_path)
+          end
         end
       end
 
       context("export action") do
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, anonymous_response: :forbidden) { |user| get_auth(export_moderator_ip_addrs_path, user, params: { format: :json }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).json.get(export_moderator_ip_addrs_path)
+          end
         end
       end
     end

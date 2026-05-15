@@ -16,8 +16,10 @@ module Users
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::REJECTED) { |user| get_auth(users_deletion_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::REJECTED).get(users_deletion_path)
+          end
         end
       end
 
@@ -29,9 +31,11 @@ module Users
           assert_predicate(@user.user_events.user_deletion, :exists?)
         end
 
-        should("restrict access") do
-          GayFurCity.config.stubs(:disable_age_checks).returns(true)
-          assert_access([User::Levels::REJECTED, User::Levels::RESTRICTED, User::Levels::MEMBER, User::Levels::TRUSTED, User::Levels::FORMER_STAFF, User::Levels::JANITOR, User::Levels::MODERATOR, User::Levels::SYSTEM], success_response: :redirect, fail_response: :bad_request, anonymous_response: :redirect) { |user| delete_auth(users_deletion_path, user, params: { password: "password" }) }
+        context("access control") do
+          setup { GayFurCity.config.stubs(:disable_age_checks).returns(true) }
+          asserts do
+            access.between(User::Levels::REJECTED, User::Levels::SYSTEM).delete(users_deletion_path).params({ password: "password" }).success(:redirect).fail(:bad_request).anonymous(:redirect)
+          end
         end
       end
     end

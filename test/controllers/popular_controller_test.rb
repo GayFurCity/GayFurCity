@@ -11,8 +11,10 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(popular_index_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(popular_index_path)
+        end
       end
     end
 
@@ -23,8 +25,11 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(uploads_popular_index_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(uploads_popular_index_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(uploads_popular_index_path)
+        end
       end
     end
 
@@ -35,8 +40,11 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(views_popular_index_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(views_popular_index_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(views_popular_index_path)
+        end
       end
     end
 
@@ -47,8 +55,11 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(top_views_popular_index_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(top_views_popular_index_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(top_views_popular_index_path)
+        end
       end
     end
 
@@ -59,8 +70,11 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(followed_tags_popular_index_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(followed_tags_popular_index_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(followed_tags_popular_index_path)
+        end
       end
     end
 
@@ -82,8 +96,11 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
         assert_not_includes(@response.body, tag)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(searches_popular_index_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(searches_popular_index_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(searches_popular_index_path)
+        end
       end
     end
 
@@ -94,8 +111,11 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(top_searches_popular_index_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(top_searches_popular_index_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(top_searches_popular_index_path)
+        end
       end
     end
 
@@ -106,8 +126,11 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(missed_searches_popular_index_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(missed_searches_popular_index_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(missed_searches_popular_index_path)
+        end
       end
     end
 
@@ -118,8 +141,11 @@ class PopularControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(top_missed_searches_popular_index_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(top_missed_searches_popular_index_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(top_missed_searches_popular_index_path)
+        end
       end
     end
   end

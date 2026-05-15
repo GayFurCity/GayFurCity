@@ -25,8 +25,11 @@ module WikiPages
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(wiki_page_versions_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(wiki_page_versions_path)
+            access.gte(User::Levels::ANONYMOUS).json.get(wiki_page_versions_path)
+          end
         end
 
         context("search parameters") do
@@ -39,14 +42,16 @@ module WikiPages
             @wiki_page_version = @wiki_page.versions.first
           end
 
-          assert_search_param(:wiki_page_id, -> { @wiki_page.id }, -> { [@wiki_page_version] })
-          assert_search_param(:title, "foo", -> { [@wiki_page_version] })
-          assert_search_param(:body, "bar", -> { [@wiki_page_version] })
-          assert_search_param(:protection_level, User::Levels::TRUSTED, -> { [@wiki_page_version] })
-          assert_search_param(:updater_id, -> { @updater.id }, -> { [@wiki_page_version] })
-          assert_search_param(:updater_name, -> { @updater.name }, -> { [@wiki_page_version] })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@wiki_page_version] }, -> { @admin })
-          assert_shared_search_params(-> { [@wiki_page_version] })
+          asserts do
+            search(:wiki_page_id).value { @wiki_page.id }.records { [@wiki_page_version] }
+            search(:title, "foo").records { [@wiki_page_version] }
+            search(:body, "bar").records { [@wiki_page_version] }
+            search(:protection_level, User::Levels::TRUSTED).records { [@wiki_page_version] }
+            search(:updater_id).value { @updater.id }.records { [@wiki_page_version] }
+            search(:updater_name).value { @updater.name }.records { [@wiki_page_version] }
+            search(:ip_addr, "127.0.0.2").records { [@wiki_page_version] }.user { @admin }
+            search.shared.records { [@wiki_page_version] }
+          end
         end
       end
 
@@ -57,8 +62,11 @@ module WikiPages
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(wiki_page_version_path(@wiki_page.versions.first), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get { wiki_page_version_path(@wiki_page.versions.first) }
+            access.gte(User::Levels::ANONYMOUS).json.get { wiki_page_version_path(@wiki_page.versions.first) }
+          end
         end
       end
 
@@ -69,8 +77,10 @@ module WikiPages
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(diff_wiki_page_versions_path, user, params: { thispage: @wiki_page.versions.first.id, otherpage: @wiki_page.versions.last.id }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(diff_wiki_page_versions_path).params { { thispage: @wiki_page.versions.first.id, otherpage: @wiki_page.versions.last.id } }
+          end
         end
       end
     end

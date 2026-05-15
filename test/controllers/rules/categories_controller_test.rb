@@ -18,8 +18,10 @@ module Rules
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN) { |user| get_auth(new_rule_category_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).get(new_rule_category_path)
+          end
         end
       end
 
@@ -30,8 +32,10 @@ module Rules
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN) { |user| get_auth(edit_rule_category_path(@category), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).get { edit_rule_category_path(@category) }
+          end
         end
       end
 
@@ -54,8 +58,11 @@ module Rules
           assert_equal("blah", mod_action.name)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| post_auth(rule_categories_path, user, params: { rule_category: { name: SecureRandom.hex(6) } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).post(rule_categories_path).params { { rule_category: { name: SecureRandom.hex(6) } } }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.post(rule_categories_path).params { { rule_category: { name: SecureRandom.hex(6) } } }
+          end
         end
       end
 
@@ -80,8 +87,11 @@ module Rules
           assert_equal(old, mod_action.old_name)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| put_auth(rule_category_path(@category), user, params: { rule_category: { name: SecureRandom.hex(6) } }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).put { rule_category_path(@category) }.params { { rule_category: { name: SecureRandom.hex(6) } } }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.put { rule_category_path(@category) }.params { { rule_category: { name: SecureRandom.hex(6) } } }
+          end
         end
       end
 
@@ -142,8 +152,11 @@ module Rules
           end
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(rule_category_path(create(:rule_category)), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).delete { rule_category_path(@category) }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.delete { rule_category_path(@category) }.success(:no_content)
+          end
         end
       end
     end

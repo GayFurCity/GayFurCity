@@ -48,8 +48,11 @@ module Forums
             end
           end
 
-          should("restrict access") do
-            assert_access(User::Levels::MEMBER, anonymous_response: :forbidden) { |user| get_auth(url_for(controller: "forums/posts/votes", action: "index", format: "json", only_path: true), user) }
+          context("access control") do
+            asserts do
+              access.gte(User::Levels::MEMBER).get(url_for(controller: "forums/posts/votes", action: "index", only_path: true))
+              access.gte(User::Levels::MEMBER).json.get(url_for(controller: "forums/posts/votes", action: "index", only_path: true))
+            end
           end
 
           context("search parameters") do
@@ -65,16 +68,18 @@ module Forums
               @vote2 = create(:forum_post_vote, forum_post: @forum_post, score: -1, user: @voter2, user_ip_addr: "127.0.0.2")
             end
 
-            assert_search_param(:forum_post_id, -> { @forum_post.id }, -> { [@vote] }, -> { @voter })
-            assert_search_param(:ip_addr, "127.0.0.2", -> { [@vote2, @vote] }, -> { @admin })
-            assert_search_param(:score, "1", -> { [@vote] }, -> { @voter })
-            assert_search_param(:timeframe, "1", -> { [@vote] }, -> { @voter })
-            assert_search_param(:duplicates_only, "true", -> { [@vote2, @vote] }, -> { @admin })
-            assert_search_param(:forum_post_creator_id, -> { @forum_post.creator_id }, -> { [@vote] }, -> { @voter })
-            assert_search_param(:forum_post_creator_name, -> { @forum_post.creator_name }, -> { [@vote] }, -> { @voter })
-            assert_search_param(:user_id, -> { @voter.id }, -> { [@vote] }, -> { @voter })
-            assert_search_param(:user_name, -> { @voter.name }, -> { [@vote] }, -> { @voter })
-            assert_shared_search_params(-> { [@vote] }, -> { @voter })
+            asserts do
+              search(:forum_post_id).value { @forum_post.id }.records { [@vote] }.user { @voter }
+              search(:ip_addr, "127.0.0.2").records { [@vote2, @vote] }.user { @admin }
+              search(:score, "1").records { [@vote] }.user { @voter }
+              search(:timeframe, "1").records { [@vote] }.user { @voter }
+              search(:duplicates_only, "true").records { [@vote2, @vote] }.user { @admin }
+              search(:forum_post_creator_id).value { @forum_post.creator_id }.records { [@vote] }.user { @voter }
+              search(:forum_post_creator_name).value { @forum_post.creator_name }.records { [@vote] }.user { @voter }
+              search(:user_id).value { @voter.id }.records { [@vote] }.user { @voter }
+              search(:user_name).value { @voter.name }.records { [@vote] }.user { @voter }
+              search.shared.records { [@vote] }.user { @voter }
+            end
           end
         end
 
@@ -144,8 +149,10 @@ module Forums
             assert_equal("66.67%", pct.call(@forum_post.percentage_score))
           end
 
-          should("restrict access") do
-            assert_access(User::Levels::MEMBER, anonymous_response: :forbidden) { |user| post_auth(forum_post_votes_path(@forum_post), user, params: { score: 1, format: :json }) }
+          context("access control") do
+            asserts do
+              access.gte(User::Levels::MEMBER).json.post { forum_post_votes_path(@forum_post) }.params({ score: 1 })
+            end
           end
         end
 
@@ -183,12 +190,10 @@ module Forums
             assert_equal(@user2.id, log.voter_id)
           end
 
-          should("restrict access") do
-            @votes = []
-            User::Levels.constants.length.times do
-              @votes << create(:forum_post_vote, forum_post: @forum_post, user: create(:user), score: 1)
+          context("access control") do
+            asserts do
+              access.gte(User::Levels::ADMIN).json.post(delete_forum_post_votes_path).params { { ids: @vote.id } }
             end
-            assert_access(User::Levels::ADMIN) { |user| post_auth(delete_forum_post_votes_path, user, params: { ids: @votes.shift.id }) }
           end
         end
       end

@@ -131,23 +131,23 @@ module Posts
             end
           end
 
-          # TODO: reimplement ability to disable notifications
-          # should "fail and not create ticket if notify=false" do
-          #   DestroyedPost.find_by!(post_id: @post2.id).update_column(:notify, false)
-          #   assert_difference(%w[Post.count Ticket.count], 0) do
-          #     file = fixture_file_upload("test.png")
-          #     post_auth post_replacements_path, @user, params: { post_id: @post.id, post_replacement: { replacement_file: file, reason: "test replacement" }, format: :json }
-          #   end
-          # end
+          should("fail and not create ticket if notify=false") do
+            DestroyedPost.find_by!(post_id: @post2.id).update_column(:notify, false)
+            assert_difference(%w[Post.count Ticket.count], 0) do
+              file = fixture_file_upload("test.png")
+              post_auth(post_replacements_path, @user, params: { post_id: @post.id, post_replacement: { replacement_file: file, reason: "test replacement" }, format: :json })
+            end
+          end
         end
 
-        should("restrict access") do
-          disable_image_size_checks!
-          GayFurCity.config.stubs(:disable_age_checks).returns(true)
-          file = fixture_file_upload("alpha.png")
-          assert_access(User::Levels::MEMBER, anonymous_response: :forbidden) do |user|
-            PostReplacement.delete_all
-            post_auth(post_replacements_path, user, params: { post_replacement: { file: file, reason: "test replacement" }, post_id: @post.id, format: :json })
+        context("access control") do
+          setup do
+            disable_image_size_checks!
+            GayFurCity.config.stubs(:disable_age_checks).returns(true)
+          end
+
+          asserts do
+            access.gte(User::Levels::MEMBER).json.post(post_replacements_path).params { { post_replacement: { file: fixture_file_upload("alpha.png"), reason: "test replacement" }, post_id: @post.id  } }
           end
         end
       end
@@ -181,11 +181,10 @@ module Posts
           assert_not_equal(@replacement.md5, @post.md5)
         end
 
-        should("restrict access") do
-          assert_access([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER], success_response: :redirect) do |user|
-            PostReplacement.delete_all
-            replacement = create(:png_replacement, creator: @user, post: @post)
-            put_auth(reject_post_replacement_path(replacement), user)
+        context("access control") do
+          asserts do
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).put { reject_post_replacement_path(@replacement) }.success(:redirect)
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).json.put { reject_post_replacement_path(@replacement) }
           end
         end
       end
@@ -209,8 +208,10 @@ module Posts
           assert_not_includes(@response.body, "<script>alert(\"xss\")</script>")
         end
 
-        should("restrict access") do
-          assert_access([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]) { |user| get_auth(reject_with_reason_post_replacement_path(@replacement), user) }
+        context("access control") do
+          asserts do
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).get { reject_with_reason_post_replacement_path(@replacement) }
+          end
         end
       end
 
@@ -227,13 +228,10 @@ module Posts
           assert_predicate(@replacement.creator.notifications.replacement_approve, :exists?)
         end
 
-        should("restrict access") do
-          @janitor = create(:janitor_user)
-          [Upload, PostReplacement, PostReplacementMediaAsset, PostVersion, Post, UploadMediaAsset].each(&:delete_all)
-          assert_access([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER], anonymous_response: :forbidden) do |user|
-            upload = create(:jpg_upload, uploader: @janitor)
-            replacement = create(:png_replacement, post: upload.post, creator: @janitor)
-            put_auth(approve_post_replacement_path(replacement), user, params: { format: :json })
+        context("access control") do
+          asserts do
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).put { approve_post_replacement_path(@replacement) }.success(:redirect)
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).json.put { approve_post_replacement_path(@replacement) }
           end
         end
       end
@@ -252,13 +250,10 @@ module Posts
           assert_predicate(@replacement.creator.notifications.replacement_promote, :exists?)
         end
 
-        should("restrict access") do
-          @janitor = create(:janitor_user)
-          [Upload, PostReplacement, PostReplacementMediaAsset, PostVersion, Post, UploadMediaAsset].each(&:delete_all)
-          assert_access([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER], success_response: :redirect) do |user|
-            upload = create(:jpg_upload, uploader: @janitor, uploader_ip_addr: "127.0.0.1")
-            replacement = create(:png_replacement, post: upload.post)
-            post_auth(promote_post_replacement_path(replacement), user)
+        context("access control") do
+          asserts do
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).post { promote_post_replacement_path(@replacement) }.success(:redirect)
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).json.post { promote_post_replacement_path(@replacement) }
           end
         end
       end
@@ -277,9 +272,13 @@ module Posts
           assert_not(@replacement.penalize_uploader_on_approve)
         end
 
-        should("restrict access") do
-          @replacement.approve!(create(:admin_user), penalize_current_uploader: true)
-          assert_access([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER], anonymous_response: :forbidden) { |user| put_auth(toggle_penalize_post_replacement_path(@replacement), user, params: { format: :json }) }
+        context("access control") do
+          setup { @replacement.approve!(create(:admin_user), penalize_current_uploader: true) }
+
+          asserts do
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).put { toggle_penalize_post_replacement_path(@replacement) }.success(:redirect)
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).json.put { toggle_penalize_post_replacement_path(@replacement) }
+          end
         end
       end
 
@@ -290,20 +289,11 @@ module Posts
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ANONYMOUS) { |user| get_auth(post_replacements_path, user) }
-        end
-      end
-
-      context("new action") do
-        should("render") do
-          get_auth(new_post_replacement_path, @user, params: { post_id: @post.id })
-
-          assert_response(:success)
-        end
-
-        should("restrict access") do
-          assert_access(User::Levels::MEMBER) { |user| get_auth(new_post_replacement_path, user, params: { post_id: @post.id }) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ANONYMOUS).get(post_replacements_path)
+            access.gte(User::Levels::ANONYMOUS).json.get(post_replacements_path)
+          end
         end
 
         context("search parameters") do
@@ -319,20 +309,36 @@ module Posts
             @post_replacement = create(:jpg_replacement, post: @post, creator: @creator, creator_ip_addr: "127.0.0.2", approver: @approver, rejector: @rejector, uploader_on_approve: @uploader_on_approve, status: "approved")
           end
 
-          assert_search_param(:file_ext, "jpg", -> { [@post_replacement] })
-          assert_search_param(:md5, "ecef68c44edb8a0d6a3070b5f8e8ee76", -> { [@post_replacement] })
-          assert_search_param(:status, "approved", -> { [@post_replacement] })
-          assert_search_param(:post_id, -> { @post.id }, -> { [@post_replacement] })
-          assert_search_param(:uploader_id_on_approve, -> { @uploader_on_approve.id }, -> { [@post_replacement] })
-          assert_search_param(:uploader_name_on_approve, -> { @uploader_on_approve.name }, -> { [@post_replacement] })
-          assert_search_param(:creator_id, -> { @creator.id }, -> { [@post_replacement] })
-          assert_search_param(:creator_name, -> { @creator.name }, -> { [@post_replacement] })
-          assert_search_param(:approver_id, -> { @approver.id }, -> { [@post_replacement] })
-          assert_search_param(:approver_name, -> { @approver.name }, -> { [@post_replacement] })
-          assert_search_param(:rejector_id, -> { @rejector.id }, -> { [@post_replacement] })
-          assert_search_param(:rejector_name, -> { @rejector.name }, -> { [@post_replacement] })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@post_replacement] }, -> { @admin })
-          assert_shared_search_params(-> { [@post_replacement] })
+          asserts do
+            search(:file_ext, "jpg").records { [@post_replacement] }
+            search(:md5, "ecef68c44edb8a0d6a3070b5f8e8ee76").records { [@post_replacement] }
+            search(:status, "approved").records { [@post_replacement] }
+            search(:post_id).value { @post.id }.records { [@post_replacement] }
+            search(:uploader_id_on_approve).value { @uploader_on_approve.id }.records { [@post_replacement] }
+            search(:uploader_name_on_approve).value { @uploader_on_approve.name }.records { [@post_replacement] }
+            search(:creator_id).value { @creator.id }.records { [@post_replacement] }
+            search(:creator_name).value { @creator.name }.records { [@post_replacement] }
+            search(:approver_id).value { @approver.id }.records { [@post_replacement] }
+            search(:approver_name).value { @approver.name }.records { [@post_replacement] }
+            search(:rejector_id).value { @rejector.id }.records { [@post_replacement] }
+            search(:rejector_name).value { @rejector.name }.records{ [@post_replacement] }
+            search(:ip_addr, "127.0.0.2").records { [@post_replacement] }.user { @admin }
+            search.shared.records { [@post_replacement] }
+          end
+        end
+      end
+
+      context("new action") do
+        should("render") do
+          get_auth(new_post_replacement_path, @user, params: { post_id: @post.id })
+
+          assert_response(:success)
+        end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MEMBER).get(new_post_replacement_path).params { { post_id: @post.id } }
+          end
         end
       end
 
@@ -345,8 +351,11 @@ module Posts
           assert_equal("expunged", @replacement.media_asset.reload.status)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(post_replacement_path(@replacement), user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::ADMIN).delete { post_replacement_path(@replacement) }.success(:redirect)
+            access.gte(User::Levels::ADMIN).json.delete { post_replacement_path(@replacement) }.success(:no_content)
+          end
         end
       end
     end

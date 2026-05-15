@@ -25,8 +25,10 @@ module Posts
           assert_response(:success)
         end
 
-        should("restrict access") do
-          assert_access([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]) { |user| get_auth(move_favorites_post_path(@child), user) }
+        context("access control") do
+          asserts do
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).get { move_favorites_post_path(@child) }
+          end
         end
       end
 
@@ -45,8 +47,11 @@ module Posts
           assert_equal([], @child.voted_users(@user).map(&:id))
         end
 
-        should("restrict access") do
-          assert_access([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER], success_response: :redirect) { |user| post_auth(move_favorites_post_path(@child), user) }
+        context("access control") do
+          asserts do
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).post { move_favorites_post_path(@child) }.success(:redirect)
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).json.post { move_favorites_post_path(@child) }
+          end
         end
       end
     end

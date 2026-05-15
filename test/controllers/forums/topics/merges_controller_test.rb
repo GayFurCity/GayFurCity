@@ -20,8 +20,10 @@ module Forums
             get_auth(merge_forum_topic_path(@topic), @admin)
           end
 
-          should("restrict access") do
-            assert_access(User::Levels::MODERATOR) { |user| get_auth(merge_forum_topic_path(@topic), user) }
+          context("access control") do
+            asserts do
+              access.gte(User::Levels::MODERATOR).get { merge_forum_topic_path(@topic) }
+            end
           end
         end
 
@@ -49,9 +51,11 @@ module Forums
             assert_equal("forum_topic_merge", ModAction.last.action)
           end
 
-          should("restrict access") do
-            @topics = create_list(:forum_topic, User::Levels.constants.length)
-            assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| post_auth(merge_forum_topic_path(@topics.shift), user, params: { forum_topic: { target_topic_id: @target.id } }) }
+          context("access control") do
+            asserts do
+              access.gte(User::Levels::MODERATOR).post { merge_forum_topic_path(@topic) }.params { { forum_topic: { target_topic_id: @target.id } } }.success(:redirect)
+              access.gte(User::Levels::MODERATOR).json.post { merge_forum_topic_path(@topic) }.params { { forum_topic: { target_topic_id: @target.id } } }
+            end
           end
         end
 
@@ -64,10 +68,10 @@ module Forums
             get_auth(undo_merge_forum_topic_path(@topic), @admin)
           end
 
-          should("restrict access") do
-            @topics = create_list(:forum_topic, User::Levels.constants.length)
-            @topics.each { |t| t.merge_into!(@target, @admin) }
-            assert_access(User::Levels::MODERATOR) { |user| get_auth(undo_merge_forum_topic_path(@topics.shift), user) }
+          context("access control") do
+            asserts do
+              access.gte(User::Levels::MODERATOR).get { undo_merge_forum_topic_path(@topic) }
+            end
           end
         end
 
@@ -105,10 +109,11 @@ module Forums
             assert_response(:unprocessable_entity)
           end
 
-          should("restrict access") do
-            @topics = create_list(:forum_topic, User::Levels.constants.length)
-            @topics.each { |t| t.merge_into!(@target, @admin) }
-            assert_access(User::Levels::MODERATOR, success_response: :redirect) { |user| delete_auth(merge_forum_topic_path(@topics.shift), user) }
+          context("access control") do
+            asserts do
+              access.gte(User::Levels::MODERATOR).delete { merge_forum_topic_path(@topic) }.success(:redirect)
+              access.gte(User::Levels::MODERATOR).json.delete { merge_forum_topic_path(@topic) }.success(:no_content)
+            end
           end
         end
       end

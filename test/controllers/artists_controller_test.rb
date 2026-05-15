@@ -19,8 +19,10 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER) { |user| get_auth(new_artist_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).get(new_artist_path)
+        end
       end
     end
 
@@ -37,8 +39,10 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(show_or_new_artists_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(show_or_new_artists_path)
+        end
       end
     end
 
@@ -49,8 +53,10 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER) { |user| get_auth(edit_artist_path(@artist), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).get { edit_artist_path(@artist) }
+        end
       end
     end
 
@@ -62,8 +68,11 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         assert_equal("xyz", @artist.notes)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| put_auth(artist_path(@artist), user, params: { artist: { notes: "xyz" } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).put { artist_path(@artist) }.params({ artist: { notes: "xyz" } }).success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { artist_path(@artist) }.params({ artist: { notes: "xyz" } })
+        end
       end
     end
 
@@ -74,8 +83,11 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(artist_path(@artist), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get { artist_path(@artist) }
+          access.gte(User::Levels::ANONYMOUS).json.get { artist_path(@artist) }
+        end
       end
     end
 
@@ -86,8 +98,11 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ANONYMOUS) { |user| get_auth(artists_path, user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ANONYMOUS).get(artists_path)
+          access.gte(User::Levels::ANONYMOUS).json.get(artists_path)
+        end
       end
 
       context("search parameters") do
@@ -102,20 +117,22 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
           @artist = create(:artist, name: "foo", other_names: "bar baz", url_string: "https://google.com", linked_user: @linked, creator: @user, creator_ip_addr: "127.0.0.2")
         end
 
-        assert_search_param(:name, "foo", -> { [@artist] }, include: %i[urls])
-        assert_search_param(:ip_addr, "127.0.0.2", -> { [@artist] }, -> { @admin }, include: %i[urls])
-        assert_search_param(:any_other_name_matches, "bar", -> { [@artist] }, include: %i[urls])
-        assert_search_param(:any_other_name_like, "baz", -> { [@artist] }, include: %i[urls])
-        assert_search_param(:any_name_matches, "foo", -> { [@artist] }, include: %i[urls])
-        assert_search_param(:any_name_or_url_matches, "https://google.com", -> { [@artist] }, include: %i[urls])
-        assert_search_param(:url_matches, "google.com", -> { [@artist] }, include: %i[urls])
-        assert_search_param(:is_linked, "true", -> { [@artist] }, include: %i[urls])
-        assert_search_param(:has_tag, "true", -> { [create(:artist, name: create(:tag, post_count: 10).name)] }, include: %i[urls])
-        assert_search_param(:creator_id, -> { @user.id }, -> { [@artist] }, include: %i[urls])
-        assert_search_param(:creator_name, -> { @user.name }, -> { [@artist] }, include: %i[urls])
-        assert_search_param(:linked_user_id, -> { @linked.id }, -> { [@artist] }, include: %i[urls])
-        assert_search_param(:linked_user_name, -> { @linked.name }, -> { [@artist] }, include: %i[urls])
-        assert_shared_search_params(-> { [@artist] }, nil, %w[id created_at], include: %i[urls])
+        asserts do
+          search(:name, "foo").records { [@artist] }.include(%i[urls])
+          search(:ip_addr, "127.0.0.2").records { [@artist] }.include(%i[urls]).user { @admin }
+          search(:any_other_name_matches, "bar").records { [@artist] }.include(%i[urls])
+          search(:any_other_name_like, "baz").records { [@artist] }.include(%i[urls])
+          search(:any_name_matches, "foo").records { [@artist] }.include(%i[urls])
+          search(:any_name_or_url_matches, "https://google.com").records { [@artist] }.include(%i[urls])
+          search(:url_matches, "google.com").records { [@artist] }.include(%i[urls])
+          search(:is_linked, "true").records { [@artist] }.include(%i[urls])
+          search(:has_tag, "true").records { [create(:artist, name: create(:tag, post_count: 10).name)] }.include(%i[urls])
+          search(:creator_id).value { @user.id }.records { [@artist] }.include(%i[urls])
+          search(:creator_name).value { @user.name }.records { [@artist] }.include(%i[urls])
+          search(:linked_user_id).value { @linked.id }.records { [@artist] }.include(%i[urls])
+          search(:linked_user_name).value { @linked.name }.records { [@artist] }.include(%i[urls])
+          search.shared(%i[id created_at]).records { [@artist] }.include(%i[urls])
+        end
       end
     end
 
@@ -161,8 +178,11 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         assert_error_response("name", "is too long (maximum is 100 characters)")
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| post_auth(artists_path, user, params: { artist: { name: SecureRandom.hex(6) } }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).post(artists_path).params{ { artist: { name: SecureRandom.hex(6)} } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.post(artists_path).params{ { artist: { name: SecureRandom.hex(6)} } }
+        end
       end
     end
 
@@ -249,8 +269,11 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(artists_path)
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::ADMIN, success_response: :redirect) { |user| delete_auth(artist_path(create(:artist)), user) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).delete { artist_path(create(:artist)) }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.delete { artist_path(create(:artist)) }.success(:no_content)
+        end
       end
     end
 
@@ -270,8 +293,10 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(artist_path(@artist.id))
       end
 
-      should("restrict access") do
-        assert_access(User::Levels::MEMBER, success_response: :redirect) { |user| put_auth(revert_artist_path(@artist), user, params: { version_id: @artist.versions.first.id }) }
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::MEMBER).json.put { revert_artist_path(@artist) }.params { { version_id: @artist.versions.first.id } }
+        end
       end
     end
 

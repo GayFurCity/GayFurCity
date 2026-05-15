@@ -40,8 +40,11 @@ module MediaAssets
           assert_select("#mascot-media-asset-#{@media_asset.id}", count: 0)
         end
 
-        should("restrict access") do
-          assert_access(User::Levels::MEMBER) { |user| get_auth(mascot_media_assets_path, user) }
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::MEMBER).get(mascot_media_assets_path)
+            access.gte(User::Levels::MEMBER).json.get(mascot_media_assets_path)
+          end
         end
 
         context("search parameters") do
@@ -56,17 +59,19 @@ module MediaAssets
             @media_asset.update(status_message: "foo")
           end
 
-          assert_search_param(:checksum, "ecef68c44edb8a0d6a3070b5f8e8ee76", -> { [@media_asset] }, -> { @janitor })
-          assert_search_param(:md5, "ecef68c44edb8a0d6a3070b5f8e8ee76", -> { [@media_asset] }, -> { @janitor })
-          assert_search_param(:file_ext, "jpg", -> { [@media_asset] }, -> { @janitor })
-          assert_search_param(:pixel_hash, "01cb481ec7730b7cfced57ffa5abd196", -> { [@media_asset] }, -> { @janitor })
-          assert_search_param(:status, "active", -> { [@media_asset] }, -> { @janitor })
-          assert_search_param(:status_message_matches, "foo", -> { [@media_asset] }, -> { @janitor })
-          assert_search_param(:mascot_id, -> { @mascot.id }, -> { [@media_asset] }, -> { @janitor })
-          assert_search_param(:creator_id, -> { @creator.id }, -> { [@media_asset] }, -> { @janitor })
-          assert_search_param(:creator_name, -> { @creator.name }, -> { [@media_asset] }, -> { @janitor })
-          assert_search_param(:ip_addr, "127.0.0.2", -> { [@media_asset] }, -> { @admin })
-          assert_shared_search_params(-> { [@media_asset] }, -> { @janitor })
+          asserts do
+            search(:checksum, "ecef68c44edb8a0d6a3070b5f8e8ee76").records { [@media_asset] }.user { @janitor }
+            search(:md5, "ecef68c44edb8a0d6a3070b5f8e8ee76").records { [@media_asset] }.user { @janitor }
+            search(:file_ext, "jpg").records { [@media_asset] }.user { @janitor }
+            search(:pixel_hash, "01cb481ec7730b7cfced57ffa5abd196").records { [@media_asset] }.user { @janitor }
+            search(:status, "active").records { [@media_asset] }.user { @janitor }
+            search(:status_message_matches, "foo").records { [@media_asset] }.user { @janitor }
+            search(:mascot_id).value { @mascot.id }.records { [@media_asset] }.user { @janitor }
+            search(:creator_id).value { @creator.id }.records { [@media_asset] }.user { @janitor }
+            search(:creator_name).value { @creator.name }.records { [@media_asset] }.user { @janitor }
+            search(:ip_addr, "127.0.0.2").records { [@media_asset] }.user { @admin }
+            search.shared.records { [@media_asset] }.user { @janitor }
+          end
         end
       end
     end

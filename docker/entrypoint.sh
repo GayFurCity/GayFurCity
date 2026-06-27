@@ -12,6 +12,7 @@ if [ -d "$PATCHES_DIR" ]; then
       echo "Patch already applied, skipping: $patch"
     else
       echo "ERROR: Failed to apply patch: $patch" >&2
+      git apply --check "$patch" >&2 || true
       exit 1
     fi
   done

@@ -60,6 +60,7 @@ services:
       - ./docker/cron_tasks/daily:/etc/periodic/daily
       - ./docker/cron_tasks/hourly:/etc/periodic/hourly
       - ./docker/logrotate.d:/etc/logrotate.d
+      - ./patches:/patches
     environment:
       <<: *common-env
       RAILS_ENV: development

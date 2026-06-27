@@ -63,4 +63,5 @@ RUN addgroup --gid ${HOST_GID} gayfurcity && \
 # Ignore warnings from git about .git permission differences when running as root
 RUN git config --global --add safe.directory $(pwd)
 
+ENTRYPOINT ["/app/docker/entrypoint.sh"]
 CMD ["foreman", "start"]

@@ -276,9 +276,10 @@
     </tr>
   </thead>
   <tbody>
+    <% if @info.git.enabled? %>
       <tr>
         <td>Ref</td>
-        <td colspan="2">HEAD</td>
+        <td colspan="2"><%= @info.git.repo_exists? ? "HEAD" : "REVISION" %></td>
       </tr>
       <tr>
         <td>Commit</td>
@@ -294,6 +295,7 @@
           <% end %>
         </td>
       </tr>
+      <% if @info.git.repo_exists? %>
         <tr>
           <td>Diff (Origin)</td>
           <td colspan="2">
@@ -309,7 +311,13 @@
             </ul>
           </td>
         </tr>
-    </tbody>
+      <% end %>
+    <% else %>
+      <tr>
+        <td colspan="3">N/A</td>
+      </tr>
+    <% end %>
+  </tbody>
   <thead>
     <tr>
       <th colspan="3" style="text-align: center">Git (Origin)</th>
@@ -320,13 +328,22 @@
     </tr>
   </thead>
   <tbody>
-      <tr>
-        <td>Ref</td>
-        <td colspan="2"><%= @info.git.origin.remote %>/<%= @info.git.origin.branch %></td>
-      </tr>
+    <% if @info.git.enabled? %>
+      <% if @info.git.repo_exists? %>
+        <tr>
+          <td>Ref</td>
+          <td colspan="2"><%= @info.git.origin.remote %>/<%= @info.git.origin.branch %></td>
+        </tr>
+      <% end %>
       <tr>
         <td>Commit</td>
-        <td colspan="2"><%= link_to(@info.git.origin.short_commit, @info.git.origin.current_commit_url, target: "_blank", rel: "noopener") %> (<%= @info.git.origin.commit %>)</td>
+        <td colspan="2">
+          <% if @info.git.origin.current_commit_url.present? %>
+            <%= link_to(@info.git.origin.short_commit, @info.git.origin.current_commit_url, target: "_blank", rel: "noopener") %> (<%= @info.git.origin.commit %>)
+          <% else %>
+            <%= @info.git.origin.commit %>
+          <% end %>
+        </td>
       </tr>
       <tr>
         <td>Tag</td>
@@ -338,7 +355,7 @@
           <% end %>
         </td>
       </tr>
-      <% if @info.git.upstream.present? %>
+      <% if @info.git.repo_exists? && @info.git.upstream.present? %>
         <tr>
           <td>Diff (Upstream)</td>
           <td colspan="2">
@@ -355,8 +372,13 @@
           </td>
         </tr>
       <% end %>
-    </tbody>
-  <% if @info.git.upstream.present? %>
+    <% else %>
+      <tr>
+        <td colspan="3">N/A</td>
+      </tr>
+    <% end %>
+  </tbody>
+  <% if @info.git.repo_exists? && @info.git.upstream.present? %>
     <thead>
       <tr>
         <th colspan="3" style="text-align: center">Git (Upstream)</th>

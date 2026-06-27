@@ -3,20 +3,29 @@
 class GitHelper
   include(Singleton)
 
+  REVISION_FILE = Rails.root.join("REVISION")
+
   attr_accessor(:enabled, :upstream_enabled, :git_exists, :repo_exists, :origin, :upstream, :local)
   alias enabled? enabled
   alias upstream_enabled? upstream_enabled
+  alias repo_exists? repo_exists
+
+  def self.revision_file_commit
+    File.read(REVISION_FILE).strip.presence if File.exist?(REVISION_FILE)
+  end
 
   def initialize
     @enabled = false
-    @git_exists = system("type git > /dev/null")
+    @git_exists = system("type git > /dev/null 2>&1")
     unless @git_exists
       Rails.logger.error("git is not installed")
+      load_from_revision_file
       return
     end
-    @repo_exists = system("git rev-parse --show-toplevel > /dev/null")
+    @repo_exists = system("git rev-parse --show-toplevel > /dev/null 2>&1")
     unless @repo_exists
       Rails.logger.error("not in a git repo")
+      load_from_revision_file
       return
     end
 
@@ -93,14 +102,69 @@ class GitHelper
     end
   end
 
+  # Used when .git is absent but a REVISION file was baked into the image.
+  class RevisionRef
+    attr_reader(:remote, :branch, :url, :commit, :tag, :exists)
+
+    def initialize(commit, url)
+      @remote = nil
+      @branch = nil
+      @url = url
+      @commit = commit
+      @tag = nil
+      @exists = true
+    end
+
+    def short_commit
+      @commit&.[](0..7)
+    end
+
+    def latest
+      @commit
+    end
+
+    def reset_latest
+      nil
+    end
+
+    def commit_url(c)
+      "#{@url}/commit/#{c}" if @url
+    end
+
+    def tag_url(_tag)
+      nil
+    end
+
+    def latest_commit_url
+      nil
+    end
+
+    def current_commit_url
+      commit_url(@commit)
+    end
+
+    def current_tag_url
+      nil
+    end
+
+    def compare(ref)
+      Comparison.new(self, ref)
+    end
+    alias diff compare
+
+    def ==(other)
+      other.is_a?(RevisionRef) && @commit == other.commit
+    end
+  end
+
   class LocalRef < Ref
     def initialize
       @remote = nil
       @branch = nil
       @url = nil
       @exists = true
-      @commit = `git rev-parse HEAD`.strip
-      @tag = `git tag --points-at #{commit}`.strip.presence
+      @commit = `git rev-parse HEAD`.strip.presence || GitHelper.revision_file_commit
+      @tag = @commit ? `git tag --points-at #{@commit}`.strip.presence : nil
     end
 
     alias latest commit
@@ -163,5 +227,15 @@ class GitHelper
 
   def public_commit_url
     public_ref.commit_url(common_commit)
+  end
+
+  private
+
+  def load_from_revision_file
+    commit = self.class.revision_file_commit
+    return unless commit
+    @enabled = true
+    @local = RevisionRef.new(commit, nil)
+    @origin = RevisionRef.new(commit, GayFurCity.config.source_code_url)
   end
 end

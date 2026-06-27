@@ -35,6 +35,9 @@ RUN apk --no-cache add ffmpeg vips \
 WORKDIR /app
 COPY . .
 
+ARG GIT_COMMIT=unknown
+RUN echo "$GIT_COMMIT" > REVISION
+
 ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 ENV RUBY_YJIT_ENABLE=1
 

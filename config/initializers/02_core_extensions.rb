@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# rubocop:disable Style/OneClassPerFile
 module GayFurCity
   module Extensions
     module String
@@ -87,4 +86,3 @@ end
 class Hash
   include(GayFurCity::Extensions::Hash)
 end
-# rubocop:enable Style/OneClassPerFile

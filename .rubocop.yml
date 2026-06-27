@@ -20,7 +20,7 @@ plugins:
 AllCops:
   NewCops: enable
   Exclude:
-    - 'lib/dtext_rb/**/*'
+    - "lib/dtext_rb/**/*"
 
 Bundler/OrderedGems:
   Enabled: false
@@ -273,10 +273,6 @@ YiffSpace/CurrentUserOutsideOfRequests:
     - config/environments/development.rb
     - app/logical/session_loader.rb
     - test/unit/current_user_test.rb
-
-Style/FileOpen:
-  Exclude:
-    - db/fixes/213*.rb
 
 Rails/SquishedSQLHeredocs:
   Enabled: true

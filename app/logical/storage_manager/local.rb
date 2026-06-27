@@ -33,7 +33,7 @@ module StorageManager
 
     def open(path, &)
       log(%{open("#{path}")}) do
-        file = File.open(p(path), "r", binmode: true) # rubocop:disable Style/FileOpen
+        file = File.open(p(path), "r", binmode: true)
         if block_given?
           begin
             yield(file)

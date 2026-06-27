@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require("net/http")
+require("json")
+
 class GitHelper
   include(Singleton)
 
@@ -32,8 +35,19 @@ class GitHelper
     @enabled = true
     @local = LocalRef.new
     if Rails.env.production?
-      @origin = Ref.new("internal", "master", GayFurCity.config.local_source_code_url)
-      @upstream = Ref.new("upstream", "master", GayFurCity.config.source_code_url)
+      fallback_commit = self.class.revision_file_commit || @local.commit
+      begin
+        @origin = Ref.new("internal", "master", GayFurCity.config.local_source_code_url)
+      rescue StandardError => e
+        Rails.logger.warn("git: #{e.message}, falling back to revision file for origin")
+        @origin = RevisionRef.new(fallback_commit, GayFurCity.config.local_source_code_url)
+      end
+      begin
+        @upstream = Ref.new("upstream", "master", GayFurCity.config.source_code_url)
+      rescue StandardError => e
+        Rails.logger.warn("git: #{e.message}, using remote comparison for upstream")
+        @upstream = RevisionRef.new(nil, GayFurCity.config.source_code_url, branch: "master")
+      end
     else
       branch = `git rev-parse --abbrev-ref HEAD`.strip
       remote = `git config branch.#{branch}.remote`.strip
@@ -103,12 +117,14 @@ class GitHelper
   end
 
   # Used when .git is absent but a REVISION file was baked into the image.
+  # Also used to represent a remote branch head (commit: nil, branch: "master")
+  # for remote comparisons via the GitHub API.
   class RevisionRef
     attr_reader(:remote, :branch, :url, :commit, :tag, :exists)
 
-    def initialize(commit, url)
+    def initialize(commit, url, branch: nil)
       @remote = nil
-      @branch = nil
+      @branch = branch
       @url = url
       @commit = commit
       @tag = nil
@@ -148,12 +164,12 @@ class GitHelper
     end
 
     def compare(ref)
-      Comparison.new(self, ref)
+      RemoteComparison.new(self, ref)
     end
     alias diff compare
 
     def ==(other)
-      other.is_a?(RevisionRef) && @commit == other.commit
+      other.is_a?(RevisionRef) && @commit == other.commit && @branch == other.branch
     end
   end
 
@@ -178,6 +194,11 @@ class GitHelper
     alias latest_commit_url noop
     alias current_commit_url noop
     alias current_tag_url noop
+
+    def compare(ref)
+      ref.is_a?(RevisionRef) ? RemoteComparison.new(self, ref) : Comparison.new(self, ref)
+    end
+    alias diff compare
   end
 
   class Comparison
@@ -213,6 +234,85 @@ class GitHelper
     end
   end
 
+  # Compares two refs using the GitHub compare API — used when git commands are
+  # unavailable (built container) or when comparing against a RevisionRef.
+  # `a` must have a commit; `b` must have a branch or commit and a url.
+  class RemoteComparison
+    attr_reader(:a, :b)
+
+    def initialize(a, b)
+      @a = a
+      @b = b
+    end
+
+    def behind
+      data[:behind]
+    end
+
+    def behind?
+      behind > 0
+    end
+
+    def ahead
+      data[:ahead]
+    end
+
+    def ahead?
+      ahead > 0
+    end
+
+    def common
+      data[:common]
+    end
+
+    def ==(other)
+      other.is_a?(RemoteComparison) && a == other.a && b == other.b
+    end
+
+    private
+
+    def data
+      @data ||= fetch
+    end
+
+    def fetch
+      base = @a.commit
+      head = @b.branch || @b.commit
+      url  = @a.url || @b.url
+
+      return defaults unless base && head && url
+
+      match = url.match(%r{github\.com/([^/]+/[^/]+?)(?:\.git)?/?$})
+      return defaults unless match
+
+      repo = match[1]
+      uri  = URI("https://api.github.com/repos/#{repo}/compare/#{base}...#{head}")
+
+      response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 5, read_timeout: 5) do |http|
+        req = Net::HTTP::Get.new(uri)
+        req["Accept"]     = "application/vnd.github+json"
+        req["User-Agent"] = "GayFurCity-GitHelper"
+        http.request(req)
+      end
+
+      return defaults unless response.is_a?(Net::HTTPSuccess)
+
+      parsed = JSON.parse(response.body)
+      {
+        behind: parsed["behind_by"].to_i,
+        ahead:  parsed["ahead_by"].to_i,
+        common: parsed.dig("merge_base_commit", "sha") || base,
+      }
+    rescue StandardError => e
+      Rails.logger.warn("git: remote comparison failed: #{e.message}")
+      defaults
+    end
+
+    def defaults
+      { behind: 0, ahead: 0, common: @a.commit }
+    end
+  end
+
   def public_ref
     upstream || origin
   end
@@ -235,7 +335,8 @@ class GitHelper
     commit = self.class.revision_file_commit
     return unless commit
     @enabled = true
-    @local = RevisionRef.new(commit, nil)
-    @origin = RevisionRef.new(commit, GayFurCity.config.source_code_url)
+    @local    = RevisionRef.new(commit, nil)
+    @origin   = RevisionRef.new(commit, GayFurCity.config.source_code_url)
+    @upstream = RevisionRef.new(nil, GayFurCity.config.source_code_url, branch: "master")
   end
 end

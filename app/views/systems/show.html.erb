@@ -295,7 +295,7 @@
           <% end %>
         </td>
       </tr>
-      <% if @info.git.repo_exists? %>
+      <% if @info.git.repo_exists? && @info.git.origin.is_a?(GitHelper::Ref) %>
         <tr>
           <td>Diff (Origin)</td>
           <td colspan="2">
@@ -355,7 +355,7 @@
           <% end %>
         </td>
       </tr>
-      <% if @info.git.repo_exists? && @info.git.upstream.present? %>
+      <% if @info.git.upstream.present? %>
         <tr>
           <td>Diff (Upstream)</td>
           <td colspan="2">
@@ -367,7 +367,9 @@
               <% if compare.ahead? %>
                 <li><%= compare.ahead %> <%= "commit".pluralize(compare.ahead) %> ahead</li>
               <% end %>
-              <li>Common Commit: <%= link_to(compare.common, @info.git.origin.commit_url(compare.common), target: "_blank", rel: "noopener") %></li>
+              <% if compare.common.present? %>
+                <li>Common Commit: <%= link_to(compare.common, @info.git.origin.commit_url(compare.common), target: "_blank", rel: "noopener") %></li>
+              <% end %>
             </ul>
           </td>
         </tr>
@@ -378,7 +380,7 @@
       </tr>
     <% end %>
   </tbody>
-  <% if @info.git.repo_exists? && @info.git.upstream.present? %>
+  <% if @info.git.upstream.present? %>
     <thead>
       <tr>
         <th colspan="3" style="text-align: center">Git (Upstream)</th>
@@ -389,24 +391,31 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>Ref</td>
-        <td colspan="2"><%= @info.git.upstream.remote %>/<%= @info.git.upstream.branch %></td>
-      </tr>
-      <tr>
-        <td>Commit</td>
-        <td colspan="2"><%= link_to(@info.git.upstream.short_commit, @info.git.upstream.current_commit_url, target: "_blank", rel: "noopener") %> (<%= @info.git.upstream.commit %>)</td>
-      </tr>
-      <tr>
-        <td>Tag</td>
-        <td colspan="2">
-          <% if @info.git.upstream.tag.present? %>
-            <%= link_to(@info.git.upstream.tag, @info.git.upstream.current_tag_url, target: "_blank", rel: "noopener") %>
-          <% else %>
-            (none)
-          <% end %>
-        </td>
-      </tr>
+      <% if @info.git.upstream.is_a?(GitHelper::Ref) %>
+        <tr>
+          <td>Ref</td>
+          <td colspan="2"><%= @info.git.upstream.remote %>/<%= @info.git.upstream.branch %></td>
+        </tr>
+        <tr>
+          <td>Commit</td>
+          <td colspan="2"><%= link_to(@info.git.upstream.short_commit, @info.git.upstream.current_commit_url, target: "_blank", rel: "noopener") %> (<%= @info.git.upstream.commit %>)</td>
+        </tr>
+        <tr>
+          <td>Tag</td>
+          <td colspan="2">
+            <% if @info.git.upstream.tag.present? %>
+              <%= link_to(@info.git.upstream.tag, @info.git.upstream.current_tag_url, target: "_blank", rel: "noopener") %>
+            <% else %>
+              (none)
+            <% end %>
+          </td>
+        </tr>
+      <% else %>
+        <tr>
+          <td>Branch</td>
+          <td colspan="2"><%= @info.git.upstream.branch %></td>
+        </tr>
+      <% end %>
     </tbody>
   <% end %>
   <thead>

@@ -244,7 +244,7 @@ class ActionDispatch::IntegrationTest # rubocop:disable Style/ClassAndModuleChil
       user_getter ||= -> { create(:user) }
       user = instance_exec(&user_getter)
       get_auth(subject, user, params: { search: { param => value }, format: :json })
-      expected = records.map { |r| CurrentUser.scoped(user) { r.as_json(user: user, include: include) } } # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
+      expected = records.map { |r| CurrentUser.scoped(user) { r.as_json(user: user, include: include) } } # rubocop:disable YiffSpace/CurrentOutsideOfRequests
       expected = expected.map { |r| r.without(*ignore) } if ignore&.any?
       actual = @response.parsed_body.map { |r| r.try(:without, *ignore) }
       actual = actual.map { |r| r.without(*ignore) } if ignore&.any?

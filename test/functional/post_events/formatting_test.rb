@@ -203,7 +203,7 @@ module PostEvents
           should("format correctly for admins") do
             @replacement.destroy_with(@admin)
 
-            CurrentUser.scoped(@admin) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@admin) do # rubocop:disable YiffSpace/CurrentOutsideOfRequests
               assert_matches(
                 post_id:             @post.id,
                 actions:             %w[replacement_deleted],
@@ -218,7 +218,7 @@ module PostEvents
           should("format correctly for users") do
             @replacement.destroy_with(@admin)
 
-            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
+            CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentOutsideOfRequests
               assert_matches(
                 post_id:             @post.id,
                 actions:             %w[replacement_deleted],

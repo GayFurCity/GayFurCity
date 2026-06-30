@@ -130,7 +130,7 @@ class PostEvent < ApplicationRecord
   include(ApiMethods)
   extend(SearchMethods)
 
-  # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
+  # rubocop:disable YiffSpace/CurrentOutsideOfRequests
   BLANK = { text: ->(_log) { "" }, json: [] }.freeze
   FORMATTERS = {
     deleted:                 {
@@ -241,7 +241,7 @@ class PostEvent < ApplicationRecord
   end
 
   KNOWN_ACTIONS = FORMATTERS.keys.freeze
-  # rubocop:enable YiffSpace/CurrentUserOutsideOfRequests
+  # rubocop:enable YiffSpace/CurrentOutsideOfRequests
   def self.available_includes
     %i[post]
   end

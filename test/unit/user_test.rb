@@ -15,7 +15,7 @@ class UserTest < ActiveSupport::TestCase
       create(:ip_ban, ip_addr: "1.2.3.4")
 
       assert_raises(ActiveRecord::RecordInvalid) do
-        CurrentUser.scoped(User.anonymous, "1.2.3.4") do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
+        CurrentUser.scoped(User.anonymous, "1.2.3.4") do # rubocop:disable YiffSpace/CurrentOutsideOfRequests
           create(:user, last_ip_addr: "1.2.3.4")
         end
       end
@@ -264,7 +264,7 @@ class UserTest < ActiveSupport::TestCase
       end
 
       should("not validate") do
-        CurrentUser.scoped(User.anonymous, "127.0.0.2") do # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
+        CurrentUser.scoped(User.anonymous, "127.0.0.2") do # rubocop:disable YiffSpace/CurrentOutsideOfRequests
           @user = build(:user)
           @user.save
 

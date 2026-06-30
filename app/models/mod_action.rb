@@ -57,7 +57,7 @@ class ModAction < ApplicationRecord
     create!(creator: creator, action: action.to_s, subject: subject, values: details)
   end
 
-  # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
+  # rubocop:disable YiffSpace/CurrentOutsideOfRequests
   FORMATTERS = {
     ### Artist ###
     artist_lock:                                {
@@ -659,7 +659,7 @@ class ModAction < ApplicationRecord
     keys.index_with(&method(:send))
   end
   KNOWN_ACTIONS = FORMATTERS.keys.freeze
-  # rubocop:enable YiffSpace/CurrentUserOutsideOfRequests
+  # rubocop:enable YiffSpace/CurrentOutsideOfRequests
 
   module SearchMethods
     def query_dsl

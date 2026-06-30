@@ -31,7 +31,7 @@ class StaffAuditLog < ApplicationRecord
     Rails.application.routes.url_helpers
   end
 
-  # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
+  # rubocop:disable YiffSpace/CurrentOutsideOfRequests
   FORMATTERS = {
     force_name_change:          {
       text: ->(log) { "Forced a name change for #{link_to_user(log.target_id)}" },
@@ -180,7 +180,7 @@ class StaffAuditLog < ApplicationRecord
     FORMATTERS[action.to_sym]&.[](:json)&.index_with { |k| send(k) } || (CurrentUser.user.is_admin? ? values : {})
   end
   KNOWN_ACTIONS = FORMATTERS.keys.freeze
-  # rubocop:enable YiffSpace/CurrentUserOutsideOfRequests
+  # rubocop:enable YiffSpace/CurrentOutsideOfRequests
 
   module SearchMethods
     def query_dsl

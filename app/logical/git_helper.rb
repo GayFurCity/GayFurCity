@@ -143,8 +143,8 @@ class GitHelper
       nil
     end
 
-    def commit_url(c)
-      "#{@url}/commit/#{c}" if @url
+    def commit_url(sha)
+      "#{@url}/commit/#{sha}" if @url
     end
 
     def tag_url(_tag)

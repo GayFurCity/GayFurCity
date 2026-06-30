@@ -264,8 +264,9 @@ Naming/MethodParameterName:
     - pp
     - to
 
-YiffSpace/CurrentUserOutsideOfRequests:
+YiffSpace/CurrentOutsideOfRequests:
   Enabled: true
+  ClassName: CurrentUser
   Exclude:
     - db/fixes/1*.rb
     - db/fixes/204*.rb
@@ -294,3 +295,11 @@ Minitest/MultipleAssertions:
 
 FactoryBot/FactoryAssociationWithStrategy:
   Enabled: false
+
+Style/OneClassPerFile:
+  Exclude:
+    - config/initializers/*.rb
+
+Style/FileOpen:
+  Exclude:
+    - db/fixes/213*.rb

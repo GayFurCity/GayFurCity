@@ -40,12 +40,23 @@ gem("faraday")
 gem("faraday-follow_redirects")
 gem("faraday-retry")
 
+gem("prometheus-client")
+gem("yabeda")
+gem("yabeda-rails")
+gem("yabeda-prometheus")
+gem("yabeda-activerecord")
+gem("yabeda-gc")
+gem("yabeda-sidekiq")
+gem("yabeda-http_requests")
+gem("yabeda-latency")
+
 group(:production) do
   gem("pitchfork")
 end
 
 group(:development) do
   gem("puma")
+  gem("yabeda-puma-plugin")
   gem("debug", require: false)
   gem("rubocop", require: false)
   gem("rubocop-erb", require: false)

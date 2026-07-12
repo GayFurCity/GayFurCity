@@ -34,3 +34,12 @@ plugin(:tmp_restart)
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.
 # In other environments, only set the PID file if requested.
 pidfile(ENV["PIDFILE"]) if ENV["PIDFILE"]
+
+# Exposes puma's own stats (thread pool usage, backlog, etc.) to Yabeda.
+activate_control_app
+plugin(:yabeda)
+
+# Serves /metrics on its own internal port instead of the public app port, so
+# it isn't reachable through the same reverse-proxied domains as the app.
+plugin(:yabeda_prometheus)
+prometheus_exporter_url(ENV.fetch("PROMETHEUS_EXPORTER_URL", "tcp://0.0.0.0:9394/metrics"))

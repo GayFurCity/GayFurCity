@@ -37,7 +37,7 @@ module GayFurCity
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[dtext_rb generators rubocop tasks templates])
+    config.autoload_lib(ignore: %w[dtext_rb generators rubocop tasks templates prometheus])
 
     config.active_record.schema_format = :sql
     config.log_tags = [->(_req) { "PID:#{Process.pid}" }]

@@ -4,5 +4,7 @@
 
 require_relative("config/environment")
 
+use(Yabeda::Latency::Collector)
+
 run(Rails.application)
 Rails.application.load_server

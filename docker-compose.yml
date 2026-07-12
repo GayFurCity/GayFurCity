@@ -39,7 +39,7 @@ x-depends-on: &common-depends-on
     condition: service_healthy
 
 services:
-  gayfurcity:
+  gayfurcity: # metrics port: 9394
     build:
       context: .
       args:
@@ -68,6 +68,9 @@ services:
       GAYFURCITY_DB_NAME: gayfurcity_development
     ports:
       - "${EXPOSED_WEBPACKER_PORT:-4003}:${EXPOSED_WEBPACKER_PORT:-4003}"
+    hostname: gayfurcity.containers.local
+    labels:
+      - "hostname=gayfurcity.containers.local"
     depends_on:
       <<: *common-depends-on
       autocompleted:
@@ -84,8 +87,8 @@ services:
     init: true
 
   # For this service to work properly, it must be accessible from /tags/autocomplete.json on the same url as the primary app
-  autocompleted:
-    image: ghcr.io/gayfurcity/autocompleted:2e01ef9d9aa36c897c46ddc63d4c407bb7e57cf2
+  autocompleted: # metrics port: 9396
+    image: ghcr.io/gayfurcity/autocompleted:432bbca1bac596bd8b59c81d88cbd89d89ac10a5
     command: /app/autocompleted
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://$$SERVER_ADDR/up || exit 1
@@ -99,6 +102,9 @@ services:
       PG__PORT: 5432
       PG__DBNAME: gayfurcity_development
       PG__POOL__MAX_SIZE: 1
+    hostname: autocompleted.gayfurcity.containers.local
+    labels:
+      - "hostname=autocompleted.gayfurcity.containers.local"
 
   nginx:
     image: nginx:1.28.0-alpine3.21
@@ -127,6 +133,25 @@ services:
         condition: service_healthy
     ports:
       - "${EXPOSED_SERVER_PORT:-4000}:${NGINX_EXPOSED_PORT:-4000}"
+    hostname: nginx.gayfurcity.containers.local
+    labels:
+      - "hostname=nginx.gayfurcity.containers.local"
+
+  nginx-metrics: # port: 9113
+    image: nginx/nginx-prometheus-exporter:1.5.1
+    restart: unless-stopped
+    command: ["--nginx.scrape-uri=http://nginx:${NGINX_EXPOSED_PORT:-4000}/stub_status"]
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 32M
+    depends_on:
+      - nginx
+    hostname: metrics.nginx.gayfurcity.containers.local
+    labels:
+      - "hostname=metrics.nginx.gayfurcity.containers.local"
 
   postgres:
     image: postgres:17.5-alpine3.20
@@ -143,8 +168,28 @@ services:
       retries: 10
     ports:
       - "${EXPOSED_POSTGRES_PORT:-34518}:5432"
+    hostname: postgres.gayfurcity.containers.local
+    labels:
+      - "hostname=postgres.gayfurcity.containers.local"
 
-  clickhouse:
+  postgres-metrics: # port: 9187
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.20.1
+    restart: unless-stopped
+    environment:
+      - DATA_SOURCE_NAME=postgresql://gayfurcity@postgres:5432/gayfurcity_development?sslmode=disable
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 32M
+    depends_on:
+      - postgres
+    hostname: metrics.postgres.gayfurcity.containers.local
+    labels:
+      - "hostname=metrics.postgres.gayfurcity.containers.local"
+
+  clickhouse: # metrics port: 9363
     image: clickhouse/clickhouse-server:24.8.2.3-alpine
     healthcheck:
       test: clickhouse-client --query "SELECT 1" || exit 1
@@ -164,6 +209,9 @@ services:
       - clickhouse_data:/var/lib/clickhouse
     ports:
       - "${EXPOSED_CLICKHOUSE_PORT:-34520}:8123"
+    hostname: clickhouse.gayfurcity.containers.local
+    labels:
+      - "hostname=clickhouse.gayfurcity.containers.local"
 
   redis:
     image: redis:8.0.1-alpine3.21
@@ -177,6 +225,26 @@ services:
       - redis_data:/data
     ports:
       - "${EXPOSED_REDIS_PORT:-34519}:6379"
+    hostname: redis.gayfurcity.containers.local
+    labels:
+      - "hostname=redis.gayfurcity.containers.local"
+
+  redis-metrics: # port: 9121
+    image: oliver006/redis_exporter:v1.86.0-alpine
+    restart: unless-stopped
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 16M
+    depends_on:
+      - redis
+    hostname: metrics.redis.gayfurcity.containers.local
+    labels:
+      - "hostname=metrics.redis.gayfurcity.containers.local"
 
   memcached:
     image: memcached:1.6.38-alpine
@@ -185,6 +253,25 @@ services:
       interval: 30s
       timeout: 2s
       retries: 5
+    hostname: memcached.gayfurcity.containers.local
+    labels:
+      - "hostname=memcached.gayfurcity.containers.local"
+
+  memcached-metrics: # port: 9150
+    image: quay.io/prometheus/memcached-exporter:v0.16.0
+    restart: unless-stopped
+    command: ["--memcached.address=memcached:11211"]
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 32M
+    depends_on:
+      - memcached
+    hostname: metrics.memcached.gayfurcity.containers.local
+    labels:
+      - "hostname=metrics.memcached.gayfurcity.containers.local"
 
   elasticsearch:
     build:
@@ -205,9 +292,28 @@ services:
       retries: 12
     ports:
       - "${EXPOSED_ELASTICSEARCH_PORT:-49200}:9200"
+    hostname: elasticsearch.gayfurcity.containers.local
+    labels:
+      - "hostname=elasticsearch.gayfurcity.containers.local"
 
-  iqdb:
-    image: ghcr.io/earlopain/iqdb:d274d333c9067f19edd4e619b7bd89cf1c294d50
+  elasticsearch-metrics: # port: 9114
+    image: quay.io/prometheuscommunity/elasticsearch-exporter:v1.10.0
+    restart: unless-stopped
+    command: ["--es.uri=http://elasticsearch:9200", "--es.all", "--es.indices"]
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 32M
+    depends_on:
+      - elasticsearch
+    hostname: metrics.elasticsearch.gayfurcity.containers.local
+    labels:
+      - "hostname=metrics.elasticsearch.gayfurcity.containers.local"
+
+  iqdb: # metrics port: 5588
+    image: ghcr.io/gayfurcity/iqdb:304e595af4388f7b5bdbf20a001e45035564d22f
     command: iqdb http 0.0.0.0 5588 /iqdb/iqdb.db
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:5588/status || exit 1
@@ -216,11 +322,14 @@ services:
       retries: 5
     volumes:
       - iqdb_data:/iqdb
+    hostname: iqdb.gayfurcity.containers.local
+    labels:
+      - "hostname=oqdb.gayfurcity.containers.local"
 
-  recommender:
-    image: ghcr.io/gayfurcity/recommender:355686b8b73fa3902dcfff8426eb6091a2896356
+  recommender: # metrics port: 5000
+    image: ghcr.io/gayfurcity/recommender:67f1ef8db62f065192e39fab50d14f69e1dca556
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://127.0.0.1:5000/metrics || exit 1
+      test: wget --no-verbose --tries=1 --spider http://127.0.0.1:5000/info || exit 1
       interval: 30s
       timeout: 2s
       retries: 5
@@ -230,12 +339,15 @@ services:
       - DATABASE_URL=postgres://gayfurcity:@postgres/gayfurcity_development
       - OPENBLAS_NUM_THREADS=1
       - TRAINING_THREADS=4
+    hostname: recommender.gayfurcity.containers.local
+    labels:
+      - "hostname=recommender.gayfurcity.containers.local"
 
   # By default, this is bound to /reports on the same url as the primary app for external access
   # To change this, set the GAYFURCITY_REPORTS_SERVER env variable
   # For internal access, change the GAYFURCITY_REPORTS_SERVER_INTERNAL env varable (defaults to http://reports:3000)
-  reports:
-    image: ghcr.io/gayfurcity/reports:ec47a4c460e2f778c744ace95f37bf15902d38a2
+  reports: # metrics port: 9100
+    image: ghcr.io/gayfurcity/reports:140a1b3f2a9503622ba8eadd4f5da7cf8b4e433e
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/up || exit 1
       interval: 30s
@@ -252,6 +364,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    hostname: reports.gayfurcity.containers.local
+    labels:
+      - "hostname=reports.gayfurcity.containers.local"
 
   # Discord integration
 

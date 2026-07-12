@@ -133,5 +133,17 @@ module StorageManager
     def variant_location(...)
       GayFurCity.config.variant_location(...)
     end
+
+    def with_metrics(method)
+      result = nil
+      Yabeda.storage.public_send(method).increment({ class: self.class.name })
+      Yabeda.storage.public_send("#{method}_runtime").measure({ class: self.class.name }) do
+        result = yield
+      rescue StandardError
+        Yabeda.storage.public_send("#{method}_failures").increment({ class: self.class.name })
+        raise
+      end
+      result
+    end
   end
 end

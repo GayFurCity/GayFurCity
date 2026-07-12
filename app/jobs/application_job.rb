@@ -7,4 +7,15 @@ class ApplicationJob < ActiveJob::Base
 
   # Most jobs are safe to ignore if the underlying records are no longer available
   # discard_on ActiveJob::DeserializationError
+
+  around_perform do |job, block|
+    tags = { job_class: job.class.name }
+    Yabeda.jobs.executions.increment(tags)
+    Yabeda.jobs.runtime.measure(tags) do
+      block.call
+    rescue StandardError
+      Yabeda.jobs.failures.increment(tags)
+      raise
+    end
+  end
 end

@@ -314,7 +314,8 @@ class GitHelper
   end
 
   def public_ref
-    upstream || origin
+    return upstream if upstream.present? && upstream.commit.present?
+    origin
   end
 
   def common_commit

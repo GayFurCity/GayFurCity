@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require("dotenv")
+require("uri")
 
 # Should be "production" by default, otherwise use other env
 rails_env = ENV.fetch("RAILS_ENV", "production")
@@ -27,6 +28,21 @@ after_worker_ready do |server, worker|
   worker_data = WorkerData.new(max_requests: max_requests, max_mem: max_mem)
 
   server.logger.info("worker=#{worker.nr} gen=#{worker.generation} ready, serving #{max_requests} requests, #{max_mem} bytes")
+
+  # Pitchfork has no master-process app instance to run a singleton exporter from (unlike
+  # the Puma plugin), since the app is only loaded after forking. Instead, only the worker
+  # holding slot 0 runs the exporter, so exactly one process serves /metrics at a time.
+  if worker.nr == 0
+    uri = URI.parse(ENV.fetch("PROMETHEUS_EXPORTER_URL", "tcp://0.0.0.0:9394/metrics"))
+    Thread.new do
+      Yabeda::Prometheus::Exporter.rack_handler.run(
+        Yabeda::Prometheus::Exporter.rack_app(path: uri.path),
+        Host:      uri.host,
+        Port:      uri.port,
+        AccessLog: [],
+      )
+    end
+  end
 end
 
 after_request_complete do |server, worker, _env|

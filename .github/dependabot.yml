@@ -1,0 +1,39 @@
+version: 2
+updates:
+  - package-ecosystem: bundler
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      rails:
+        patterns: ["rails", "railties", "activerecord", "activesupport", "actionpack", "actionview", "actionmailer", "activejob", "activemodel"]
+
+  - package-ecosystem: bundler
+    directory: /lib/dtext_rb
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /docker/elasticsearch
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /lib/dtext_rb
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

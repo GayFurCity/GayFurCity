@@ -14,6 +14,9 @@ permissions:
 jobs:
   checks:
     uses: ./.github/workflows/checks.yml
+    permissions:
+      contents: read
+      checks: write
   build:
     if: github.repository_owner == 'gayfurcity'
     needs: [checks]

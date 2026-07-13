@@ -11,7 +11,7 @@ development:
 
 test:
   <<: *default
-  database: test
+  database: <%= ENV.fetch("GAYFURCITY_TEST_DB_NAME", "test") %>
   host: postgres
   pool: 5
 

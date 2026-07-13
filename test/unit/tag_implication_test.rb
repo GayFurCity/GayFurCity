@@ -46,8 +46,9 @@ class TagImplicationTest < ActiveSupport::TestCase
     end
 
     context("#estimate_update_count") do
+      resets_post_index!
+
       setup do
-        reset_post_index
         create(:post, tag_string: "aaa bbb ccc")
         @implication = create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb", status: "pending")
       end

@@ -57,8 +57,9 @@ class TagAliasTest < ActiveSupport::TestCase
     end
 
     context("#estimate_update_count") do
+      resets_post_index!
+
       setup do
-        reset_post_index
         create(:post, tag_string: "aaa bbb ccc")
         @alias = create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "pending")
       end

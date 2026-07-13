@@ -9,8 +9,9 @@ class BulkUpdateRequestProcessorTest < ActiveSupport::TestCase
     end
 
     context("#estimate_update_count") do
+      resets_post_index!
+
       setup do
-        reset_post_index
         create(:post, tag_string: "aaa")
         create(:post, tag_string: "bbb")
         create(:post, tag_string: "ccc")
@@ -59,6 +60,8 @@ class BulkUpdateRequestProcessorTest < ActiveSupport::TestCase
     end
 
     context("#dtext") do
+      resets_post_index!
+
       setup do
         create(:post, tag_string: "aaa")
         create(:post, tag_string: "bbb")

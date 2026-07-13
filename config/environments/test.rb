@@ -62,4 +62,10 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
   config.active_record.verbose_query_logs = true
+
+  # test/support/isolated_database.rb already builds and verifies (via a structure.sql hash check)
+  # a fresh, per-process database before Rails boots. Rails' own schema-maintenance check runs
+  # against ar_internal_metadata state that our raw `psql -f structure.sql` load doesn't populate,
+  # and would otherwise try to purge/reload the schema on every test run - skip it, it's redundant.
+  config.active_record.maintain_test_schema = false
 end

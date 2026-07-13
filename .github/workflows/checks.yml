@@ -103,12 +103,6 @@ jobs:
         with:
           name: gayfurcity
 
-      - name: Create DB
-        run: $DOCKER_RUN --entrypoint bin/rails tests db:create
-
-      - name: Load DB Schema
-        run: $DOCKER_RUN --entrypoint bin/rails tests db:schema:load
-
       - name: Run Tests
         run: $DOCKER_RUN tests
 

@@ -4,6 +4,17 @@ module TestHelpers
   module Util
     extend(ActiveSupport::Concern)
 
+    class_methods do
+      # The post index is only ever created/emptied once, at test process boot (see test_helper.rb) -
+      # it does NOT get a fresh, isolated copy per test the way Postgres does via transactional
+      # rollback. Any test that creates posts leaves them indexed for every test that runs after it
+      # in the same process. Call this in any context whose assertions depend on exact post counts or
+      # search results, so it can't be corrupted by whatever ran before it.
+      def resets_post_index!
+        setup { reset_post_index }
+      end
+    end
+
     def with_inline_jobs(&)
       Sidekiq::Testing.inline!(&)
     end

@@ -2,6 +2,7 @@
 
 ENV["RAILS_ENV"] ||= "test"
 ENV["MT_NO_EXPECTATIONS"] = "true"
+require_relative("support/isolated_database")
 require_relative("../config/environment")
 require("rails/test_help")
 
@@ -60,13 +61,27 @@ BCrypt::Engine::DEFAULT_COST = BCrypt::Engine::MIN_COST
 Post.document_store.create_index!(delete_existing: true)
 PostVersion.document_store.create_index!(delete_existing: true)
 
+# Indices are named per-process (see DocumentStore::Model) so concurrent runs don't collide; without
+# this they'd never get cleaned up since each process's name is unique. Minitest.after_run (not
+# at_exit!) - Minitest itself defers running tests to an at_exit hook, and at_exit callbacks run
+# LIFO, so an at_exit registered here would run BEFORE Minitest's, deleting the index before any
+# test runs.
+Minitest.after_run do
+  Post.document_store.delete_index!
+  PostVersion.document_store.delete_index!
+end
+
 class ActiveSupport::TestCase # rubocop:disable Style/ClassAndModuleChildren
   include(ActionDispatch::TestProcess::FixtureFile)
   include(FactoryBot::Syntax::Methods)
   include(TestHelpers::Common)
   include(TestHelpers::Util)
 
-  storage_root = Rails.root.join("tmp/test-storage2").to_s
+  # Suffixed with the process id (and ENV["TEST_ENV_NUMBER"], set by Rails' thread-based parallel test
+  # workers) so concurrent test runs - whether that's two separate `bin/rails test` invocations, or
+  # parallel workers within one - each get their own directory instead of racing to mkdir/rm_rf a
+  # shared one out from under each other.
+  storage_root = Rails.root.join("tmp/test-storage2-#{Process.pid}#{ENV.fetch('TEST_ENV_NUMBER', nil)}").to_s
   setup do
     host = "example.com"
     Socket.stubs(:gethostname).returns(host)

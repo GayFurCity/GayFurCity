@@ -7,6 +7,7 @@ module DocumentStore
     setup do
       WebMock.disable_net_connect!
       WebMock.reset_executed_requests!
+      @index_path = "/#{Post.document_store.index_name}"
     end
 
     teardown do
@@ -18,29 +19,29 @@ module DocumentStore
     end
 
     test("it deletes the index") do
-      delete_request = stub_elasticsearch(:delete, "/posts_test")
+      delete_request = stub_elasticsearch(:delete, @index_path)
       Post.document_store.delete_index!
 
       assert_requested(delete_request)
     end
 
     test("it checks for the existance of the index") do
-      head_request = stub_elasticsearch(:head, "/posts_test")
+      head_request = stub_elasticsearch(:head, @index_path)
       Post.document_store.index_exist?
 
       assert_requested(head_request)
     end
 
     test("it skips creating the index if it already exists") do
-      head_request = stub_elasticsearch(:head, "/posts_test").to_return(status: 200)
+      head_request = stub_elasticsearch(:head, @index_path).to_return(status: 200)
       Post.document_store.create_index!
 
       assert_requested(head_request)
     end
 
     test("it creates the index if it doesn't exist") do
-      head_request = stub_elasticsearch(:head, "/posts_test").to_return(status: 404)
-      put_request = stub_elasticsearch(:put, "/posts_test").with(body: Post.document_store.index)
+      head_request = stub_elasticsearch(:head, @index_path).to_return(status: 404)
+      put_request = stub_elasticsearch(:put, @index_path).with(body: Post.document_store.index)
 
       assert_predicate(Post.document_store.index, :present?)
 
@@ -51,9 +52,9 @@ module DocumentStore
     end
 
     test("it recreates the index if delete_existing is true and the index already exists") do
-      head_request = stub_elasticsearch(:head, "/posts_test").to_return(status: 200)
-      delete_request = stub_elasticsearch(:delete, "/posts_test")
-      put_request = stub_elasticsearch(:put, "/posts_test")
+      head_request = stub_elasticsearch(:head, @index_path).to_return(status: 200)
+      delete_request = stub_elasticsearch(:delete, @index_path)
+      put_request = stub_elasticsearch(:put, @index_path)
 
       Post.document_store.create_index!(delete_existing: true)
 
@@ -63,14 +64,14 @@ module DocumentStore
     end
 
     test("it deletes by query") do
-      post_request = stub_elasticsearch(:post, "/posts_test/_delete_by_query?q=*").with(body: "{}")
+      post_request = stub_elasticsearch(:post, "#{@index_path}/_delete_by_query?q=*").with(body: "{}")
       Post.document_store.delete_by_query(query: "*", body: {})
 
       assert_requested(post_request)
     end
 
     test("it refreshes the index") do
-      post_request = stub_elasticsearch(:post, "/posts_test/_refresh")
+      post_request = stub_elasticsearch(:post, "#{@index_path}/_refresh")
       Post.document_store.refresh_index!
 
       assert_requested(post_request)

@@ -20,6 +20,7 @@ class PaginatorTest < ActiveSupport::TestCase
   { active_record: WikiPage, elasticsearch: Post }.each do |type, model| # rubocop:disable Metrics/BlockLength
     context(type) do
       setup do
+        reset_post_index if type == :elasticsearch
         @user = create(:user)
       end
 
@@ -46,10 +47,6 @@ class PaginatorTest < ActiveSupport::TestCase
       end
 
       context("numbered pagination") do
-        setup do
-          skip("flaky af") if ENV["CI"] && type == :elasticsearch
-        end
-
         should("return the correct set of records") do
           @records = create_list(model.name.underscore, 4)
           assert_paginated(expected_records: [@records[0]], is_first_page: true, is_last_page: false) { model.paginate("1", limit: 1) }

@@ -3,6 +3,7 @@
 require("pg")
 require("digest")
 require("open3")
+require("securerandom")
 
 # Gives each test process its own Postgres database (named after its pid, mirroring the storage
 # directory and Elasticsearch index) so that separate `bin/rails test` invocations never share (and
@@ -27,7 +28,15 @@ module IsolatedDatabase
     # DocumentStore::Model, which names test indices the same way. Rails' own `parallelize` support
     # (see test_helper.rb) forks worker processes from here and suffixes this base name with
     # -n<worker number> for each one, so all of a run's databases are traceable to one pid.
-    @database_name ||= "test-p#{Process.pid}"
+    #
+    # The trailing random suffix matters in CI: `docker compose run` starts a brand new container per
+    # invocation, and a fresh container's entrypoint process is always pid 1, so Process.pid alone
+    # would collide with a previous run's leftover database of the exact same name (e.g. if that run
+    # was cancelled/crashed before reaching its own cleanup) - pid_alive?(1) checked from a NEW
+    # container also always reports "alive" since it just observes itself, so reap_orphaned! can't
+    # tell the old one apart either. The random component sidesteps the collision outright; the pid
+    # prefix is kept since reap_orphaned!'s matching only cares about the leading digits.
+    @database_name ||= "test-p#{Process.pid}-#{SecureRandom.hex(4)}"
   end
 
   # worker_number is nil for the (non-parallelized) primary process's own database.

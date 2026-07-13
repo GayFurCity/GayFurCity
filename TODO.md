@@ -7,7 +7,7 @@
 | [app/models/pool.rb](app/models/pool.rb#L308) | 308 | finds wrong post when the pool contains multiple copies of the same post (#2042). |
 | [app/models/post.rb](app/models/post.rb#L1621) | 1621 | This must happen *after* the `is_deleted` flag is set to true (issue #3419). |
 | [app/logical/gay_fur_city/paginator/active_record_extension.rb](app/logical/gay_fur_city/paginator/active_record_extension.rb#L48) | 48 | Hack: in sequential pagination we fetch one more record than we need |
-| [test/test_helper.rb](test/test_helper.rb#L281) | 281 | Testing modules should not have a say in if we can or cannot use assert_equal with nil |
+| [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L1) | 1 | Testing modules should not have a say in if we can or cannot use assert_equal with nil |
 
 ### FIXMEs
 | Filename | line # | FIXME |
@@ -30,7 +30,7 @@
 | [app/logical/favorite_manager.rb](app/logical/favorite_manager.rb#L53) | 53 | Much better and more intelligent logic can exist for this |
 | [app/logical/user_attribute.rb](app/logical/user_attribute.rb#L47) | 47 | implement clone validation logic |
 | [app/logical/view_count_cache.rb](app/logical/view_count_cache.rb#L6) | 6 | replace with defaults with rails 7.2 upgrade |
-| [app/models/forum_topic.rb](app/models/forum_topic.rb#L173) | 173 | revisit muting, it may need to be further optimized or removed due to performance issues |
+| [app/models/forum_topic.rb](app/models/forum_topic.rb#L172) | 172 | revisit muting, it may need to be further optimized or removed due to performance issues |
 | [app/models/media_asset.rb](app/models/media_asset.rb#L101) | 101 | reimplement ability to disable notifications |
 | [app/models/post_event.rb](app/models/post_event.rb#L94) | 94 | We need access control/blocks for associations |
 | [app/models/post_flag.rb](app/models/post_flag.rb#L52) | 52 | We need access control/blocks for associations |
@@ -49,8 +49,8 @@
 | [app/views/posts/deletion_reasons/index.html.erb](app/views/posts/deletion_reasons/index.html.erb#L3) | 3 | convert to new table syntax |
 | [app/javascript/src/styles/common/_standard_elements.scss](app/javascript/src/styles/common/_standard_elements.scss#L29) | 29 | What if button is on a light background |
 | [app/views/posts/replacements/rejection_reasons/index.html.erb](app/views/posts/replacements/rejection_reasons/index.html.erb#L3) | 3 | convert to new table syntax |
-| [test/test_helper.rb](test/test_helper.rb#L283) | 283 | look into refactoring out minitest? |
-| [test/controllers/uploads_controller_test.rb](test/controllers/uploads_controller_test.rb#L155) | 155 | reimplement ability to disable notifications |
+| [test/controllers/uploads_controller_test.rb](test/controllers/uploads_controller_test.rb#L166) | 166 | reimplement ability to disable notifications |
+| [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L3) | 3 | look into refactoring out minitest? |
 | [test/unit/file_methods_test.rb](test/unit/file_methods_test.rb#L359) | 359 | neither video has audio |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L552) | 552 | This was moved to be a controller concern to fix issues with internal post updates |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L745) | 745 | Invalid tags are now reported as warnings, and don't trigger these. |
@@ -58,7 +58,6 @@
 | [test/unit/post_test.rb](test/unit/post_test.rb#L1729) | 1729 | Needs to reload relationship to obtain non cached value |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L2183) | 2183 | These don't quite make sense, what should hide deleted posts and what shouldn't? |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L2590) | 2590 | These are pretty messed up, both structurally, and expectation wise. |
-| [test/controllers/posts/replacements_controller_test.rb](test/controllers/posts/replacements_controller_test.rb#L134) | 134 | reimplement ability to disable notifications |
 | [config/config.rb](config/config.rb#L164) | 164 | appealed posts should be visible, but this makes it far too easy to get the contents of deleted posts at a moments notice |
 
 ### HACKs

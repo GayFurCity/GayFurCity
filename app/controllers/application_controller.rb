@@ -189,6 +189,13 @@ class ApplicationController < ActionController::Base
 
   def reset_current_user
     CurrentUser.reset
+    # Time.zone is a raw thread-global (unlike CurrentUser, an ActiveSupport::CurrentAttributes that
+    # already resets itself around each request/test) - session_loader.rb sets it per-user with no
+    # matching reset, so on a reused thread (Puma reuses threads across requests by default) a later
+    # request/test can inherit a previous user's timezone. Reset it here, in the before_action pass of
+    # this same callback, so it goes back to the app default before set_current_user re-derives it for
+    # the current request's user; the after_action pass then leaves it clean for whatever runs next.
+    Time.zone = Rails.application.config.time_zone
   end
 
   def requires_reauthentication

@@ -73,7 +73,7 @@ class PopularController < ApplicationController
   private
 
   def parse_date(params, scales: %w[day week month])
-    date = params[:date].present? ? Date.parse(params[:date]) : Time.now
+    date = params[:date].present? ? Date.parse(params[:date]) : Time.zone.now
     scale = params[:scale].in?(scales) ? params[:scale] : "day"
     min_date = date.send("beginning_of_#{scale}")
     max_date = date.send("next_#{scale}").send("beginning_of_#{scale}")

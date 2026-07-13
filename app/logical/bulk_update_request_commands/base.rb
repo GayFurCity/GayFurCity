@@ -40,6 +40,13 @@ module BulkUpdateRequestCommands
       @comments ||= ActiveModel::Errors.new(self)
     end
 
+    # Populated by #process for commands that support being undone (see TagMover#undos).
+    # Left empty for commands that don't produce undoable side effects.
+    def undo_data
+      @undo_data ||= []
+    end
+    attr_writer(:undo_data)
+
     def estimate_update_count
       0
     end

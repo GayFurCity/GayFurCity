@@ -469,7 +469,7 @@ class TagAliasTest < ActiveSupport::TestCase
       end
 
       should("undo destroy_tag_alias") do
-        skip("might not be naturally possible?") # TODO
+        skip("Unreachable via TagAlias#approve!: triggering this requires an active reverse alias (Q -> P) to already exist before approving P -> Q, but absence_of_transitive_relation re-validates on every save of the alias being approved (including TagAlias#process!'s own status update), so the approval itself is rejected once a conflicting active reverse alias exists. This path is only reachable via BulkUpdateRequestCommands::Rename, which moves tags without saving a TagAlias record and so records its undo data on the BUR command, not on a TagAlias.")
       end
 
       should("undo update_tag_implication_antecedent_name") do
@@ -503,7 +503,16 @@ class TagAliasTest < ActiveSupport::TestCase
       end
 
       should("undo destroy_tag_implication") do
-        skip(": might not be naturally possible?") # TODO
+        ti = create(:tag_implication, antecedent_name: "aaa", consequent_name: "bbb")
+        ta = create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb", status: "pending")
+        with_inline_jobs { ta.approve!(@admin) }
+
+        assert_not(TagImplication.exists?(id: ti.id))
+        assert_not_equal([], ta.reload.undo_data)
+        with_inline_jobs { ta.undo!(@admin) }
+
+        assert(TagImplication.active.exists?(antecedent_name: "aaa", consequent_name: "bbb"))
+        assert_equal([], ta.reload.undo_data)
       end
 
       should("undo update_blacklists") do

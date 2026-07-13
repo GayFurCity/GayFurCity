@@ -162,7 +162,9 @@ class TagMover
         undos << [:update_tag_alias_consequent_name, { id: tag_alias.id, old: old_tag.name, new: new_tag.name }]
       elsif tag_alias.errors.full_messages.join("; ") =~ /Cannot alias a tag to itself/
         tag_alias.destroy
-        undos << [:destroy_tag_alias, { antecedent_name: tag_alias.antecedent_name, consequent_name: tag_alias.consequent_name, status: tag_alias.status }]
+        # consequent_name was already mutated to new_tag.name above, so use old_tag.name (its
+        # original value) instead - otherwise the undo entry records a self-referential alias.
+        undos << [:destroy_tag_alias, { antecedent_name: tag_alias.antecedent_name, consequent_name: old_tag.name, status: tag_alias.status }]
       end
     end
   end
@@ -176,7 +178,9 @@ class TagMover
         undos << [:update_tag_implication_antecedent_name, { id: tag_implication.id, old: old_tag.name, new: new_tag.name }]
       elsif tag_implication.errors.full_messages.join("; ") =~ /Cannot implicate a tag to itself/
         tag_implication.destroy
-        undos << [:destroy_tag_implication, { antecedent_name: tag_implication.antecedent_name, consequent_name: tag_implication.consequent_name, status: tag_implication.status }]
+        # antecedent_name was already mutated to new_tag.name above, so use old_tag.name (its
+        # original value) instead - otherwise the undo entry records a self-referential implication.
+        undos << [:destroy_tag_implication, { antecedent_name: old_tag.name, consequent_name: tag_implication.consequent_name, status: tag_implication.status }]
       end
     end
 
@@ -188,7 +192,9 @@ class TagMover
         undos << [:update_tag_implication_consequent_name, { id: tag_implication.id, old: old_tag.name, new: new_tag.name }]
       elsif tag_implication.errors.full_messages.join("; ") =~ /Cannot implicate a tag to itself/
         tag_implication.destroy
-        undos << [:destroy_tag_implication, { antecedent_name: tag_implication.antecedent_name, consequent_name: tag_implication.consequent_name }]
+        # consequent_name was already mutated to new_tag.name above, so use old_tag.name (its
+        # original value) instead - otherwise the undo entry records a self-referential implication.
+        undos << [:destroy_tag_implication, { antecedent_name: tag_implication.antecedent_name, consequent_name: old_tag.name, status: tag_implication.status }]
       end
     end
   end

@@ -42,7 +42,9 @@ module BulkUpdateRequestCommands
 
     def process(_processor, approver)
       ensure_valid!
-      TagMover.new(antecedent_name, consequent_name, user: approver, request: self).move!
+      mover = TagMover.new(antecedent_name, consequent_name, user: approver, request: self)
+      mover.move!
+      self.undo_data = mover.undos
     end
   end
 end

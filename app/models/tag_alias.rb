@@ -16,7 +16,7 @@ class TagAlias < TagRelationship
     end
 
     def undo!(user = User.system)
-      TagAliasUndoJob.perform_later(id, user.id, true)
+      TagAliasUndoJob.perform_later(id, true, user)
     end
   end
 

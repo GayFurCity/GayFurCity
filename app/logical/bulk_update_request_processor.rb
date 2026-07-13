@@ -120,5 +120,6 @@ class BulkUpdateRequestProcessor
     commands.each do |command|
       command.process(self, approver)
     end
+    commands.flat_map(&:undo_data)
   end
 end

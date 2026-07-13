@@ -87,12 +87,25 @@ class BulkUpdateRequest < ApplicationRecord
 
     def process!(approver, update_topic: true)
       update(status: "processing", approver: approver)
-      processor.process!(approver)
+      undos = processor.process!(approver)
+      update_column(:undo_data, undos) if undos.present?
       forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has been approved by @#{approver.name}.", "APPROVED") if update_topic
       update(status: "approved", approver: approver)
     rescue BulkUpdateRequestProcessor::Error, BulkUpdateRequestCommands::ProcessingError => e
       forum_updater.update("The #{bulk_update_request_link} (forum ##{forum_post&.id}) has failed: #{e}", "FAILED") if update_topic
       update_columns(status: "error: #{e}")
+    end
+
+    def undo!(user = User.system)
+      BulkUpdateRequestUndoJob.perform_later(self, user)
+    end
+
+    def process_undo!(user = User.system)
+      raise("Nothing to undo") if undo_data.blank?
+
+      mover = TagMover::Undo.new(undo_data, user: user, request: self)
+      mover.undo!
+      update_column(:undo_data, undo_data - mover.applied.as_json)
     end
 
     def create_forum_topic

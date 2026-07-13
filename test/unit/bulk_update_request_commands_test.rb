@@ -33,6 +33,13 @@ class BulkUpdateRequestCommandsTest < ActiveSupport::TestCase
     assert_equal("approved", bur.reload.status) if status
   end
 
+  def undo!(bur, user)
+    assert_enqueued_jobs(1, only: BulkUpdateRequestUndoJob) do
+      bur.undo!(user)
+    end
+    perform_enqueued_jobs(only: BulkUpdateRequestUndoJob)
+  end
+
   def assert_errors(user, script, content)
     ApplicationRecord.transaction do
       yield if block_given?
@@ -471,6 +478,29 @@ class BulkUpdateRequestCommandsTest < ActiveSupport::TestCase
 
         assert_equal(TagCategory.artist, @tag2.reload.category)
         assert_equal(@tag2.name, @post.reload.tag_string)
+      end
+
+      should("destroy a conflicting reverse alias instead of aliasing a tag to itself, and undo it") do
+        # TagMover#move_aliases! can't update this alias's consequent_name to @tag2.name without making
+        # it self-referential (@tag2.name -> @tag2.name), so it destroys it instead. This is unreachable
+        # via TagAlias#approve! (absence_of_transitive_relation blocks the conflicting alias from ever
+        # coexisting with an active alias to alias), but Rename moves tags without saving a TagAlias for
+        # the merge itself, so it isn't subject to that validation.
+        reverse_alias = create(:tag_alias, antecedent_name: @tag2.name, consequent_name: @tag.name, status: "active")
+
+        approve!(@bur, @admin)
+
+        assert_not(TagAlias.exists?(id: reverse_alias.id))
+        # move_posts! runs before move_aliases! in TagMover#move!, so while reverse_alias is still
+        # active, Post#save!'s tag normalization resolves @tag2.name straight back through it to
+        # @tag.name - the post never actually ends up tagged with @tag2.name in this scenario.
+        assert_equal(@tag.name, @post.reload.tag_string)
+        assert_not_equal([], @bur.reload.undo_data)
+
+        undo!(@bur, @admin)
+
+        assert(TagAlias.active.exists?(antecedent_name: @tag2.name, consequent_name: @tag.name))
+        assert_equal([], @bur.reload.undo_data)
       end
 
       should("fail to process if invalid") do

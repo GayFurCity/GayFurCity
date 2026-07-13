@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_05_09_060732) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_13_005427) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -149,6 +149,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_09_060732) do
     t.inet "creator_ip_addr", default: "127.0.0.1", null: false
     t.bigint "updater_id", null: false
     t.inet "updater_ip_addr", null: false
+    t.jsonb "undo_data", default: [], null: false
     t.index ["forum_post_id"], name: "index_bulk_update_requests_on_forum_post_id"
     t.index ["updater_id"], name: "index_bulk_update_requests_on_updater_id"
   end

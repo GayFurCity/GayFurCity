@@ -58,7 +58,7 @@ class TagMover
       when TagImplication
         reason = "undo: implication ##{request.id} (#{request.antecedent_name} -> #{request.consequent_name})"
       when BulkUpdateRequest
-        reason = "undo: bulk update request ##{request.id} (#{request.antecedent_name} -> #{request.consequent_name})"
+        reason = "undo: bulk update request ##{request.id} (#{tag.name})"
       else
         reason = "undo tag move"
       end

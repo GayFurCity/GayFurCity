@@ -1,7 +1,7 @@
-\restrict YeI0ieIEmVXCTq8VDKpsSgNalJnnzCDJPF1TwEMRXYXX07Uw5EHleRgQjhLkkuq
+\restrict k2naSiGil0Hq5aab3zam7YWlhV74diFZsooIViDT9U2PYYkg2IyrQMUJhBGpB5g
 
 -- Dumped from database version 17.5
--- Dumped by pg_dump version 17.9
+-- Dumped by pg_dump version 17.10
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -417,7 +417,8 @@ CREATE TABLE public.bulk_update_requests (
     title text DEFAULT ''::text NOT NULL,
     creator_ip_addr inet DEFAULT '127.0.0.1'::inet NOT NULL,
     updater_id bigint NOT NULL,
-    updater_ip_addr inet NOT NULL
+    updater_ip_addr inet NOT NULL,
+    undo_data jsonb DEFAULT '[]'::jsonb NOT NULL
 );
 
 
@@ -7846,11 +7847,12 @@ ALTER TABLE ONLY public.help_pages
 -- PostgreSQL database dump complete
 --
 
-\unrestrict YeI0ieIEmVXCTq8VDKpsSgNalJnnzCDJPF1TwEMRXYXX07Uw5EHleRgQjhLkkuq
+\unrestrict k2naSiGil0Hq5aab3zam7YWlhV74diFZsooIViDT9U2PYYkg2IyrQMUJhBGpB5g
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260713005427'),
 ('20260509060732'),
 ('20260508155823'),
 ('20260217212220'),

@@ -7,7 +7,7 @@
 | [app/models/pool.rb](app/models/pool.rb#L308) | 308 | finds wrong post when the pool contains multiple copies of the same post (#2042). |
 | [app/models/post.rb](app/models/post.rb#L1621) | 1621 | This must happen *after* the `is_deleted` flag is set to true (issue #3419). |
 | [app/logical/gay_fur_city/paginator/active_record_extension.rb](app/logical/gay_fur_city/paginator/active_record_extension.rb#L48) | 48 | Hack: in sequential pagination we fetch one more record than we need |
-| [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L1) | 1 | Testing modules should not have a say in if we can or cannot use assert_equal with nil |
+| [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L3) | 3 | Testing modules should not have a say in if we can or cannot use assert_equal with nil |
 
 ### FIXMEs
 | Filename | line # | FIXME |
@@ -41,7 +41,7 @@
 | [app/models/ticket.rb](app/models/ticket.rb#L167) | 167 | We need access control/blocks for associations |
 | [app/models/user_vote.rb](app/models/user_vote.rb#L61) | 61 | this join is used for both sides despite only being needed for the id side |
 | [app/controllers/forums/topics_controller.rb](app/controllers/forums/topics_controller.rb#L20) | 20 | revisit muting, it may need to be further optimized or removed due to performance issues |
-| [app/logical/document_store/model.rb](app/logical/document_store/model.rb#L26) | 26 | race condition hack, makes tests SLOW!!! |
+| [app/logical/document_store/model.rb](app/logical/document_store/model.rb#L42) | 42 | race condition hack, makes tests SLOW!!! |
 | [app/logical/vote_manager/posts.rb](app/logical/vote_manager/posts.rb#L90) | 90 | this can likely be optimized to just update post ids |
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L12) | 12 | Lock off these extra items? |
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L28) | 28 | Fix tag array with forced -status:deleted |
@@ -50,7 +50,7 @@
 | [app/javascript/src/styles/common/_standard_elements.scss](app/javascript/src/styles/common/_standard_elements.scss#L29) | 29 | What if button is on a light background |
 | [app/views/posts/replacements/rejection_reasons/index.html.erb](app/views/posts/replacements/rejection_reasons/index.html.erb#L3) | 3 | convert to new table syntax |
 | [test/controllers/uploads_controller_test.rb](test/controllers/uploads_controller_test.rb#L166) | 166 | reimplement ability to disable notifications |
-| [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L3) | 3 | look into refactoring out minitest? |
+| [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L5) | 5 | look into refactoring out minitest? |
 | [test/unit/file_methods_test.rb](test/unit/file_methods_test.rb#L359) | 359 | neither video has audio |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L552) | 552 | This was moved to be a controller concern to fix issues with internal post updates |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L745) | 745 | Invalid tags are now reported as warnings, and don't trigger these. |

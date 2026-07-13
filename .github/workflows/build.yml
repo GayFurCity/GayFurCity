@@ -15,12 +15,81 @@ jobs:
   checks:
     uses: ./.github/workflows/checks.yml
   build:
-    runs-on: ubuntu-latest
     if: github.repository_owner == 'gayfurcity'
     needs: [checks]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runs-on: ubuntu-latest
+          - platform: linux/arm64
+            runs-on: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runs-on }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ github.token }}
+
+      - name: Generate Docker labels
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,format=long,prefix=
+            type=semver,pattern={{version}}
+          flavor: |
+            latest=true
+      - run: cat docker/prod/.dockerignore .gitignore | tee .dockerignore
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          platforms: ${{ matrix.platform }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          build-args: GIT_COMMIT=${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
+          provenance: false
+          outputs: type=image,name=ghcr.io/${{ github.repository }},push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export digest
+        run: |
+          platform=${{ matrix.platform }}
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+          echo "PLATFORM_PAIR=${platform//\//-}" >> "$GITHUB_ENV"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    if: github.repository_owner == 'gayfurcity'
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -41,14 +110,14 @@ jobs:
             type=semver,pattern={{version}}
           flavor: |
             latest=true
-      - run: cat docker/prod/.dockerignore .gitignore | tee .dockerignore
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.metadata.outputs.tags }}
-          labels: ${{ steps.metadata.outputs.labels }}
-          build-args: GIT_COMMIT=${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+
+      - name: Create manifest list and push
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf 'ghcr.io/${{ github.repository }}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ghcr.io/${{ github.repository }}:${{ steps.metadata.outputs.version }}

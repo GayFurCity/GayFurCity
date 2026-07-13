@@ -74,7 +74,7 @@ class ForumTopicPolicy < ApplicationPolicy
   end
 
   def min_level?
-     (!record.is_a?(ForumTopic) || record.visible?(user))
+    !record.is_a?(ForumTopic) || record.visible?(user)
   end
 
   def permitted_attributes

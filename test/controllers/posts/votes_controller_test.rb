@@ -208,7 +208,7 @@ module Posts
           assert_equal(1, log.vote)
           assert_equal(@user2.id, log.voter_id)
         end
-  
+
         context("access control") do
           asserts do
             access.gte(User::Levels::ADMIN).json.post(delete_post_votes_path).params { { ids: @vote.id } }

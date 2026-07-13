@@ -70,7 +70,7 @@ module Comments
             search(:comment_creator_name).value { @comment.creator_name }.records { [@vote] }.user { @voter }
             search(:user_id).value { @voter.id }.records { [@vote] }.user { @voter }
             search(:user_name).value { @voter.name }.records { [@vote] }.user { @voter }
-            search(:is_locked, "false").records{ [@vote] }.user { @voter }
+            search(:is_locked, "false").records { [@vote] }.user { @voter }
             search.shared.records { [@vote] }.user { @voter }
           end
         end

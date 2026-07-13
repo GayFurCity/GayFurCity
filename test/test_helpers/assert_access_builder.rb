@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module TestHelpers
   class AssertAccessBuilder
     attr_reader(:klass)
@@ -5,9 +7,9 @@ module TestHelpers
 
     def initialize(klass)
       @klass = klass
-      @path = -> { nil }
+      @path = -> {}
       @method = -> { :get }
-      @params = -> { nil }
+      @params = -> {}
       @all_levels = User::Levels.constants.map { |c| User::Levels.const_get(c) }.sort - [User::Levels::ANONYMOUS, User::Levels::BANNED, User::Levels::LOCKED]
       @success_levels = @all_levels
       @fail_levels = []
@@ -68,12 +70,11 @@ module TestHelpers
       @min = true
       if @max
         @success_levels = @success_levels.select { it >= value }
-        @fail_levels = @all_levels.reject { @success_levels.include?(it) }
       else
         @anonymous_success = true if value <= User::Levels::ANONYMOUS
         @success_levels = @all_levels.select { it >= value }
-        @fail_levels = @all_levels.reject { @success_levels.include?(it) }
       end
+      @fail_levels = @all_levels.reject { @success_levels.include?(it) }
       self
     end
 
@@ -84,12 +85,11 @@ module TestHelpers
       @max = true
       if @min
         @success_levels = @success_levels.select { it <= value }
-        @fail_levels = @all_levels.reject { @success_levels.include?(it) }
       else
         @anonymous_success = true if value <= User::Levels::ANONYMOUS
         @success_levels = @all_levels.select { it <= value }
-        @fail_levels = @all_levels.reject { @success_levels.include?(it) }
       end
+      @fail_levels = @all_levels.reject { @success_levels.include?(it) }
       self
     end
     alias lte max
@@ -164,7 +164,7 @@ module TestHelpers
       if anonymous_response.nil?
         if anonymous_success
           anonymous_response = :success
-        elsif fail_response == :forbidden &&  @format != :json
+        elsif fail_response == :forbidden && @format != :json
           anonymous_response = :redirect
         else
           anonymous_response = fail_response
@@ -172,76 +172,35 @@ module TestHelpers
       end
       exec = self.exec
       caller = [@caller&.second.then { "#{it.path}:#{it.lineno}:in 'block in asserts'" }, @caller&.first.to_s].compact
+
+      per_level = proc do |level, response, desc, setup = nil|
+        level_name = User::Levels.id_to_name(level)
+        factory = :"#{level_name.downcase.tr(' ', '_')}_user"
+        should("#{desc} #{level_name}") do
+          user = create(factory)
+          ApplicationRecord.transaction do
+            instance_exec(user, &setup) if setup
+            instance_exec(user, &exec)
+
+            assert_response(response)
+            raise(ActiveRecord::Rollback)
+          end
+        rescue Minitest::Assertion => e
+          e.set_backtrace([*caller, *e.backtrace]) if caller.any?
+          raise
+        end
+      end
+
+      ban_setup = proc do |user|
+        admin = create(:admin_user)
+        create(:ban, user: user, reason: "test", creator: admin)
+      end
+
       block = proc do
-        success_levels.each do |level|
-          level_name = User::Levels.id_to_name(level)
-          factory = :"#{level_name.downcase.tr(' ', '_')}_user"
-          should("allow #{level_name}") do
-            user = create(factory)
-            ApplicationRecord.transaction do
-              instance_exec(user, &exec)
-
-              assert_response(success_response)
-              raise(ActiveRecord::Rollback)
-            end
-          rescue Minitest::Assertion => e
-            e.set_backtrace([*caller, *e.backtrace]) if caller.any?
-            raise
-          end
-        end
-
-        fail_levels.each do |level|
-          level_name = User::Levels.id_to_name(level)
-          factory = :"#{level_name.downcase.tr(' ', '_')}_user"
-          should("not allow #{level_name}") do
-            user = create(factory)
-            ApplicationRecord.transaction do
-              instance_exec(user, &exec)
-
-              assert_response(fail_response)
-              raise(ActiveRecord::Rollback)
-            end
-          rescue Minitest::Assertion => e
-            e.set_backtrace([*caller, *e.backtrace]) if caller.any?
-            raise
-          end
-        end
-
-        User::Levels::ANONYMOUS.tap do |level|
-          level_name = User::Levels.id_to_name(level)
-          factory = :"#{level_name.downcase.tr(' ', '_')}_user"
-          should("#{anonymous_success ? 'allow' : 'not allow'} #{level_name}") do
-            user = create(factory)
-            ApplicationRecord.transaction do
-              instance_exec(user, &exec)
-
-              assert_response(anonymous_response)
-              raise(ActiveRecord::Rollback)
-            end
-          rescue Minitest::Assertion => e
-            e.set_backtrace([*caller, *e.backtrace]) if caller.any?
-            raise
-          end
-        end
-
-        User::Levels::BANNED.tap do |level|
-          level_name = User::Levels.id_to_name(level)
-          factory = :"#{level_name.downcase.tr(' ', '_')}_user"
-          should("not allow #{level_name}") do
-            user = create(factory)
-            ApplicationRecord.transaction do
-              admin = create(:admin_user)
-              create(:ban, user: user, reason: "test", creator: admin)
-              instance_exec(user, &exec)
-
-              assert_response(:forbidden)
-              raise(ActiveRecord::Rollback)
-            end
-          rescue Minitest::Assertion => e
-            e.set_backtrace([*caller, *e.backtrace]) if caller.any?
-            raise
-          end
-        end
+        success_levels.each { |level| instance_exec(level, success_response, "allow", &per_level) }
+        fail_levels.each { |level| instance_exec(level, fail_response, "not allow", &per_level) }
+        instance_exec(User::Levels::ANONYMOUS, anonymous_response, anonymous_success ? "allow" : "not allow", &per_level)
+        instance_exec(User::Levels::BANNED, :forbidden, "not allow", ban_setup, &per_level)
       end
 
       if @format

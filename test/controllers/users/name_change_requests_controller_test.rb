@@ -113,7 +113,7 @@ module Users
               access.gte(User::Levels::MODERATOR).get(user_name_change_requests_path)
             end
           end
-          
+
           context("search parameters") do
             subject { user_name_change_requests_path }
             setup do

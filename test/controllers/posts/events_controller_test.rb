@@ -100,7 +100,7 @@ module Posts
           end
         end
 
-        context("access control") do\
+        context("access control") do
           asserts do
             access.gte(User::Levels::ANONYMOUS).get(post_events_path)
           end

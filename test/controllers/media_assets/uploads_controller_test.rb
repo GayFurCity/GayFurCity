@@ -50,7 +50,7 @@ module MediaAssets
             access.gte(User::Levels::MEMBER).json.get(post_replacement_media_assets_path)
           end
         end
-        
+
         context("search parameters") do
           subject { upload_media_assets_path }
           setup do
@@ -234,9 +234,9 @@ module MediaAssets
         end
 
         context("access control") do
-        end
-        asserts do
-          access.gte(User::Levels::MEMBER).json.put { |user| cancel_upload_media_asset_path(create(:upload_media_asset, creator: user)) }
+          asserts do
+            access.gte(User::Levels::MEMBER).json.put { |user| cancel_upload_media_asset_path(create(:upload_media_asset, creator: user)) }
+          end
         end
       end
     end

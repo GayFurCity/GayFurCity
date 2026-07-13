@@ -84,8 +84,8 @@ class ApiKeysControllerTest < ActionDispatch::IntegrationTest
 
       context("access control") do
         asserts do
-          access.gte(User::Levels::REJECTED).post { |user| user_api_keys_path(user) }.params({ api_key: { name: "blah" }}).success(:redirect)
-          access.gte(User::Levels::REJECTED).json.post { |user| user_api_keys_path(user) }.params({ api_key: { name: "blah" }})
+          access.gte(User::Levels::REJECTED).post { |user| user_api_keys_path(user) }.params({ api_key: { name: "blah" } }).success(:redirect)
+          access.gte(User::Levels::REJECTED).json.post { |user| user_api_keys_path(user) }.params({ api_key: { name: "blah" } })
         end
       end
     end

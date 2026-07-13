@@ -66,7 +66,7 @@ module Posts
             search(:post_tags_match, "foo").records { [@post_flag] }
             search(:type, "flag").records { [@post_flag] }
             search(:creator_id).value { @creator.id }.records { [@post_flag] }.user { @creator }
-            search(:creator_name).value { @creator.name }.records{ [@post_flag] }.user { @creator }
+            search(:creator_name).value { @creator.name }.records { [@post_flag] }.user { @creator }
             search(:ip_addr, "127.0.0.2").records { [@post_flag] }.user { @admin }
             search.shared.records { [@post_flag] }
           end
@@ -83,7 +83,7 @@ module Posts
 
         context("access control") do
           asserts do
-            access.gte(User::Levels::MEMBER).post(post_flags_path).params{ { post_flag: { post_id: create(:post).id, reason_name: "dnp_artist" } } }.success(:redirect)
+            access.gte(User::Levels::MEMBER).post(post_flags_path).params { { post_flag: { post_id: create(:post).id, reason_name: "dnp_artist" } } }.success(:redirect)
             access.gte(User::Levels::MEMBER).json.post(post_flags_path).params { { post_flag: { post_id: create(:post).id, reason_name: "dnp_artist" } } }
           end
         end

@@ -98,7 +98,7 @@ module Forums
       @forum_category.move_all_topics(@new_forum_category, CurrentUser.user)
       respond_to do |format|
         format.html { redirect_to(forum_categories_path, notice: "The category is now locked, topics will be moved soon") }
-        format.json { head(204) }
+        format.json { head(:no_content) }
       end
     end
 
@@ -107,7 +107,7 @@ module Forums
       @forum_category.mark_as_read!(CurrentUser.user)
       respond_to do |format|
         format.html { redirect_back_or_to(forum_category_path(@forum_category)) }
-        format.json { head(204) }
+        format.json { head(:no_content) }
       end
     end
 
@@ -116,7 +116,7 @@ module Forums
       ForumCategory.mark_all_as_read!(CurrentUser.user)
       respond_to do |format|
         format.html { redirect_back_or_to(forums_path) }
-        format.json { head(204) }
+        format.json { head(:no_content) }
       end
     end
 

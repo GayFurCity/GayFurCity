@@ -152,8 +152,8 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
 
       context("access control") do
         asserts do
-          access.gte(User::Levels::MEMBER).put { note_path(@note) }.params({ note: { body: "xyz"} }).success(:redirect)
-          access.gte(User::Levels::MEMBER).json.put { note_path(@note) }.params({ note: { body: "xyz"} })
+          access.gte(User::Levels::MEMBER).put { note_path(@note) }.params({ note: { body: "xyz" } }).success(:redirect)
+          access.gte(User::Levels::MEMBER).json.put { note_path(@note) }.params({ note: { body: "xyz" } })
         end
       end
     end

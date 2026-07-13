@@ -43,7 +43,7 @@ module Tags
             access.gte(User::Levels::ANONYMOUS).get(tag_versions_path)
           end
         end
-        
+
         context("search parameters") do
           subject { tag_versions_path }
           setup do

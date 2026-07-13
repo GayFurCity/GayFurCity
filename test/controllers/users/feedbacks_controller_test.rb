@@ -39,7 +39,7 @@ module Users
 
         context("access control") do
           asserts do
-            access.gte(User::Levels::MODERATOR).get {  edit_user_feedback_path(@user_feedback)}
+            access.gte(User::Levels::MODERATOR).get { edit_user_feedback_path(@user_feedback) }
           end
         end
       end

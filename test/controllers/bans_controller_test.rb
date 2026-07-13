@@ -85,7 +85,7 @@ class BansControllerTest < ActionDispatch::IntegrationTest
         asserts do
           search(:expired, "false").records { [@ban] }
           search(:reason_matches, "foo").records { [@ban] }
-          search(:ip_addr, "127.0.0.2").records { [@ban] }.user{ @admin }
+          search(:ip_addr, "127.0.0.2").records { [@ban] }.user { @admin }
           search(:banner_id).value { @creator.id }.records { [@ban] }
           search(:banner_name).value { @creator.name }.records { [@ban] }
           search(:user_id).value { @user.id }.records { [@ban] }
@@ -110,7 +110,7 @@ class BansControllerTest < ActionDispatch::IntegrationTest
       context("access control") do
         asserts do
           access.gte(User::Levels::MODERATOR).post(bans_path).params { { ban: { duration: 60, reason: "xxx", user_id: create(:user).id } } }.success(:redirect)
-          #access.levels([]).post(bans_path).params { { ban: { duration: 60, reason: "xxx", user_id: create(:user).id } } }
+          # access.levels([]).post(bans_path).params { { ban: { duration: 60, reason: "xxx", user_id: create(:user).id } } }
         end
       end
     end

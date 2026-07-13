@@ -180,8 +180,8 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
 
       context("access control") do
         asserts do
-          access.gte(User::Levels::MEMBER).post(artists_path).params{ { artist: { name: SecureRandom.hex(6)} } }.success(:redirect)
-          access.gte(User::Levels::MEMBER).json.post(artists_path).params{ { artist: { name: SecureRandom.hex(6)} } }
+          access.gte(User::Levels::MEMBER).post(artists_path).params { { artist: { name: SecureRandom.hex(6) } } }.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.post(artists_path).params { { artist: { name: SecureRandom.hex(6) } } }
         end
       end
     end

@@ -131,7 +131,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
           search(:forum_post_id).value { @forum_post.id }.records { [@bulk_update_request] }
           search(:status, "approved").records { [@bulk_update_request] }
           search(:title_matches, "foo").records { [@bulk_update_request] }
-          search(:script_matches, "bar").records{ [@bulk_update_request] }
+          search(:script_matches, "bar").records { [@bulk_update_request] }
           search(:creator_ip_addr, "127.0.0.2").records { [@bulk_update_request] }.user { @admin }
           search(:updater_ip_addr, "127.0.0.3").records { [@bulk_update_request] }.user { @admin }
           search(:creator_id).value { @creator.id }.records { [@bulk_update_request] }

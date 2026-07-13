@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module TestHelpers
   class Asserts
     include(Rails.application.routes.url_helpers)

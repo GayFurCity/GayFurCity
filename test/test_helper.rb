@@ -99,14 +99,14 @@ class ActionDispatch::IntegrationTest # rubocop:disable Style/ClassAndModuleChil
   include(TestHelpers::AssertMethods)
   include(TestHelpers::AuthMethods)
 
-  def self.better_let(name, &block)
+  def self.better_let(name, &)
     name = name.to_s
     raise(ArgumentError, "would override defined method") if methods.include?(name)
     @_let_defined ||= {}
     @_let_defined[name] = true
     define_method(name) do |*args, **kwargs|
       @_memoized ||= {}
-      @_memoized.fetch(name) { |k| @_memoized[k] = instance_eval(*args, **kwargs, &block)}
+      @_memoized.fetch(name) { |k| @_memoized[k] = instance_eval(*args, **kwargs, &) }
     end
   end
 

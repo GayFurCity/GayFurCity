@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module TestHelpers
   class SearchParametersBuilder
     attr_reader(:klass)
@@ -103,7 +105,7 @@ module TestHelpers
         include = instance_exec(&include)
         ignore = instance_exec(&ignore)
         send("#{method}_auth", path, user, params: { search: { param => value }, format: format })
-        expected = records.map { |r| CurrentUser.scoped(user) { r.as_json(user: user, include: include) } } # rubocop:disable YiffSpace/CurrentUserOutsideOfRequests
+        expected = records.map { |r| CurrentUser.scoped(user) { r.as_json(user: user, include: include) } } # rubocop:disable YiffSpace/CurrentOutsideOfRequests
         expected = expected.map { |r| r.without(*ignore) } if ignore&.any?
         actual = @response.parsed_body.map { |r| r.try(:without, *ignore) }
         actual = actual.map { |r| r.without(*ignore) } if ignore&.any?
@@ -125,6 +127,7 @@ module TestHelpers
       ignore = @ignore
       params = @param&.map(&:to_sym)
       params ||= %i[id created_at updated_at]
+
       klass.instance_eval do
         asserts do
           search(:id).value { instance_exec(&records_getter).map(&:id).uniq.join(",") }.records(&records_getter).user(&user_getter).method(method).path(path).format(format).include(include).ignore(ignore) if params.include?(:id)

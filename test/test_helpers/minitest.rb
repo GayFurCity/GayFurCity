@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # XXX Testing modules should not have a say in if we can or cannot use assert_equal with nil
 # https://github.com/minitest/minitest/issues/666
 # TODO: look into refactoring out minitest?
@@ -10,4 +12,4 @@ module Minitest
 end
 
 # line number should be where the assert above is
-Rails.backtrace_cleaner.add_silencer { |line| line =~ /test\/test_helpers\/minitest\.rb:7/ }
+Rails.backtrace_cleaner.add_silencer { |line| line =~ %r{test/test_helpers/minitest\.rb:7} }

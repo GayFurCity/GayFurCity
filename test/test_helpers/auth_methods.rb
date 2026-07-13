@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module TestHelpers
   module AuthMethods
     extend(ActiveSupport::Concern)

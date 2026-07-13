@@ -147,7 +147,7 @@ module Posts
           end
 
           asserts do
-            access.gte(User::Levels::MEMBER).json.post(post_replacements_path).params { { post_replacement: { file: fixture_file_upload("alpha.png"), reason: "test replacement" }, post_id: @post.id  } }
+            access.gte(User::Levels::MEMBER).json.post(post_replacements_path).params { { post_replacement: { file: fixture_file_upload("alpha.png"), reason: "test replacement" }, post_id: @post.id } }
           end
         end
       end
@@ -321,7 +321,7 @@ module Posts
             search(:approver_id).value { @approver.id }.records { [@post_replacement] }
             search(:approver_name).value { @approver.name }.records { [@post_replacement] }
             search(:rejector_id).value { @rejector.id }.records { [@post_replacement] }
-            search(:rejector_name).value { @rejector.name }.records{ [@post_replacement] }
+            search(:rejector_name).value { @rejector.name }.records { [@post_replacement] }
             search(:ip_addr, "127.0.0.2").records { [@post_replacement] }.user { @admin }
             search.shared.records { [@post_replacement] }
           end

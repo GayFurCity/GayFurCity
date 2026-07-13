@@ -28,7 +28,10 @@ jobs:
       - name: Build GayFurCity Image
         uses: docker/build-push-action@v4
         with:
-          cache-from: type=gha
+          platforms: linux/amd64
+          cache-from: type=gha,scope=linux/amd64
+          cache-to: type=gha,mode=max,scope=linux/amd64
+          build-args: GIT_COMMIT=${{ github.sha }}
           load: true
           tags: gayfurcity
           outputs: type=docker,dest=/tmp/gayfurcity.tar

@@ -187,6 +187,7 @@ module Tags
         end
 
         should("not approve the alias if its estimated count is greater than allowed") do
+          reset_post_index
           Config.stubs(:get_user).with(:tag_change_request_update_limit, @admin).returns(1)
           create_list(:post, 2, tag_string: "aaa")
           put_auth(approve_tag_alias_path(@tag_alias), @admin, params: { format: :json })

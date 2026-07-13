@@ -111,17 +111,17 @@ module Seeds
   end
 end
 
-USER = User.system
+user = User.system
 if ENV.fetch("POSTS_ONLY", false).to_s.truthy?
-  Seeds::Posts.run!(USER)
+  Seeds::Posts.run!(user)
 else
   ModAction.without_logging do
-    Seeds.create_aibur_category!(USER)
-    PostDeletionReasons.run!(USER)
-    PostReplacementRejectionReasons.run!(USER)
+    Seeds.create_aibur_category!(user)
+    PostDeletionReasons.run!(user)
+    PostReplacementRejectionReasons.run!(user)
 
     unless Rails.env.test?
-      Seeds.run!(USER)
+      Seeds.run!(user)
     end
   end
 end

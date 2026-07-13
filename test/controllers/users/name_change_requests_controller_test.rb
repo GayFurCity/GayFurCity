@@ -53,8 +53,11 @@ module Users
 
         context("access control") do
           asserts do
-            access.gte(User::Levels::REJECTED).post(user_name_change_requests_path).params { { user_name_change_request: { desired_name: SecureRandom.hex(6) } } }.success(:redirect)
-            access.gte(User::Levels::REJECTED).json.post(user_name_change_requests_path).params { { user_name_change_request: { desired_name: SecureRandom.hex(6) } } }
+            # "x" prefix guarantees a non-digit character - SecureRandom.hex is drawn from 0-9a-f, so a
+            # bare hex(6) has a small but real chance of coming out all-digits and failing the
+            # "cannot consist of numbers only" name validation.
+            access.gte(User::Levels::REJECTED).post(user_name_change_requests_path).params { { user_name_change_request: { desired_name: "x#{SecureRandom.hex(6)}" } } }.success(:redirect)
+            access.gte(User::Levels::REJECTED).json.post(user_name_change_requests_path).params { { user_name_change_request: { desired_name: "x#{SecureRandom.hex(6)}" } } }
           end
         end
       end

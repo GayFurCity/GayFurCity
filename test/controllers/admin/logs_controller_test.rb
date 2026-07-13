@@ -7,8 +7,10 @@ module Admin
     context("The admin logs controller") do
       setup do
         @owner = create(:owner_user)
-        @application_path = Rails.root.join("tmp/application-log-test.log")
-        @request_path = Rails.root.join("tmp/request-log-test.jsonl")
+        # storage_root (not a fixed tmp/ path) so concurrent `parallelize` workers running this
+        # same test don't race to write/read/delete each other's log files.
+        @application_path = Pathname.new(File.join(self.class.storage_root, "application-log-test.log"))
+        @request_path = Pathname.new(File.join(self.class.storage_root, "request-log-test.jsonl"))
         File.write(@application_path, "oldest line\nmiddle line\nnewest line\n")
         File.write(@request_path, <<~LOGS)
           {"time":"2025-01-01T00:00:00.000000Z","request_id":"oldest","method":"GET","path":"/oldest","ip":"127.0.0.1","user_agent":"Test Agent","referer":"https://example.test/one","status":200,"duration":3200.0,"request_body_size":128,"total_request_size":256,"request_headers":{"Accept":"application/json"},"response_body_size":256,"total_response_size":320,"response_headers":{"Content-Type":"application/json"},"exception":null}

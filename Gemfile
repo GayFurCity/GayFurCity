@@ -88,6 +88,7 @@ group(:test) do
   gem("simplecov", require: false)
   gem("simplecov-cobertura", require: false)
   gem("minitest-reporters", require: false)
+  gem("redis-namespace", require: false)
 end
 
 gem("pundit", "~> 2.3")

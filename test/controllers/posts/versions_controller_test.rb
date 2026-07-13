@@ -10,6 +10,8 @@ module Posts
 
     context("The post versions controller") do
       context("index action") do
+        resets_post_index!
+
         setup do
           @post = create(:post, uploader: @user)
           travel_to(2.hours.from_now) do

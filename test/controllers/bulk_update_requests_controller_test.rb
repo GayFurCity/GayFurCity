@@ -228,6 +228,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
         end
 
         should("not succeed if its estimated count is greater than allowed") do
+          reset_post_index
           Config.stubs(:get_user).with(:tag_change_request_update_limit, @admin).returns(1)
           create_list(:post, 2, tag_string: "aaa")
           post_auth(approve_bulk_update_request_path(@bulk_update_request), @admin, params: { format: :json })

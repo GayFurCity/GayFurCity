@@ -21,6 +21,11 @@ module GayFurCity
 
       def paginate_numbered
         search.definition.update(size: records_per_page, from: (current_page - 1) * records_per_page, track_total_hits: (max_numbered_pages * records_per_page) + 1)
+        # Without an explicit sort, tied-score documents (e.g. a plain match_all with no query) come
+        # back in Elasticsearch's internal tiebreak order, which isn't guaranteed to be stable across
+        # requests. Only default it - a caller that already set its own sort (e.g. a search with an
+        # explicit order:) is left alone.
+        search.definition[:body][:sort] ||= [{ id: :asc }]
       end
 
       def paginate_sequential_before

@@ -310,6 +310,8 @@ class BulkUpdateRequestCommandsTest < ActiveSupport::TestCase
     end
 
     context("mass update") do
+      resets_post_index!
+
       setup do
         @post = create(:post, tag_string: @tag.name.to_s)
         @bur = create(:bulk_update_request, script: "update #{@tag.name} -> #{@tag2.name}", skip_forum: true, title: random)
@@ -345,6 +347,8 @@ class BulkUpdateRequestCommandsTest < ActiveSupport::TestCase
     end
 
     context("nuke") do
+      resets_post_index!
+
       setup do
         @post = create(:post, tag_string: "#{@tag.name} #{@tag2.name}")
         @bur = create(:bulk_update_request, script: "nuke #{@tag.name}", skip_forum: true, title: random, creator: @admin)

@@ -16,13 +16,14 @@ module DocumentStore
         Rails.env.test?
       end
 
-      # In test, suffix with -p<pid> (and -n<TEST_ENV_NUMBER>, set by Rails' thread-based parallel
-      # test workers, when present) so concurrent test runs - separate `bin/rails test` invocations,
-      # or parallel workers within one - each get their own index instead of racing on a shared one.
-      # The p/n-prefixed format makes it obvious at a glance in logs what a given index/db name is
-      # (see also test/support/isolated_database.rb, which names test databases the same way).
-      # Never suffix outside test: dev/production need a stable index name across restarts.
-      klass.document_store.index_name = "#{klass.model_name.plural}_#{Rails.env}#{"-p#{Process.pid}#{"-n#{ENV['TEST_ENV_NUMBER']}" if ENV['TEST_ENV_NUMBER'].present?}" if Rails.env.test?}"
+      # In test, suffix with -p<pid> so separate `bin/rails test` invocations each get their own
+      # index instead of racing on a shared one. test_helper.rb further suffixes this with
+      # -n<worker number> per Rails `parallelize` worker process (see its after_fork hook), since
+      # each worker inherits this same pid-based name from before it forked. The p/n-prefixed format
+      # makes it obvious at a glance in logs what a given index/db name is (see also
+      # test/support/isolated_database.rb, which names test databases the same way). Never suffix
+      # outside test: dev/production need a stable index name across restarts.
+      klass.document_store.index_name = "#{klass.model_name.plural}_#{Rails.env}#{"-p#{Process.pid}" if Rails.env.test?}"
 
       klass.after_commit(on: %i[create], unless: :skip_index_update) do
         document_store.update_index(refresh: Rails.env.test?.to_s)

@@ -89,7 +89,7 @@ jobs:
         run: $DOCKER_RUN linter
 
   tests:
-    runs-on: ubuntu-22.04
+    runs-on: [self-hosted, gayfurcity]
     needs: docker-build
     permissions:
       contents: read

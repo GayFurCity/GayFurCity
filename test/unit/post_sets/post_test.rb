@@ -4,6 +4,8 @@ require("test_helper")
 
 module PostSets
   class PostTest < ActiveSupport::TestCase
+    resets_post_index!
+
     context("In all cases") do
       setup do
         @user = create(:user)

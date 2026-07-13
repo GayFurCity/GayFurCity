@@ -5,8 +5,9 @@ require("digest")
 require("open3")
 
 # Gives each test process its own Postgres database (named after its pid, mirroring the storage
-# directory and Elasticsearch index) so that separate `bin/rails test` invocations - or parallel
-# workers within one - never share (and race on) the same database.
+# directory and Elasticsearch index) so that separate `bin/rails test` invocations never share (and
+# race on) the same database. See test_helper.rb for how this same template is reused to give each
+# of Rails' own `parallelize` worker processes its own database too.
 #
 # Runs before config/environment is loaded, using the `pg` gem directly (ActiveRecord isn't
 # available yet). A "test_template" database is built once (or rebuilt whenever db/structure.sql
@@ -22,26 +23,78 @@ module IsolatedDatabase
   STRUCTURE_SQL = File.expand_path("../../db/structure.sql", __dir__)
 
   def self.database_name
-    # p<pid>/n<TEST_ENV_NUMBER> (n omitted when absent) makes it obvious at a glance in logs what a
-    # given database name is - see also DocumentStore::Model, which names test indices the same way.
-    # rubocop:disable Rails/Present -- ActiveSupport isn't loaded yet, this runs before Rails boots
-    test_env_number = ENV.fetch("TEST_ENV_NUMBER", nil)
-    @database_name ||= "test-p#{Process.pid}#{"-n#{test_env_number}" if test_env_number && !test_env_number.empty?}"
-    # rubocop:enable Rails/Present
+    # p<pid> makes it obvious at a glance in logs what a given database name is - see also
+    # DocumentStore::Model, which names test indices the same way. Rails' own `parallelize` support
+    # (see test_helper.rb) forks worker processes from here and suffixes this base name with
+    # -n<worker number> for each one, so all of a run's databases are traceable to one pid.
+    @database_name ||= "test-p#{Process.pid}"
+  end
+
+  # worker_number is nil for the (non-parallelized) primary process's own database.
+  def self.worker_database_name(worker_number)
+    return database_name if worker_number.nil?
+    "#{database_name}-n#{worker_number}"
   end
 
   def self.setup!
     ENV["GAYFURCITY_TEST_DB_NAME"] = database_name
+    reap_orphaned!
+    clone!(database_name)
 
+    # `at_exit` handlers registered here are inherited by every `parallelize` worker process forked
+    # from us (fork() duplicates the whole process, at_exit stack included), so without this guard
+    # each of them would also try to drop OUR database on its own exit - harmless (DROP ... IF
+    # EXISTS no-ops) but noisy. Only the process that actually registered this should run it.
+    owner_pid = Process.pid
+    at_exit { drop!(database_name) if Process.pid == owner_pid }
+  end
+
+  # at_exit/parallelize_teardown are best-effort: they don't run on SIGKILL, a crashed worker, or a
+  # parent killed before it can wait for/clean up its workers. As a safety net, sweep away any
+  # test-pNNN[-nN] database whose embedded pid no longer belongs to a live process before creating
+  # our own. Safe to run concurrently with other invocations doing the same thing - DROP ... IF
+  # EXISTS on an already-gone database is a no-op, not an error.
+  def self.reap_orphaned!
+    with_connection("postgres") do |conn|
+      conn.exec("SELECT datname FROM pg_database WHERE datname ~ '^test-p[0-9]+'").each do |row|
+        name = row["datname"]
+        pid = name[/^test-p(\d+)/, 1].to_i
+        drop!(name) unless pid_alive?(pid)
+      end
+    end
+  end
+
+  def self.pid_alive?(pid)
+    Process.kill(0, pid)
+    # A live pid alone isn't enough: pids get recycled by the kernel, so a long-dead test
+    # process's pid can end up reassigned to an unrelated long-lived process (a container's own
+    # entrypoint/foreman, seen in practice with low pids early in a container's life) - which
+    # would make an actually-orphaned resource look permanently alive. Confirm the pid still looks
+    # like one of ours.
+    ruby_process?(pid)
+  rescue Errno::ESRCH
+    false
+  rescue Errno::EPERM
+    true # exists, just not signalable by us (so /proc access would fail too) - assume still alive
+  end
+
+  def self.ruby_process?(pid)
+    cmdline = File.read("/proc/#{pid}/cmdline")
+    cmdline.include?("ruby") || cmdline.include?("rails")
+  rescue Errno::ENOENT, Errno::ESRCH
+    false # process exited between the kill(0) check and reading /proc - treat as dead
+  end
+
+  def self.clone!(name)
     with_connection("postgres") do |conn|
       ensure_template!(conn)
-      conn.exec("CREATE DATABASE #{conn.quote_ident(database_name)} TEMPLATE #{conn.quote_ident(TEMPLATE_NAME)}")
+      conn.exec("CREATE DATABASE #{conn.quote_ident(name)} TEMPLATE #{conn.quote_ident(TEMPLATE_NAME)}")
     end
+  end
 
-    at_exit do
-      with_connection("postgres") do |conn|
-        conn.exec("DROP DATABASE IF EXISTS #{conn.quote_ident(database_name)} WITH (FORCE)")
-      end
+  def self.drop!(name)
+    with_connection("postgres") do |conn|
+      conn.exec("DROP DATABASE IF EXISTS #{conn.quote_ident(name)} WITH (FORCE)")
     end
   end
 

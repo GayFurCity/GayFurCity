@@ -19,6 +19,13 @@ SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
 
 require("sidekiq/testing")
 
+unless ENV["RM_INFO"]
+  require("minitest/reporters")
+  reporters = [Minitest::Reporters::DefaultReporter.new]
+  reporters << Minitest::Reporters::JUnitReporter.new if ENV["CI"]
+  Minitest::Reporters.use!(reporters)
+end
+
 Dir["#{__dir__}/test_helpers/**/*.rb"].each { require(it) }
 
 Sidekiq::Testing.fake!

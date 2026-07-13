@@ -91,6 +91,9 @@ jobs:
   tests:
     runs-on: ubuntu-22.04
     needs: docker-build
+    permissions:
+      contents: read
+      checks: write
 
     steps:
       - name: Checkout Repository
@@ -114,6 +117,15 @@ jobs:
         with:
           name: test-results
           path: log/test.log
+
+      - name: Publish Test Report
+        uses: dorny/test-reporter@v1
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        with:
+          name: Minitest Results
+          path: 'test/reports/*.xml'
+          reporter: java-junit
+          fail-on-error: false
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1

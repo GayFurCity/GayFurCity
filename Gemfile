@@ -87,6 +87,7 @@ group(:test) do
   gem("webmock", require: false)
   gem("simplecov", require: false)
   gem("simplecov-cobertura", require: false)
+  gem("minitest-reporters", require: false)
 end
 
 gem("pundit", "~> 2.3")

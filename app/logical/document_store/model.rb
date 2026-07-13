@@ -5,7 +5,16 @@ module DocumentStore
     def self.included(klass)
       klass.include(Proxy)
 
-      klass.attr_accessor(:skip_index_update)
+      klass.attr_writer(:skip_index_update)
+
+      # Defaults to true in test: most tests never touch search, but every write here forces a
+      # synchronous, refresh:true round trip to Elasticsearch (see #update_index) since jobs don't
+      # run under Sidekiq::Testing.fake!. Tests that DO care about search opt back in via
+      # TestHelpers::Util#reset_post_index, which flips this back to false for their duration.
+      klass.define_method(:skip_index_update) do
+        return @skip_index_update unless @skip_index_update.nil?
+        Rails.env.test?
+      end
 
       # In test, suffix with -p<pid> (and -n<TEST_ENV_NUMBER>, set by Rails' thread-based parallel
       # test workers, when present) so concurrent test runs - separate `bin/rails test` invocations,

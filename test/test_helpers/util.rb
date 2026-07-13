@@ -20,6 +20,11 @@ module TestHelpers
     end
 
     def reset_post_index
+      # Post/PostVersion default to skipping indexing entirely in test (see DocumentStore::Model) -
+      # opt this test back in for its duration, since it's asserting on search/index state.
+      Post.any_instance.stubs(:skip_index_update).returns(false)
+      PostVersion.any_instance.stubs(:skip_index_update).returns(false)
+
       # This seems slightly faster than deleting and recreating the index
       Post.document_store.delete_by_query(query: "*", body: {})
       Post.document_store.refresh_index!

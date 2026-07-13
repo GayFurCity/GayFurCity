@@ -42,11 +42,17 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ github.token }}
 
+      # ghcr.io (like all Docker registries) requires lowercase repository paths; github.repository
+      # preserves the org/repo's actual casing (GayFurCity/GayFurCity), which fails at push time.
+      - name: Compute lowercase image repository
+        id: repo
+        run: echo "name=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
       - name: Generate Docker labels
         id: metadata
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ steps.repo.outputs.name }}
           tags: |
             type=sha,format=long,prefix=
             type=semver,pattern={{version}}
@@ -63,7 +69,7 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
           provenance: false
-          outputs: type=image,name=ghcr.io/${{ github.repository }},push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=ghcr.io/${{ steps.repo.outputs.name }},push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
         run: |
@@ -103,11 +109,17 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ github.token }}
 
+      # ghcr.io (like all Docker registries) requires lowercase repository paths; github.repository
+      # preserves the org/repo's actual casing (GayFurCity/GayFurCity), which fails at push time.
+      - name: Compute lowercase image repository
+        id: repo
+        run: echo "name=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
       - name: Generate Docker tags
         id: metadata
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ steps.repo.outputs.name }}
           tags: |
             type=sha,format=long,prefix=
             type=semver,pattern={{version}}
@@ -119,8 +131,8 @@ jobs:
         run: |
           docker buildx imagetools create \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf 'ghcr.io/${{ github.repository }}@sha256:%s ' *)
+            $(printf 'ghcr.io/${{ steps.repo.outputs.name }}@sha256:%s ' *)
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ghcr.io/${{ github.repository }}:${{ steps.metadata.outputs.version }}
+          docker buildx imagetools inspect ghcr.io/${{ steps.repo.outputs.name }}:${{ steps.metadata.outputs.version }}

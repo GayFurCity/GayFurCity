@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-require_relative("../app/logical/config_builder")
-
 module GayFurCity
-  class Config < ::ConfigBuilder
+  class Config < YiffSpace::ConfigBuilder
+    self.env_name = "GAYFURCITY"
     config(:version) { GitHelper.instance.origin.short_commit }
 
     config(:config_id) { "default" }
@@ -44,6 +43,20 @@ module GayFurCity
     config(:discord_secret) { nil }
     config(:report_key) { nil }
     config(:rakismet_key) { nil }
+
+    # "Login with YiffSpace" (Logto-based Discord OAuth via the yiffspace-auth gem).
+    subconfig(:logto) do
+      config(:client_id) { nil }
+      config(:client_secret) { nil }
+      config(:resource) { nil }
+      # Logto Management API credentials, only needed for instant permission revocation
+      # (webhook-driven) and the admin user-dedup tooling - safe to leave unset otherwise.
+      config(:api_client_id) { nil }
+      config(:api_client_secret) { nil }
+      config(:api_resource) { nil }
+      # Only needed if something calls Client#fetch_discord_user - not used by the login flow itself.
+      config(:discord_bot_token) { nil }
+    end
 
     config(:memcached_servers, :array) { [] }
     config(:recommender_server) { nil }

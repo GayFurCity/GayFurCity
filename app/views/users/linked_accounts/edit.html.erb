@@ -1,0 +1,44 @@
+<section>
+  <h1>Linked Accounts</h1>
+  <p>Connect external accounts to sign in without a password, or manage the ones you've already connected.</p>
+
+  <table class="striped" id="linked-accounts-table">
+    <thead>
+      <tr>
+        <th class="provider-column">Provider</th>
+        <th class="id-column">ID</th>
+        <th class="status-column">Status</th>
+        <th class="actions-column"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% LinkedAccount::PROVIDERS.each do |provider, config| %>
+        <% link = @linked_accounts[provider] %>
+        <tr id="linked-account-<%= provider %>">
+          <td class="provider-column"><%= config[:name] %></td>
+          <td class="id-column"><%= link&.uid %></td>
+          <td class="status-column">
+            <% if link %>
+              <span class="text-green">Connected<%= " as #{link.display_name}" if link.display_name.present? %></span>
+            <% else %>
+              <span class="text-red">Not connected</span>
+            <% end %>
+          </td>
+          <td class="actions-column">
+            <% if link %>
+              <%= link_to("Unlink", user_linked_account_path(link), method: :delete, data: { confirm: "Unlink your #{config[:name]} account? You will no longer be able to sign in with it." }) %>
+            <% else %>
+              <%= link_to("Connect", config[:connect_path].call(self)) %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>
+
+<% content_for(:page_title) do %>
+  Linked Accounts
+<% end %>
+
+<%= render("users/secondary_links") %>

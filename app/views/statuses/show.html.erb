@@ -1,0 +1,32 @@
+<% content_for(:page_title) do %>Status<% end %>
+
+<h1>Status</h1>
+
+<br>
+
+<table class="striped">
+  <thead>
+  <tr>
+    <th>Service</th>
+    <th>Status</th>
+    <th>Code</th>
+    <th>Response Time</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% @results.each do |result| %>
+    <tr>
+      <td><%= result.name %></td>
+      <td>
+        <% if result.up %>
+          <span class="text-green">Up</span>
+        <% else %>
+          <span class="text-red">Down</span>
+        <% end %>
+      </td>
+      <td><%= result.code || "-" %></td>
+      <td><%= result.latency_ms %>ms</td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>

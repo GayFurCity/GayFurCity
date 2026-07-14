@@ -8,6 +8,7 @@ x-environment: &common-env
   GAYFURCITY_MEMCACHED_SERVERS: memcached
   GAYFURCITY_IQDB_SERVER: http://iqdb:5588
   GAYFURCITY_RECOMMENDER_SERVER: http://recommender:5000
+  GAYFURCITY_AUTOCOMPLETED_SERVER: http://autocompleted:8118
   # Must be externally accessible
   GAYFURCITY_REPORTS_SERVER: http://localhost:${EXPOSED_SERVER_PORT:-4000}/reports
   # Must be internally accessible

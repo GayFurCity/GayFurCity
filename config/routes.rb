@@ -395,6 +395,7 @@ Rails.application.routes.draw do
     end
   end
   resources(:stats, only: %i[index])
+  resource(:status, only: %i[show])
   resource(:system, only: %i[show])
   resources(:tags, constraints: id_name_constraint, only: %i[index show edit update]) do
     collection do

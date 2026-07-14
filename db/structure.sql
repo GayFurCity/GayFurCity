@@ -1,4 +1,4 @@
-\restrict k2naSiGil0Hq5aab3zam7YWlhV74diFZsooIViDT9U2PYYkg2IyrQMUJhBGpB5g
+\restrict Q4CVfHW8C7vtpn4jzqFhrVxB8Piflag4enAgpiyqzK3P161CP9yvZQBubttRKAq
 
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.10
@@ -1260,6 +1260,41 @@ CREATE SEQUENCE public.ip_bans_id_seq
 --
 
 ALTER SEQUENCE public.ip_bans_id_seq OWNED BY public.ip_bans.id;
+
+
+--
+-- Name: linked_accounts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.linked_accounts (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    provider character varying NOT NULL,
+    uid character varying NOT NULL,
+    display_name character varying,
+    data jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: linked_accounts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.linked_accounts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: linked_accounts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.linked_accounts_id_seq OWNED BY public.linked_accounts.id;
 
 
 --
@@ -3536,6 +3571,13 @@ ALTER TABLE ONLY public.ip_bans ALTER COLUMN id SET DEFAULT nextval('public.ip_b
 
 
 --
+-- Name: linked_accounts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.linked_accounts ALTER COLUMN id SET DEFAULT nextval('public.linked_accounts_id_seq'::regclass);
+
+
+--
 -- Name: mascot_media_assets id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4129,6 +4171,14 @@ ALTER TABLE ONLY public.help_pages
 
 ALTER TABLE ONLY public.ip_bans
     ADD CONSTRAINT ip_bans_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: linked_accounts linked_accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.linked_accounts
+    ADD CONSTRAINT linked_accounts_pkey PRIMARY KEY (id);
 
 
 --
@@ -5128,6 +5178,27 @@ CREATE INDEX index_help_pages_on_wiki_page_id ON public.help_pages USING btree (
 --
 
 CREATE UNIQUE INDEX index_ip_bans_on_ip_addr ON public.ip_bans USING btree (ip_addr);
+
+
+--
+-- Name: index_linked_accounts_on_provider_and_uid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_linked_accounts_on_provider_and_uid ON public.linked_accounts USING btree (provider, uid);
+
+
+--
+-- Name: index_linked_accounts_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_linked_accounts_on_user_id ON public.linked_accounts USING btree (user_id);
+
+
+--
+-- Name: index_linked_accounts_on_user_id_and_provider; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_linked_accounts_on_user_id_and_provider ON public.linked_accounts USING btree (user_id, provider);
 
 
 --
@@ -7652,6 +7723,14 @@ ALTER TABLE ONLY public.staff_notes
 
 
 --
+-- Name: linked_accounts fk_rails_d68dcf73fa; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.linked_accounts
+    ADD CONSTRAINT fk_rails_d68dcf73fa FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: user_blocks fk_rails_d98a90b4c8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7847,11 +7926,12 @@ ALTER TABLE ONLY public.help_pages
 -- PostgreSQL database dump complete
 --
 
-\unrestrict k2naSiGil0Hq5aab3zam7YWlhV74diFZsooIViDT9U2PYYkg2IyrQMUJhBGpB5g
+\unrestrict Q4CVfHW8C7vtpn4jzqFhrVxB8Piflag4enAgpiyqzK3P161CP9yvZQBubttRKAq
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260714101404'),
 ('20260713005427'),
 ('20260509060732'),
 ('20260508155823'),

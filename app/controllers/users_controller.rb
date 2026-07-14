@@ -25,7 +25,7 @@ class UsersController < ApplicationController
   def new
     raise(User::PrivilegeError, "Already signed in") unless CurrentUser.user.is_anonymous?
     return access_denied("Signups are disabled") unless Config.instance.enable_signups?
-    @user = User.new
+    @user = User.new(name: params[:name].presence)
     respond_with(@user)
   end
 
@@ -68,6 +68,7 @@ class UsersController < ApplicationController
         if @user.errors.empty?
           session[:user_id] = @user.id
           session[:ph] = @user.password_token
+          PendingAccountLink.finalize!(session, @user)
           if Config.instance.enable_email_verification?
             Users::EmailConfirmationMailer.confirmation(@user).deliver_now
           end

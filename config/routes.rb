@@ -6,6 +6,11 @@ Rails.application.routes.draw do
   require("sidekiq_unique_jobs/web")
 
   mount(Sidekiq::Web, at: "/sidekiq", constraints: AdminRouteConstraint.new)
+  mount(YiffSpace::Auth::Engine.for(:default), at: "/auth/yiffspace", as: "yiffspace_auth")
+
+  namespace(:users) do
+    get("yiffspace/callback", controller: "yiffspace", action: "callback")
+  end
 
   namespace(:admin) do
     resources(:users, only: %i[edit update edit_blacklist update_blacklist alt_list]) do
@@ -458,6 +463,9 @@ Rails.application.routes.draw do
       resources(:sessions, controller: "users/sessions", as: "user_sessions", only: %i[index])
       resource(:mfa, controller: "users/mfa", as: "user_mfa", only: %i[edit update destroy]) do
         resource(:backup_codes, controller: "users/mfa/backup_codes", only: %i[show create])
+      end
+      resources(:linked_accounts, controller: "users/linked_accounts", as: "user_linked_accounts", only: %i[destroy]) do
+        get(:edit, on: :collection)
       end
     end
     member do

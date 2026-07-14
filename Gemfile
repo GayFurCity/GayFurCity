@@ -115,4 +115,5 @@ gem("builder", "~> 3.3")
 
 gem("image_processing", "~> 1.14")
 
-gem("yiffspace", "~> 0.1.2")
+gem("yiffspace", "~> 0.1.3")
+gem("yiffspace-auth", "~> 0.0.3")

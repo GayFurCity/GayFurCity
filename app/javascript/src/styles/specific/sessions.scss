@@ -1,11 +1,116 @@
-
-
 div#c-sessions {
   div#a-new {
     label[for=session_remember] {
       display: inline;
       font-weight: normal;
       font-style: italic;
+    }
+
+    .session-modal {
+      box-sizing: border-box;
+      max-width: 400px;
+      width: 100%;
+      min-width: 0;
+      margin: 2rem auto 0;
+      padding: 1.5rem;
+      background-color: themed("color-section");
+      border-radius: $border-radius-full;
+      box-shadow: $box-shadow-size rgba(0, 0, 0, .3);
+      display: flex;
+      flex-direction: column;
+
+      * {
+        box-sizing: border-box;
+        min-width: 0;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+
+        div.input {
+          width: 100%;
+          margin-bottom: .75rem;
+
+          input:not([type=checkbox]) {
+            width: 100%;
+          }
+        }
+
+        input[type=submit] {
+          width: 100%;
+          margin-top: .25rem;
+        }
+      }
+    }
+
+    .session-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: themed("color-text-muted");
+      margin: 1.25rem 0;
+
+      &::before, &::after {
+        content: "";
+        flex: 1;
+        border-bottom: 1px solid themed("color-section-lighten-5");
+      }
+
+      span {
+        padding: 0 .75rem;
+        font-size: $font-size-small;
+        text-transform: uppercase;
+      }
+    }
+
+    .external-logins {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+
+      .external-login-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        width: 100%;
+        padding: .6rem 1rem;
+        border-radius: $border-radius-half;
+        background-color: #5865f2;
+        color: #ffffff;
+        font-weight: bold;
+        text-align: center;
+        white-space: normal;
+        overflow-wrap: break-word;
+
+        &:hover {
+          background-color: #4752c4;
+          color: #ffffff;
+        }
+
+        i {
+          flex-shrink: 0;
+          font-size: 1.1em;
+        }
+      }
+    }
+
+    .session-secondary-links {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .4rem;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid themed("color-section-lighten-5");
+      font-size: $font-size-small;
     }
   }
 }

@@ -1,4 +1,4 @@
-<section>
+<div class="session-modal">
   <h1>Sign in</h1>
 
   <%= custom_form_for(:session, url: session_path) do |f| %>
@@ -9,13 +9,26 @@
     <%= f.input(:remember, as: :boolean, label: "Remember", input_html: { checked: true }) %>
     <%= f.submit("Sign in") %>
   <% end %>
-</section>
 
-<section class="box-section">
-  <h2><%= link_to("Don't have an account? Sign up here.", new_user_path) %></h2>
-  <h2><%= link_to("Reset Password", new_users_password_reset_path) %></h2>
-  <h2><%= link_to("Login Reminder", new_users_login_reminder_path) %></h2>
-</section>
+  <% if YiffSpace::Auth.default.client_id.present? %>
+    <div class="session-divider"><span>or</span></div>
+
+    <div class="external-logins">
+      <% LinkedAccount::PROVIDERS.each do |provider, config| %>
+        <%= link_to(config[:connect_path].call(self), class: "external-login-button", id: "external-login-#{provider}") do %>
+          <i class="<%= config[:icon] %>"></i>
+          <span>Continue with <%= config[:name] %></span>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="session-secondary-links">
+    <%= link_to("Don't have an account? Sign up", new_user_path) %>
+    <%= link_to("Reset Password", new_users_password_reset_path) %>
+    <%= link_to("Login Reminder", new_users_login_reminder_path) %>
+  </div>
+</div>
 
 <% content_for(:page_title) do %>
  Sign in

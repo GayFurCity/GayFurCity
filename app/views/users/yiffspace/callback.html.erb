@@ -1,0 +1,21 @@
+<section>
+  <h1>Link YiffSpace Account</h1>
+
+  <p>We don't have a GayFurCity account linked to your YiffSpace/Discord identity (<strong><%= @discord_username %></strong>) yet.</p>
+
+  <div class="box-section">
+    <h2>Already have a GayFurCity account?</h2>
+    <p>Sign in with your username and password to link your YiffSpace identity to it.</p>
+    <p><%= link_to("Sign in to link", new_session_path) %></p>
+  </div>
+
+  <div class="box-section">
+    <h2>New here?</h2>
+    <p>Create a GayFurCity account linked to your YiffSpace identity.</p>
+    <p><%= link_to("Create an account", new_user_path(name: @discord_username)) %></p>
+  </div>
+</section>
+
+<% content_for(:page_title) do %>
+  Link YiffSpace Account
+<% end %>

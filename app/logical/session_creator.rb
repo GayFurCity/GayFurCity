@@ -62,6 +62,7 @@ class SessionCreator
     session[:user_id] = user.id
     session[:last_authenticated_at] = Time.now.utc.to_s
     session[:ph] = user.password_token
+    PendingAccountLink.finalize!(session, user)
 
     if remember
       verifier = ActiveSupport::MessageVerifier.new(GayFurCity.config.remember_key, serializer: JSON, digest: "SHA256")

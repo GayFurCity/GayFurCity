@@ -211,6 +211,7 @@ class User < ApplicationRecord
   resolvable(:updater)
 
   has_many(:api_keys, dependent: :destroy)
+  has_many(:linked_accounts, dependent: :destroy)
   has_one(:dmail_filter)
   has_many(:sent_dmails, ->(user) { owned_by(user) }, class_name: "Dmail", foreign_key: "from_id")
   has_many(:received_dmails, ->(user) { owned_by(user) }, class_name: "Dmail", foreign_key: "to_id")

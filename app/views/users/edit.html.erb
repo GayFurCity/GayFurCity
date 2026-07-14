@@ -160,6 +160,12 @@
         (<%= link_to("Manage", edit_user_mfa_path) %>)
       </p>
     </div>
+
+    <div class="input">
+      <label>Linked Accounts</label>
+      <span class="hint">Connect external accounts, like YiffSpace, to sign in without a password.</span>
+      <p><%= link_to("Manage", edit_user_linked_accounts_path) %></p>
+    </div>
   </fieldset>
 
   <%= f.button(:submit, "Submit") %>

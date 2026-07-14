@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_13_005427) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_14_101404) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -571,6 +571,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_13_005427) do
     t.datetime "updated_at", precision: nil, null: false
     t.inet "creator_ip_addr", null: false
     t.index ["ip_addr"], name: "index_ip_bans_on_ip_addr", unique: true
+  end
+
+  create_table "linked_accounts", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "provider", null: false
+    t.string "uid", null: false
+    t.string "display_name"
+    t.jsonb "data", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["provider", "uid"], name: "index_linked_accounts_on_provider_and_uid", unique: true
+    t.index ["user_id", "provider"], name: "index_linked_accounts_on_user_id_and_provider", unique: true
+    t.index ["user_id"], name: "index_linked_accounts_on_user_id"
   end
 
   create_table "mascot_media_assets", force: :cascade do |t|
@@ -1603,6 +1616,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_13_005427) do
   add_foreign_key "help_pages", "users", column: "updater_id"
   add_foreign_key "help_pages", "wiki_pages"
   add_foreign_key "ip_bans", "users", column: "creator_id"
+  add_foreign_key "linked_accounts", "users"
   add_foreign_key "mascot_media_assets", "media_metadata", column: "media_metadata_id"
   add_foreign_key "mascot_media_assets", "users", column: "creator_id"
   add_foreign_key "mascots", "mascot_media_assets"

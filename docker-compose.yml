@@ -25,6 +25,9 @@ x-environment: &common-env
   SESSION_SECRET_KEY: 44b4f44e9f253c406cbe727d403d500c1cecff943e4d2aea8f5447f28846fffe
   GAYFURCITY_REMEMBER_KEY: abc123
   GAYFURCITY_EMAIL_KEY: zDMSATq0W3hmA5p3rKTgD
+  # Real values (from your Logto tenant) go in .env (gitignored), not here.
+  GAYFURCITY_LOGTO_CLIENT_ID: ${GAYFURCITY_LOGTO_CLIENT_ID:-}
+  GAYFURCITY_LOGTO_CLIENT_SECRET: ${GAYFURCITY_LOGTO_CLIENT_SECRET:-}
    # Hide annoying output from libvips on corrupt files
   VIPS_WARNING: "0"
   EXPOSED_WEBPACKER_PORT: ${EXPOSED_WEBPACKER_PORT:-4003}

@@ -15,7 +15,7 @@
       <% LinkedAccount::PROVIDERS.each do |provider, config| %>
         <% link = @linked_accounts[provider] %>
         <tr id="linked-account-<%= provider %>">
-          <td class="provider-column"><%= config[:name] %></td>
+          <td class="provider-column"><i class="<%= config[:icon] %>"></i> <%= config[:name] %></td>
           <td class="id-column"><%= link&.uid %></td>
           <td class="status-column">
             <% if link %>

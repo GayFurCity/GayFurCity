@@ -39,7 +39,9 @@ module DocumentStore
     end
 
     def update_index(queue: :high)
-      # TODO: race condition hack, makes tests SLOW!!!
+      # Only reached when skip_index_update is explicitly false (see attr default above) - i.e. only
+      # for tests that opted into synchronous indexing via reset_post_index/resets_post_index!, not
+      # the whole suite.
       return document_store.update_index(refresh: "true") if Rails.env.test?
 
       IndexUpdateJob.set(queue: queue).perform_later(self.class.to_s, id)

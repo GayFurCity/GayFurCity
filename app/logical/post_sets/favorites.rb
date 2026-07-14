@@ -25,8 +25,17 @@ module PostSets
     end
 
     def posts
-      new_opts = { pagination_mode: :numbered, records_per_page: favorites.records_per_page, total_count: @post_count, current_page: current_page }
-      GayFurCity::Paginator::PaginatedArray.new(favorites.map(&:post), new_opts)
+      # pagination_mode/current_page must come from favorites (the actual paginated relation) rather
+      # than being hardcoded/recomputed here - `page` can be a plain number, or a "b<id>"/"a<id>"
+      # sequential cursor, and favorites.pagination_mode/current_page already reflect whichever of
+      # those it actually was.
+      #
+      # For sequential modes, favorites (already-truncated by ActiveRecordExtension#records) doesn't
+      # carry the "is there another page" lookahead row PaginatedArray needs to compute is_first_page?/
+      # is_last_page? correctly - paginator_raw_records is the untruncated fetch that still has it.
+      records = favorites.pagination_mode == :numbered ? favorites : favorites.paginator_raw_records
+      new_opts = { pagination_mode: favorites.pagination_mode, records_per_page: favorites.records_per_page, total_count: @post_count, current_page: favorites.current_page }
+      GayFurCity::Paginator::PaginatedArray.new(records.map(&:post), new_opts)
     end
 
     def api_posts

@@ -28,8 +28,7 @@ module GayFurCity
         when :sequential_before
           false
         when :sequential_after
-          load
-          @records.size <= records_per_page
+          paginator_raw_records.size <= records_per_page
         end
       end
 
@@ -38,8 +37,7 @@ module GayFurCity
         when :numbered
           current_page >= total_pages
         when :sequential_before
-          load
-          @records.size <= records_per_page
+          paginator_raw_records.size <= records_per_page
         when :sequential_after
           false
         end
@@ -48,15 +46,26 @@ module GayFurCity
       # XXX Hack: in sequential pagination we fetch one more record than we need
       # so that we can tell when we're on the first or last page. Here we override
       # a rails internal method to discard that extra record. See #2044, #3642.
+      #
+      # is_first_page?/is_last_page? need that extra row to tell whether the lookahead actually came
+      # back, but records/to_a/etc. below always show the truncated (records_per_page) result - stash
+      # the untruncated fetch in @paginator_raw_records so they still have something to check against.
       def records
         case @pagination_mode
         when :numbered
           super
         when :sequential_before
-          super.first(records_per_page)
+          @paginator_raw_records = super
+          @paginator_raw_records.first(records_per_page)
         when :sequential_after
-          super.first(records_per_page).reverse
+          @paginator_raw_records = super
+          @paginator_raw_records.first(records_per_page).reverse
         end
+      end
+
+      def paginator_raw_records
+        records
+        @paginator_raw_records
       end
 
       # taken from kaminari (https://github.com/amatsuda/kaminari)

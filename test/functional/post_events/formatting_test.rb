@@ -79,13 +79,10 @@ module PostEvents
           @post2 = create(:post, parent_id: @post.id)
           @post2.give_favorites_to_parent!(@admin)
 
-          # FIXME: make a way to test two actions at once, as these are both only ever created at the same time in a determined order
-          assert_matches(
-            post_id:   @post2.id,
-            actions:   %w[favorites_moved favorites_received],
-            text:      "Target: post ##{@post.id}",
-            parent_id: @post.id,
-          )
+          assert_matches_all([
+            { action: "favorites_moved", post_id: @post2.id, text: "Target: post ##{@post.id}", parent_id: @post.id },
+            { action: "favorites_received", post_id: @post.id, text: "From: post ##{@post2.id}", child_id: @post2.id },
+          ])
         end
       end
 

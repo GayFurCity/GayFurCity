@@ -146,7 +146,8 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
         setup do
           @admin = create(:admin_user)
           @upload = create(:jpg_upload)
-          @upload.media_asset.expunge!(@admin)
+          @md5 = @upload.media_asset.md5
+          @upload.post.expunge!(@admin)
         end
 
         should("fail and create ticket") do
@@ -163,14 +164,19 @@ class UploadsControllerTest < ActionDispatch::IntegrationTest
           end
         end
 
-        # TODO: reimplement ability to disable notifications
-        # should "fail and not create ticket if notify=false" do
-        #   DestroyedPost.find_by!(post_id: @post.id).update_column(:notify, false)
-        #   assert_difference(%w[Post.count Ticket.count], 0) do
-        #     file = fixture_file_upload("test.jpg")
-        #     post_auth uploads_path, @user, params: { upload: { file: file, tag_string: "aaa", rating: "q", source: "aaa" } }
-        #   end
-        # end
+        should("fail and not create a ticket if notify=false") do
+          DestroyedPost.find_by!(md5: @md5).update_column(:notify, false)
+
+          assert_difference({ "Post.count" => 0, "Ticket.count" => 0 }) do
+            assert_no_enqueued_jobs(only: NotifyExpungedMediaAssetReuploadJob) do
+              file = fixture_file_upload("test.jpg")
+              post_auth(uploads_path, @user, params: { upload: { file: file, tag_string: "aaa", rating: "q", source: "aaa" }, format: :json })
+
+              assert_response(:precondition_failed)
+              assert_equal("expunged", UploadMediaAsset.last.status)
+            end
+          end
+        end
       end
 
       context("access control") do

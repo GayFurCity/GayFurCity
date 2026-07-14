@@ -98,8 +98,10 @@ class MediaAsset < ApplicationRecord
   end
 
   def self.notify_expunged_reupload(asset, duplicates)
-    # TODO: reimplement ability to disable notifications
-    # return if notify == false
+    # Keyed by md5, not post_id/the duplicates' own .post association - by the time content gets
+    # re-uploaded, the original post (if any) may have been fully destroyed (Post#expunge!), which
+    # would make .post resolve to nil. DestroyedPost.md5 survives that.
+    return if DestroyedPost.find_by(md5: asset.md5)&.notify == false
     reason = "User tried to re-upload previously expunged media asset:"
     duplicates.each do |d|
       reason += "\n * \"#{d.class.name.underscore.humanize.downcase} #{d.id}\":/media_assets/#{d.class.name.gsub('MediaAsset', '').underscore}s?search[id]=#{d.id}"

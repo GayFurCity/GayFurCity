@@ -179,7 +179,7 @@ module ApplicationHelper
     }
   end
 
-  def data_attributes_for(record, attributes = record.html_data_attributes(CurrentUser.user), prefix: "data")
+  def data_attributes_for(record, attributes = ApiMethods.policy_for(CurrentUser.user, record).html_data_attributes, prefix: "data")
     attributes.flat_map do |attr|
       # If we have a hash, we assume this hash is a key-value of (relation, attributes)
       # [:is_read?, { category: %i[id name] }]

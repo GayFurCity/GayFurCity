@@ -11,7 +11,7 @@ class ParameterBuilder
     is_root = seen_objects.empty?
     only_hash = { only: [], include: [], methods: [] }
     available_includes = object.available_includes
-    attributes, methods = object.api_attributes(options[:user]).partition { |attr| object.has_attribute?(attr) }
+    attributes, methods = ApiMethods.policy_for(options[:user], object).api_attributes.partition { |attr| object.has_attribute?(attr) }
     methods -= available_includes
     # Attributes and/or methods may be included in the final pass, but not includes
     seen_objects << object.class.name

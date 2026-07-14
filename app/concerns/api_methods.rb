@@ -24,21 +24,13 @@ module ApiMethods
 
   delegate(:available_includes, to: :class)
 
-  # XXX deprecated, shouldn't expose this as an instance method.
-  def api_attributes(user)
-    policy = Pundit.policy(user, self) || ApplicationPolicy.new(user, self)
-    policy.api_attributes
-  end
-
-  # XXX deprecated, shouldn't expose this as an instance method.
-  def html_data_attributes(user)
-    policy = Pundit.policy(user, self) || ApplicationPolicy.new(user, self)
-    policy.html_data_attributes
+  def self.policy_for(user, object)
+    Pundit.policy(user, object) || ApplicationPolicy.new(user, object)
   end
 
   def process_api_attributes(options, underscore: false)
     options[:methods] ||= []
-    attributes, methods = api_attributes(options[:user]).partition { |attr| has_attribute?(attr) }
+    attributes, methods = ApiMethods.policy_for(options[:user], self).api_attributes.partition { |attr| has_attribute?(attr) }
     methods += options[:methods]
     if underscore && options[:only].blank?
       options[:only] = attributes + methods

@@ -3,43 +3,48 @@
 require("test_helper")
 
 class StorageManagerTest < ActiveSupport::TestCase
-  BASE_DIR = Rails.root.join("tmp/test-storage").to_s
+  # A method (not a class constant) so Process.pid is read per-test in the actual worker process,
+  # not once at class-load time in the primary process before `parallelize` forks - otherwise every
+  # worker would share the same directory and race on creating/reading/deleting the same files.
+  def base_dir
+    @base_dir ||= Rails.root.join("tmp/test-storage-p#{Process.pid}-#{object_id}").to_s
+  end
 
   context("StorageManager::Local") do
     setup do
       @base_url = "http://localhost"
-      @storage_manager = StorageManager::Local.new(base_dir: BASE_DIR, base_url: @base_url)
+      @storage_manager = StorageManager::Local.new(base_dir: base_dir, base_url: @base_url)
     end
 
     teardown do
-      FileUtils.rm_rf(BASE_DIR)
+      FileUtils.rm_rf(base_dir)
     end
 
     context("#store method") do
       should("store the file") do
-        @storage_manager.store(StringIO.new("data"), "#{BASE_DIR}/test.txt")
+        @storage_manager.store(StringIO.new("data"), "#{base_dir}/test.txt")
 
-        assert_equal("data", File.read("#{BASE_DIR}/test.txt"))
+        assert_equal("data", File.read("#{base_dir}/test.txt"))
       end
 
       should("overwrite the file if it already exists") do
-        @storage_manager.store(StringIO.new("foo"), "#{BASE_DIR}/test.txt")
-        @storage_manager.store(StringIO.new("bar"), "#{BASE_DIR}/test.txt")
+        @storage_manager.store(StringIO.new("foo"), "#{base_dir}/test.txt")
+        @storage_manager.store(StringIO.new("bar"), "#{base_dir}/test.txt")
 
-        assert_equal("bar", File.read("#{BASE_DIR}/test.txt"))
+        assert_equal("bar", File.read("#{base_dir}/test.txt"))
       end
     end
 
     context("#delete method") do
       should("delete the file") do
-        @storage_manager.store(StringIO.new("data"), "#{BASE_DIR}/test.txt")
-        @storage_manager.delete("#{BASE_DIR}/test.txt")
+        @storage_manager.store(StringIO.new("data"), "#{base_dir}/test.txt")
+        @storage_manager.delete("#{base_dir}/test.txt")
 
-        assert_not(File.exist?("#{BASE_DIR}/test.txt"))
+        assert_not(File.exist?("#{base_dir}/test.txt"))
       end
 
       should("not fail if the file doesn't exist") do
-        assert_nothing_raised { @storage_manager.delete("#{BASE_DIR}/dne.txt") }
+        assert_nothing_raised { @storage_manager.delete("#{base_dir}/dne.txt") }
       end
     end
 
@@ -96,14 +101,14 @@ class StorageManagerTest < ActiveSupport::TestCase
         md5 = SecureRandom.hex(16)
         format = ->(ext, type) { @storage_manager.file_path(md5, ext, type, protected: false, prefix: GayFurCity.config.post_path_prefix, protected_prefix: GayFurCity.config.protected_path_prefix) }
 
-        assert_equal("#{BASE_DIR}/posts/#{md5}.webm", format.call("webm", :original))
-        assert_equal("#{BASE_DIR}/posts/crop/#{md5}.webp", format.call("webp", :crop))
-        assert_equal("#{BASE_DIR}/posts/large/#{md5}.webp", format.call("webp", :large))
-        assert_equal("#{BASE_DIR}/posts/preview/#{md5}.webp", format.call("webp", :preview))
-        assert_equal("#{BASE_DIR}/posts/720p/#{md5}.webm", format.call("webm", :"720p"))
-        assert_equal("#{BASE_DIR}/posts/720p/#{md5}.mp4", format.call("mp4", :"720p"))
-        assert_equal("#{BASE_DIR}/posts/480p/#{md5}.webm", format.call("webm", :"480p"))
-        assert_equal("#{BASE_DIR}/posts/480p/#{md5}.mp4", format.call("mp4", :"480p"))
+        assert_equal("#{base_dir}/posts/#{md5}.webm", format.call("webm", :original))
+        assert_equal("#{base_dir}/posts/crop/#{md5}.webp", format.call("webp", :crop))
+        assert_equal("#{base_dir}/posts/large/#{md5}.webp", format.call("webp", :large))
+        assert_equal("#{base_dir}/posts/preview/#{md5}.webp", format.call("webp", :preview))
+        assert_equal("#{base_dir}/posts/720p/#{md5}.webm", format.call("webm", :"720p"))
+        assert_equal("#{base_dir}/posts/720p/#{md5}.mp4", format.call("mp4", :"720p"))
+        assert_equal("#{base_dir}/posts/480p/#{md5}.webm", format.call("webm", :"480p"))
+        assert_equal("#{base_dir}/posts/480p/#{md5}.mp4", format.call("mp4", :"480p"))
       end
     end
   end

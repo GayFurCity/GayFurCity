@@ -114,3 +114,5 @@ gem("concurrent-ruby", "~> 1.3")
 gem("builder", "~> 3.3")
 
 gem("image_processing", "~> 1.14")
+
+gem("yiffspace", "~> 0.1.2")

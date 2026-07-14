@@ -12,7 +12,9 @@ class FileMethodsTest < ActiveSupport::TestCase
     @tiff = file_fixture("test.tiff").to_s # used for invalid inputs
     @empty = Tempfile.new.path # used for empty inputs
     @mp4 = file_fixture("test-300x300.mp4").to_s
+    @mp4_with_audio = file_fixture("test-300x300-with-audio.mp4").to_s
     @webm = file_fixture("test-512x512.webm").to_s
+    @webm_with_audio = file_fixture("test-512x512-with-audio.webm").to_s
     @anamorphic = file_fixture("test-anamorphic.webm").to_s
     @ai_generator = file_fixture("ai/generator.png").to_s
     @ai_tokens = file_fixture("ai/tokens.png").to_s
@@ -356,7 +358,46 @@ class FileMethodsTest < ActiveSupport::TestCase
         assert_not_metadata(:video, @empty, :dar)
       end
     end
-    # TODO: neither video has audio
+
+    context("audio_streams") do
+      should("be empty for videos without an audio track") do
+        assert_metadata(:video, @mp4, :audio_streams, [])
+        assert_metadata(:video, @webm, :audio_streams, [])
+      end
+
+      should("work for videos with an audio track") do
+        streams = @obj.video_metadata(@mp4_with_audio)[:audio_streams]
+
+        assert_equal(1, streams.length)
+        assert_equal("aac", streams[0][:codec_name])
+        assert_equal(1, streams[0][:channels])
+        assert_equal("mono", streams[0][:channel_layout])
+        assert_equal(44_100, streams[0][:sample_rate])
+      end
+
+      should("work for webms with an audio track") do
+        streams = @obj.video_metadata(@webm_with_audio)[:audio_streams]
+
+        assert_equal(1, streams.length)
+        assert_equal("opus", streams[0][:codec_name])
+        assert_equal(1, streams[0][:channels])
+        assert_equal("mono", streams[0][:channel_layout])
+        assert_equal(48_000, streams[0][:sample_rate])
+      end
+
+      should("not work for images") do
+        assert_not_metadata(:video, @jpg, :audio_streams)
+        assert_not_metadata(:video, @png, :audio_streams)
+        assert_not_metadata(:video, @apng, :audio_streams)
+        assert_not_metadata(:video, @webp, :audio_streams)
+        assert_not_metadata(:video, @gif, :audio_streams)
+      end
+
+      should("not work for invalid files") do
+        assert_not_metadata(:video, @tiff, :audio_streams)
+        assert_not_metadata(:video, @empty, :audio_streams)
+      end
+    end
   end
 
   context("gif_metadata") do

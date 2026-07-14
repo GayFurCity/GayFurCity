@@ -150,7 +150,7 @@ module TestHelpers
     end
 
     def build
-      on_build.call if on_build.present?
+      on_build.presence&.call
       if @filter
         @success_levels = @success_levels.select { @filter.call(it) }
         @fail_levels = @all_levels.reject { @success_levels.include?(it) }

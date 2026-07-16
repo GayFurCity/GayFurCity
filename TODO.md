@@ -40,7 +40,7 @@
 | [test/unit/post_test.rb](test/unit/post_test.rb#L1729) | 1729 | Needs to reload relationship to obtain non cached value |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L2183) | 2183 | These don't quite make sense, what should hide deleted posts and what shouldn't? |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L2590) | 2590 | These are pretty messed up, both structurally, and expectation wise. |
-| [config/config.rb](config/config.rb#L178) | 178 | appealed posts should be visible, but this makes it far too easy to get the contents of deleted posts at a moments notice |
+| [config/config.rb](config/config.rb#L190) | 190 | appealed posts should be visible, but this makes it far too easy to get the contents of deleted posts at a moments notice |
 
 ### XXXs
 | Filename | line # | XXX |

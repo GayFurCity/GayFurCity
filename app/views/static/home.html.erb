@@ -2,56 +2,58 @@
   <meta name="active-mascots" content="<%= Mascot.active_for_user(CurrentUser.user).to_json %>">
 <% end %>
 
-<div id="searchbox" class="mascotbox">
-  <div id="static-index">
-    <h1 style="font-size: 4em;"><%= link_to(Config.instance.app_name, "/") %></h1>
-    <div id="links">
-      <% if CurrentUser.user.is_anonymous? %>
-        <%= link_to("Login/Signup", new_session_path, title: "Login or sign up") %>
-      <% else %>
-        <%= link_to("Account", home_users_path, title: "User home") %>
-      <% end %>
-      <%= link_to("Posts", posts_path, title: "A paginated list of every post") %>
-      <%= link_to("Comments", comments_path, title: "A paginated list of every comment") %>
-      <%= link_to("Tags", tags_path, title: "A paginated list of every tag") %>
-      <%= link_to("Wiki", show_or_new_wiki_pages_path(title: "help:home"), title: "Wiki") %>
-      <%= link_to("Forum", forums_path, title: "Forum") %>
-      <%= link_to("»", site_map_path, title: "A site map") %>
+<div id="main">
+  <div id="searchbox" class="mascotbox">
+    <div id="static-index">
+      <h1 style="font-size: 4em;"><%= link_to(Config.instance.app_name, "/") %></h1>
+      <div id="links">
+        <% if CurrentUser.user.is_anonymous? %>
+          <%= link_to("Login/Signup", new_session_path, title: "Login or sign up") %>
+        <% else %>
+          <%= link_to("Account", home_users_path, title: "User home") %>
+        <% end %>
+        <%= link_to("Posts", posts_path, title: "A paginated list of every post") %>
+        <%= link_to("Comments", comments_path, title: "A paginated list of every comment") %>
+        <%= link_to("Tags", tags_path, title: "A paginated list of every tag") %>
+        <%= link_to("Wiki", show_or_new_wiki_pages_path(title: "help:home"), title: "Wiki") %>
+        <%= link_to("Forum", forums_path, title: "Forum") %>
+        <%= link_to("»", site_map_path, title: "A site map") %>
+      </div>
+      <div>
+        <%= form_tag(posts_path, method: "get") do %>
+          <div>
+            <%= text_field_tag("tags", "", "size": 30, "autofocus": "autofocus", "data-autocomplete": "tag-query") %><br>
+            <input type="submit" value="Search">
+            <input type="button" value="Change Mascot" id="change-mascot">
+          </div>
+        <% end %>
+      </div>
     </div>
-    <div>
-      <%= form_tag(posts_path, method: "get") do %>
-        <div>
-          <%= text_field_tag("tags", "", "size": 30, "autofocus": "autofocus", "data-autocomplete": "tag-query") %><br>
-          <input type="submit" value="Search">
-          <input type="button" value="Change Mascot" id="change-mascot">
-        </div>
-      <% end %>
-    </div>
+    <div id="mascot_artist"></div>
   </div>
-  <div id="mascot_artist"></div>
-</div>
 
-<div id="searchbox2" class="mascotbox">
-  <% Post.fast_count(CurrentUser.user).to_s.each_char do |x| %>
-    <%= image_tag("counter/#{x}.png") %>
+  <div id="searchbox2" class="mascotbox">
+    <% Post.fast_count(CurrentUser.user).to_s.each_char do |x| %>
+      <%= image_tag("counter/#{x}.png") %>
+    <% end %>
+  </div>
+
+  <% if news_update = NewsUpdate.recent %>
+    <div id="news-excerpt-box" class="mascotbox">
+      <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, inline: true) %></div>
+      <div class="previous-news-link"><%= link_to("Click here for previous news", news_updates_path) %></div>
+    </div>
   <% end %>
-</div>
 
-<% if news_update = NewsUpdate.recent %>
-  <div id="news-excerpt-box" class="mascotbox">
-    <div class="news-excerpt dtext-container"><%= format_text(news_update.message.lines.first, inline: true) %></div>
-    <div class="previous-news-link"><%= link_to("Click here for previous news", news_updates_path) %></div>
+  <div id="searchbox3" class="mascotbox">
+    <p>
+      Serving <%= number_with_delimiter(Post.fast_count(CurrentUser.user)) %> posts<br/>
+      <%= link_to("Takedown Policy and Process", takedown_static_path, title: "Takedown Information") %>
+      | <%= link_to("Contact Us", contact_path, title: "Contact Us") %>
+      | <%= link_to("Terms of Service", terms_of_service_path, title: "Terms of Service") %>
+      | <%= link_to("Privacy", privacy_policy_path, title: "Privacy Policy") %>
+    </p>
   </div>
-<% end %>
-
-<div id="searchbox3" class="mascotbox">
-  <p>
-    Serving <%= number_with_delimiter(Post.fast_count(CurrentUser.user)) %> posts<br/>
-    <%= link_to("Takedown Policy and Process", takedown_static_path, title: "Takedown Information") %>
-    | <%= link_to("Contact Us", contact_path, title: "Contact Us") %>
-    | <%= link_to("Terms of Service", terms_of_service_path, title: "Terms of Service") %>
-    | <%= link_to("Privacy", privacy_policy_path, title: "Privacy Policy") %>
-  </p>
 </div>
 
 <% content_for(:html_header) do %>

@@ -130,8 +130,14 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
 
       context("access control") do
         asserts do
-          access.gte(User::Levels::MEMBER).post(pools_path).params { { pool: { name: SecureRandom.hex(6) } } }.success(:redirect)
-          access.gte(User::Levels::MEMBER).json.post(pools_path).params { { pool: { name: SecureRandom.hex(6) } } }
+          access.gte(User::Levels::MEMBER).post(pools_path).params do |user|
+            user.update_column(:created_at, 1.year.ago)
+            { pool: { name: SecureRandom.hex(6) } }
+          end.success(:redirect)
+          access.gte(User::Levels::MEMBER).json.post(pools_path).params do |user|
+            user.update_column(:created_at, 1.year.ago)
+            { pool: { name: SecureRandom.hex(6) } }
+          end
         end
       end
     end

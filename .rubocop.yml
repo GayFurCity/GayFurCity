@@ -128,6 +128,11 @@ Rails/WhereExists:
 Rails/WhereNotWithMultipleConditions:
   Enabled: false
 
+Style/ArrayIntersect:
+  # Unsafe: `array.any? { |x| other.include?(x) }` isn't equivalent to `array.intersect?(other)`
+  # when `other` is a String being checked for substring containment rather than an Array/Set.
+  Enabled: false
+
 Style/ConditionalAssignment:
   Enabled: false
 

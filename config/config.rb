@@ -71,6 +71,17 @@ module GayFurCity
       config(:server_internal) { reports_server }
     end
 
+    # Ships unexpected exceptions (web + background job) to an OpenObserve instance via
+    # its HTTP _json ingestion API. Leave endpoint unset to disable entirely.
+    subconfig(:openobserve) do
+      config(:enabled, :boolean) { present?(:openobserve_endpoint, :openobserve_username, :openobserve_password) }
+      config(:endpoint) { nil }
+      config(:organization) { "default" }
+      config(:stream) { "gayfurcity_exceptions" }
+      config(:username) { nil }
+      config(:password) { nil }
+    end
+
     config(:http_headers, env: false) do
       { user_agent: user_agent }
     end

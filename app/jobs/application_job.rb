@@ -13,8 +13,9 @@ class ApplicationJob < ActiveJob::Base
     Yabeda.jobs.executions.increment(tags)
     Yabeda.jobs.runtime.measure(tags) do
       block.call
-    rescue StandardError
+    rescue StandardError => e
       Yabeda.jobs.failures.increment(tags)
+      GayFurCity::Logger.log(e, source: "Job: #{job.class.name}")
       raise
     end
   end

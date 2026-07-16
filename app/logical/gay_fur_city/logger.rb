@@ -10,9 +10,7 @@ module GayFurCity
         Rails.logger.error("#{exception.class}: #{exception.message}\n#{backtrace}")
       end
 
-      if defined?(::NewRelic) && !expected
-        ::NewRelic::Agent.notice_error(exception, expected: expected, custom_params: params)
-      end
+      OpenObserveReporter.report!(exception, **params) unless expected
     end
 
     def self.initialize(user)

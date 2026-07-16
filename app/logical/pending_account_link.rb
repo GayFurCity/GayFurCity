@@ -11,7 +11,7 @@ class PendingAccountLink
     session[SESSION_KEY] = { "provider" => provider.to_s, "uid" => uid.to_s, "display_name" => display_name }
   end
 
-  def self.finalize!(session, user)
+  def self.finalize!(session, user, request:, category:)
     pending = session.delete(SESSION_KEY)
     return if pending.blank? || user.blank?
 
@@ -19,7 +19,8 @@ class PendingAccountLink
     return if existing.present? && existing.uid != pending["uid"] # already linked to a different identity for this provider, don't clobber it
     return if existing&.uid == pending["uid"]
 
-    user.linked_accounts.create!(provider: pending["provider"], uid: pending["uid"], display_name: pending["display_name"])
+    link = user.linked_accounts.create!(provider: pending["provider"], uid: pending["uid"], display_name: pending["display_name"])
+    UserEvent.create_from_request!(user, category, request, metadata: { "provider" => link.provider })
   rescue ActiveRecord::RecordInvalid
     # Another account claimed this identity in the meantime (e.g. two tabs finishing the flow at
     # once), or some other validation failure - leave this login/signup alone either way.

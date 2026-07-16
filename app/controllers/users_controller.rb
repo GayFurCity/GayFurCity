@@ -65,7 +65,7 @@ class UsersController < ApplicationController
         if @user.errors.empty?
           session[:user_id] = @user.id
           session[:ph] = @user.password_token
-          PendingAccountLink.finalize!(session, @user)
+          PendingAccountLink.finalize!(session, @user, request: request, category: :linked_account_signup)
           if Config.instance.enable_email_verification?
             Users::EmailConfirmationMailer.confirmation(@user).deliver_now
           end

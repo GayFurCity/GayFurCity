@@ -52,6 +52,16 @@
   <%= link_to_user(event.user) %> created their account.
 <% when "email_verify" %>
   <%= link_to_user(event.user) %> verified their email.
+<% when "linked_account_connect" %>
+  <%= link_to_user(event.user) %> connected a <%= LinkedAccount::PROVIDERS.dig(event.metadata["provider"], :name) || event.metadata["provider"] %> account.
+<% when "linked_account_disconnect" %>
+  <%= link_to_user(event.user) %> disconnected a <%= LinkedAccount::PROVIDERS.dig(event.metadata["provider"], :name) || event.metadata["provider"] %> account.
+<% when "linked_account_signup" %>
+  <%= link_to_user(event.user) %> created their account using a <%= LinkedAccount::PROVIDERS.dig(event.metadata["provider"], :name) || event.metadata["provider"] %> account.
+<% when "linked_account_login" %>
+  <%= link_to_user(event.user) %> logged in using a <%= LinkedAccount::PROVIDERS.dig(event.metadata["provider"], :name) || event.metadata["provider"] %> account.
+<% when "mfa_linked_account_login_pending_verification" %>
+  <%= link_to_user(event.user) %> logged in using a <%= LinkedAccount::PROVIDERS.dig(event.metadata["provider"], :name) || event.metadata["provider"] %> account. Awaiting MFA verification.
 <% else %>
   <%= event.category %>
 <% end %>

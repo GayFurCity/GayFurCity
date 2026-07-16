@@ -41,6 +41,7 @@ module Users
       CurrentUser.user.linked_accounts.find_or_create_by!(provider: PROVIDER, uid: yiffspace_user.id) do |link|
         link.display_name = discord_display_name
       end
+      UserEvent.create_from_request!(CurrentUser.user, :linked_account_connect, request, metadata: { "provider" => PROVIDER }) if already_linked.blank?
       redirect_to(edit_user_linked_accounts_path, notice: "YiffSpace account linked")
     end
 
@@ -49,12 +50,14 @@ module Users
       session_creator.process_login(user, :login)
 
       if user.mfa.present?
+        UserEvent.create_from_request!(user, :mfa_linked_account_login_pending_verification, request, metadata: { "provider" => PROVIDER })
         @user = user
         @url = posts_path
         @type = "login"
         @remember = true
         render(template: "sessions/confirm_mfa")
       else
+        UserEvent.create_from_request!(user, :linked_account_login, request, metadata: { "provider" => PROVIDER })
         GayFurCity::Logger.add_attributes("user.login" => "success")
         redirect_to(posts_path, notice: "You are now logged in")
       end

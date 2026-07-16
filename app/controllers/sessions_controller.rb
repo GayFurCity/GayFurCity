@@ -2,7 +2,7 @@
 
 class SessionsController < ApplicationController
   def new
-    @user = User.new
+    @user = User.new(name: params[:name].presence)
   end
 
   def create

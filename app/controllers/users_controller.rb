@@ -23,10 +23,7 @@ class UsersController < ApplicationController
   end
 
   def new
-    raise(User::PrivilegeError, "Already signed in") unless CurrentUser.user.is_anonymous?
-    return access_denied("Signups are disabled") unless Config.instance.enable_signups?
-    @user = User.new(name: params[:name].presence)
-    respond_with(@user)
+    redirect_to(new_session_path(name: params[:name].presence))
   end
 
   def edit

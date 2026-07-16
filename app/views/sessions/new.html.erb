@@ -1,32 +1,91 @@
-<div class="session-modal">
-  <h1>Sign in</h1>
+<div class="session-page">
+  <div class="session-modal">
+    <h1>Sign In</h1>
 
-  <%= custom_form_for(:session, url: session_path) do |f| %>
-    <%= f.input(:url, as: :hidden, input_html: { value: params[:url] }) %>
-    <%= f.input(:type, as: :hidden, input_html: { value: "login" }) %>
-    <%= f.input(:name, label: "Username") %>
-    <%= f.input(:password, label: "Password") %>
-    <%= f.input(:remember, as: :boolean, label: "Remember", input_html: { checked: true }) %>
-    <%= f.submit("Sign in") %>
-  <% end %>
+    <%= custom_form_for(:session, url: session_path) do |f| %>
+      <%= f.input(:url, as: :hidden, input_html: { value: params[:url] }) %>
+      <%= f.input(:type, as: :hidden, input_html: { value: "login" }) %>
+      <%= f.input(:name, label: "Username") %>
+      <%= f.input(:password, label: "Password") %>
+      <%= f.input(:remember, as: :boolean, label: "Remember", input_html: { checked: true }) %>
+      <%= f.submit("Sign in") %>
+    <% end %>
 
-  <% if YiffSpace::Auth.default.client_id.present? %>
-    <div class="session-divider"><span>or</span></div>
+    <% if YiffSpace::Auth.default.client_id.present? %>
+      <div class="session-divider"><span>or</span></div>
 
-    <div class="external-logins">
-      <% LinkedAccount::PROVIDERS.each do |provider, config| %>
-        <%= link_to(config[:connect_path].call(self), class: "external-login-button", id: "external-login-#{provider}") do %>
-          <i class="<%= config[:icon] %>"></i>
-          <span>Continue with <%= config[:name] %></span>
+      <div class="external-logins">
+        <% LinkedAccount::PROVIDERS.each do |provider, config| %>
+          <%= link_to(config[:connect_path].call(self), class: "external-login-button", id: "external-login-#{provider}") do %>
+            <i class="<%= config[:icon] %>"></i>
+            <span>Continue with <%= config[:name] %></span>
+          <% end %>
         <% end %>
-      <% end %>
-    </div>
-  <% end %>
+      </div>
+    <% end %>
 
-  <div class="session-secondary-links">
-    <%= link_to("Don't have an account? Sign up", new_user_path) %>
-    <%= link_to("Reset Password", new_users_password_reset_path) %>
-    <%= link_to("Login Reminder", new_users_login_reminder_path) %>
+    <div class="session-secondary-links">
+      <%= link_to("Reset Password", new_users_password_reset_path) %>
+      <%= link_to("Login Reminder", new_users_login_reminder_path) %>
+    </div>
+  </div>
+
+  <div class="session-modal register-modal <%= "disabled" unless Config.instance.enable_signups? %>" id="register-modal">
+    <button type="button" class="signup-info-toggle" id="signup-info-toggle" aria-expanded="false">
+      <i class="fa-solid fa-circle-info"></i>
+    </button>
+
+    <% if Rails.env.development? %>
+      <button type="button" class="signup-disabled-toggle" id="signup-disabled-toggle" title="Toggle signups disabled (dev only)">
+        <i class="fa-solid fa-toggle-on"></i>
+      </button>
+    <% end %>
+
+    <div class="signup-info-connector"></div>
+
+    <div class="signup-info-panel" id="signup-info-panel">
+      <p>An account is <strong>free</strong> and lets you keep favorites, upload artwork, and write comments.</p>
+
+      <div class="box-section background-red">
+        <p>Make sure to read the <%= link_to("site rules", "/rules") %> before continuing.</p>
+        <p>You must confirm your email address, so use something you can receive email with.</p>
+        <p>This site is open to web crawlers so whatever name you choose will be public!</p>
+        <p>This includes favorites, uploads, and comments. Almost everything is public. So don't choose a name you don't want to be associated with.</p>
+        <p>Accounts are prefilled with the same blacklist as guests have. You can access your blacklist in your account settings.</p>
+      </div>
+
+      <button type="button" class="signup-info-close" id="signup-info-close">Close</button>
+    </div>
+
+    <h1>Sign Up</h1>
+
+    <%= custom_form_for(@user, html: { id: "signup-form" }) do |f| %>
+      <%= f.input(:name, as: :string) %>
+      <%= f.input(:email, required: true, as: :email) %>
+      <%= f.input(:password) %>
+      <%= f.input(:password_confirmation) %>
+      <%= f.input(:time_zone, include_blank: false) %>
+
+      <% if GayFurCity.config.recaptcha.enabled? %>
+        <%= recaptcha_tags(theme: "dark", nonce: content_security_policy_nonce) %>
+      <% elsif !Rails.env.production? %>
+        <div class="recaptcha-mock">
+          <div class="recaptcha-mock-checkbox">
+            <span class="checkbox"></span>
+            <span>I'm not a robot</span>
+          </div>
+          <div class="recaptcha-mock-badge">
+            <div class="recaptcha-mock-logo"></div>
+            <div class="recaptcha-mock-links">reCAPTCHA<br><a href="#">Privacy</a> - <a href="#">Terms</a></div>
+          </div>
+        </div>
+      <% end %>
+      <%= f.submit("Sign up", data: { disable_with: "Signing up..." }) %>
+    <% end %>
+
+    <div class="disabled-cover">
+      <span>Registration is currently disabled</span>
+    </div>
   </div>
 </div>
 

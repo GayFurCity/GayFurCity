@@ -116,10 +116,23 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         GayFurCity.config.stubs(:recaptcha_enabled).returns(false)
       end
 
-      should("render") do
+      should("redirect to the sign in page") do
         get(new_user_path)
 
-        assert_response(:success)
+        assert_redirected_to(new_session_path)
+      end
+
+      should("redirect to the sign in page even when signups are disabled") do
+        Config.instance.stubs(:enable_signups?).returns(false)
+        get(new_user_path)
+
+        assert_redirected_to(new_session_path)
+      end
+
+      should("preserve the name param in the redirect") do
+        get(new_user_path, params: { name: "xxx" })
+
+        assert_redirected_to(new_session_path(name: "xxx"))
       end
     end
 

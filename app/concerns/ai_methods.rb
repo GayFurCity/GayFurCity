@@ -67,7 +67,7 @@ module AiMethods
     reasons = []
 
     # C2PA
-    if C2PA_TOKENS.any? { |t| xmp_data.include?(t) }
+    if C2PA_TOKENS.intersect?(xmp_data)
       score += 80
       reasons << "c2pa manifest present"
     end
@@ -80,7 +80,7 @@ module AiMethods
     end
 
     # SD pipeline tokens
-    sd_tokens_found = SD_TOKENS.any? { |t| combined_text.include?(t) }
+    sd_tokens_found = SD_TOKENS.intersect?(combined_text)
     if sd_tokens_found
       score += 60
       reasons << "ai parameter tokens found"
@@ -97,7 +97,7 @@ module AiMethods
     if is_jpeg &&
        matched_generators.empty? &&
        !sd_tokens_found &&
-       CAMERA_TOKENS.any? { |t| exif_data.include?(t) }
+       CAMERA_TOKENS.intersect?(exif_data)
       score -= 30
       reasons << "camera exif present"
     end

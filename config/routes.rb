@@ -32,6 +32,8 @@ Rails.application.routes.draw do
       get("application/status", action: :application_status, as: :application_status)
       get("request", action: :request_logs)
       get("request/status", action: :request_status, as: :request_status)
+      get("performance", action: :performance_logs)
+      get("performance/status", action: :performance_status, as: :performance_status)
     end
     resource(:reowner, controller: "reowner", only: %i[new create])
     resource(:stuck_dnp, controller: "stuck_dnp", only: %i[new create])

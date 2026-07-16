@@ -6,4 +6,5 @@
   <%= subnav_link_to("Audit Log", admin_audit_logs_path) %>
   <%= subnav_link_to_if(policy(Admin::ApplicationLog).index?, "Application Logs", application_admin_logs_path) %>
   <%= subnav_link_to_if(policy(Admin::RequestLog).index?, "Request Logs", request_admin_logs_path) %>
+  <%= subnav_link_to_if(policy(Admin::PerformanceLog).index?, "Performance Logs", performance_admin_logs_path) %>
 <% end %>

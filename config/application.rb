@@ -22,8 +22,8 @@ Bundler.require(*Rails.groups)
 
 require_relative("config")
 require_relative("local_config")
-require_relative("../lib/middleware/json_log")
-require_relative("../lib/middleware/silence_healthcheck_logging")
+Dir["#{__dir__}/../lib/middleware/**/*.rb"].each { |f| require(f) }
+Dir["#{__dir__}/../lib/logging/**/*.rb"].each { |f| require(f) }
 
 module GayFurCity
   # Config.ensure_required_set!
@@ -38,6 +38,12 @@ module GayFurCity
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[dtext_rb generators rubocop tasks templates prometheus])
+
+    # Keep the primary log (log/development.log) plain text, but also mirror every line as a JSON
+    # object to log/development.json, so a log shipper can ingest it without losing any of the
+    # detail a plain-text line would have had - same severity/message/backtrace content, just
+    # JSON-escaped onto one line in the sidecar file.
+    config.log_formatter = Logging::JsonSidecarFormatter.new(Rails.root.join("log/#{Rails.env}.jsonl"))
 
     config.active_record.schema_format = :sql
     config.log_tags = [->(_req) { "PID:#{Process.pid}" }]

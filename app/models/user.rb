@@ -643,7 +643,7 @@ class User < ApplicationRecord
       return false if blacklisted_tags.blank?
       bltags = blacklisted_tags.split("\n").map(&:downcase)
       strings = %W[user:#{user.name.downcase} user:!#{user.id} userid:#{user.id}]
-      strings.any? { |str| bltags.include?(str) }
+      strings.intersect?(bltags)
     end
   end
 

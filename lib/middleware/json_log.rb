@@ -2,9 +2,17 @@
 
 module Middleware
   class JsonLog
+    # Rendering a template is instrumented as "!render_template.action_view" (bang-prefixed)
+    # specifically so Rails skips the work of building it unless something is actually
+    # listening - see ActionView::Template#render. render_partial/render_collection/render_layout
+    # aren't bang-prefixed, but are matched here too so all four kinds of render show up.
+    NOTIFICATION_PATTERN = /\Asql\.active_record\z|\A!?render_(?:template|partial|collection|layout)\.action_view\z/
+    IGNORED_SQL_NAMES = ActiveRecord::LogSubscriber::IGNORE_PAYLOAD_NAMES
+
     def initialize(app)
       @app = app
-      @path = Rails.root.join("log", "requests.#{Rails.env}.jsonl")
+      @request_path = Rails.root.join("log", "requests.#{Rails.env}.jsonl")
+      @performance_path = Rails.root.join("log", "performance.#{Rails.env}.jsonl")
     end
 
     def call(env)
@@ -12,18 +20,27 @@ module Middleware
       request = ActionDispatch::Request.new(env)
 
       status = headers = body = exception = nil
+      queries = []
+      renders = []
 
       begin
-        status, headers, body = @app.call(env)
+        ActiveSupport::Notifications.subscribed(query_and_render_collector(queries, renders), NOTIFICATION_PATTERN) do
+          status, headers, body = @app.call(env)
+        end
       rescue => e # rubocop:disable Style/RescueStandardError
         exception = e
         raise
       ensure
-        line = content(env, request: request, start: started_at, status: status, headers: headers, body: body, exception: exception)
-
-        File.open(@path, "a") do |f|
+        request_line = request_content(env, request: request, start: started_at, status: status, headers: headers, body: body, exception: exception)
+        File.open(@request_path, "a") do |f|
           f.flock(File::LOCK_EX)
-          f.puts(line.to_json)
+          f.puts(request_line.to_json)
+        end
+
+        performance_line = performance_content(env, request: request, queries: queries, renders: renders)
+        File.open(@performance_path, "a") do |f|
+          f.flock(File::LOCK_EX)
+          f.puts(performance_line.to_json)
         end
       end
 
@@ -32,14 +49,48 @@ module Middleware
 
     private
 
-    def content(env, request:, start:, status:, headers:, body:, exception:)
+    # Passing a single-argument block/lambda here (rather than the usual 5-argument
+    # subscriber signature) makes ActiveSupport build a real Event for each notification,
+    # which is what gives us #duration and #allocations below.
+    def query_and_render_collector(queries, renders)
+      ->(event) do
+        if event.name == "sql.active_record"
+          next if IGNORED_SQL_NAMES.include?(event.payload[:name])
+
+          queries << {
+            sql:         event.payload[:sql],
+            name:        event.payload[:name],
+            cached:      event.payload[:cached] || false,
+            duration:    event.duration.round(2),
+            allocations: event.allocations,
+          }
+        else
+          renders << {
+            file:        relative_view_path(event.payload[:identifier]),
+            type:        event.name.delete_prefix("!").delete_suffix(".action_view"),
+            duration:    event.duration.round(2),
+            allocations: event.allocations,
+          }
+        end
+      end
+    end
+
+    def relative_view_path(identifier)
+      return identifier if identifier.nil?
+
+      Pathname.new(identifier).relative_path_from(Rails.root.join("app/views")).to_s
+    rescue ArgumentError
+      identifier
+    end
+
+    def request_content(env, request:, start:, status:, headers:, body:, exception:)
       exception ||= env["action_dispatch.exception"]
       duration = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) * 1000).round(3)
       request_headers = extract_request_headers(env)
       request_body_size = calculate_request_body_size(env, request)
       response_headers = headers ? headers.to_h : {}
       response_body_size = calculate_response_body_size(response_headers, body)
-      json = {
+      request_json = {
         time:                Time.now.utc.iso8601(6),
         request_id:          request.request_id,
         method:              request.request_method,
@@ -59,13 +110,22 @@ module Middleware
       }
 
       if exception
-        json[:exception] = {
+        request_json[:exception] = {
           class:   exception.class.name,
           message: exception.message,
         }
       end
 
-      json
+      request_json
+    end
+
+    def performance_content(_env, request:, queries:, renders:)
+      {
+        time:       Time.now.utc.iso8601(6),
+        request_id: request.request_id,
+        queries:    queries,
+        renders:    renders,
+      }
     end
 
     def calculate_request_body_size(env, request)

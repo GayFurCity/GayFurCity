@@ -28,6 +28,7 @@ module GayFurCity
     config(:disable_cache_store, :boolean) { false }
     config(:enable_application_logs, :boolean) { true }
     config(:enable_request_logs, :boolean) { true }
+    config(:enable_performance_logs, :boolean) { true }
 
     config(:ffmpeg_path) { "/usr/bin/ffmpeg" }
     config(:post_path_prefix) { "posts/" }

@@ -4,6 +4,7 @@ module Admin
   class LogsController < ApplicationController
     before_action(:ensure_application_logs_enabled, only: %i[application_logs application_status])
     before_action(:ensure_request_logs_enabled, only: %i[request_logs request_status])
+    before_action(:ensure_performance_logs_enabled, only: %i[performance_logs performance_status])
 
     def application_logs
       load_entries(Admin::ApplicationLog.new, title: "Application Logs", status_path: application_status_admin_logs_path(format: :json))
@@ -21,6 +22,15 @@ module Admin
 
     def request_status
       render_status(Admin::RequestLog.new)
+    end
+
+    def performance_logs
+      load_entries(Admin::PerformanceLog.new, title: "Performance Logs", status_path: performance_status_admin_logs_path(format: :json))
+      render(:show)
+    end
+
+    def performance_status
+      render_status(Admin::PerformanceLog.new)
     end
 
     private
@@ -49,6 +59,10 @@ module Admin
 
     def ensure_request_logs_enabled
       access_denied("This feature is disabled") unless GayFurCity.config.enable_request_logs?
+    end
+
+    def ensure_performance_logs_enabled
+      access_denied("This feature is disabled") unless GayFurCity.config.enable_performance_logs?
     end
   end
 end

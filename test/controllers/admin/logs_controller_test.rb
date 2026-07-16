@@ -11,21 +11,30 @@ module Admin
         # same test don't race to write/read/delete each other's log files.
         @application_path = Pathname.new(File.join(self.class.storage_root, "application-log-test.log"))
         @request_path = Pathname.new(File.join(self.class.storage_root, "request-log-test.jsonl"))
+        @performance_path = Pathname.new(File.join(self.class.storage_root, "performance-log-test.jsonl"))
         File.write(@application_path, "oldest line\nmiddle line\nnewest line\n")
         File.write(@request_path, <<~LOGS)
           {"time":"2025-01-01T00:00:00.000000Z","request_id":"oldest","method":"GET","path":"/oldest","ip":"127.0.0.1","user_agent":"Test Agent","referer":"https://example.test/one","status":200,"duration":3200.0,"request_body_size":128,"total_request_size":256,"request_headers":{"Accept":"application/json"},"response_body_size":256,"total_response_size":320,"response_headers":{"Content-Type":"application/json"},"exception":null}
           {"time":"2025-01-01T00:00:01.000000Z","request_id":"middle","method":"POST","path":"/middle","ip":"127.0.0.2","user_agent":"Test Agent","referer":"https://example.test/two","status":302,"duration":8.25,"request_body_size":0,"total_request_size":140,"request_headers":{"Content-Type":"application/json"},"response_body_size":0,"total_response_size":76,"response_headers":{"Location":"/login"},"exception":null}
           {"time":"2025-01-01T00:00:02.000000Z","request_id":"newest","method":"DELETE","path":"/newest","ip":"127.0.0.3","user_agent":"Test Agent","referer":"https://example.test/three","status":500,"duration":1.5,"request_body_size":32,"total_request_size":196,"request_headers":{"X-Test":"1"},"response_body_size":512,"total_response_size":584,"response_headers":{"Content-Type":"text/html"},"exception":{"class":"RuntimeError","message":"boom"}}
         LOGS
+        File.write(@performance_path, <<~LOGS)
+          {"time":"2025-01-01T00:00:00.000000Z","request_id":"oldest","queries":[],"renders":[]}
+          {"time":"2025-01-01T00:00:01.000000Z","request_id":"middle","queries":[],"renders":[]}
+          {"time":"2025-01-01T00:00:02.000000Z","request_id":"newest","queries":[{"sql":"SELECT 1","name":"Test Load","cached":false,"duration":1.23,"allocations":45}],"renders":[{"file":"posts/_post.html.erb","type":"render_partial","duration":2.34,"allocations":67}]}
+        LOGS
         Admin::ApplicationLog.stubs(:path_for).returns(@application_path)
         Admin::RequestLog.stubs(:path_for).returns(@request_path)
+        Admin::PerformanceLog.stubs(:path_for).returns(@performance_path)
         stub_env_config(:enable_application_logs, true)
         stub_env_config(:enable_request_logs, true)
+        stub_env_config(:enable_performance_logs, true)
       end
 
       teardown do
         FileUtils.rm_f(@application_path)
         FileUtils.rm_f(@request_path)
+        FileUtils.rm_f(@performance_path)
       end
 
       context("application action") do
@@ -161,6 +170,75 @@ module Admin
         context("access control") do
           asserts do
             access.gte(User::Levels::OWNER).json.get(request_status_admin_logs_path)
+          end
+        end
+      end
+
+      context("performance action") do
+        should("render the log lines from newest to oldest, with queries and renders tables") do
+          get_auth(performance_admin_logs_path, @owner)
+
+          assert_response(:success)
+          assert_operator(@response.body.index("newest"), :<, @response.body.index("middle"))
+          assert_operator(@response.body.index("middle"), :<, @response.body.index("oldest"))
+          assert_includes(@response.body, "<time ")
+          assert_includes(@response.body, "Queries: 1")
+          assert_includes(@response.body, "Renders: 1")
+          assert_includes(@response.body, "<summary>Queries (1)</summary>")
+          assert_includes(@response.body, "<summary>Renders (1)</summary>")
+          assert_includes(@response.body, "open=\"open\"")
+          assert_includes(@response.body, "<code>SELECT 1</code>")
+          assert_includes(@response.body, "<td>Test Load</td>")
+          assert_includes(@response.body, "<td>No</td>")
+          assert_includes(@response.body, "<td>1.23ms</td>")
+          assert_includes(@response.body, "<td>45</td>")
+          assert_includes(@response.body, "<td>posts/_post.html.erb</td>")
+          assert_includes(@response.body, "<td>render_partial</td>")
+          assert_includes(@response.body, "<td>2.34ms</td>")
+          assert_includes(@response.body, "<td>67</td>")
+          assert_not_includes(@response.body, "{\"time\":")
+          assert_includes(@response.body, @performance_path.to_s)
+        end
+
+        should("only respond to html") do
+          get_auth(performance_admin_logs_path(format: :json), @owner)
+
+          assert_response(:not_acceptable)
+        end
+
+        should("not work when disabled") do
+          stub_env_config(:enable_performance_logs, false)
+          get_auth(performance_admin_logs_path, @owner)
+
+          assert_response(:forbidden)
+        end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::OWNER).get(performance_admin_logs_path)
+          end
+        end
+      end
+
+      context("performance_status action") do
+        should("report how many new lines were added") do
+          get_auth(performance_status_admin_logs_path(format: :json), @owner, params: { count: 2 })
+
+          assert_response(:success)
+          assert_equal(3, @response.parsed_body["total_count"])
+          assert_equal(1, @response.parsed_body["new_lines"])
+        end
+
+        should("not work when disabled") do
+          stub_env_config(:enable_performance_logs, false)
+          get_auth(performance_status_admin_logs_path(format: :json), @owner)
+
+          assert_response(:forbidden)
+        end
+
+        context("access control") do
+          asserts do
+            access.gte(User::Levels::OWNER).json.get(performance_status_admin_logs_path)
           end
         end
       end

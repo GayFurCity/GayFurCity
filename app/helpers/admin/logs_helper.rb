@@ -8,6 +8,8 @@ module Admin
       case log
       when Admin::RequestLog
         render_request_log_entry(text)
+      when Admin::PerformanceLog
+        render_performance_log_entry(text)
       else
         tag.pre(format_application_log_line(text), class: "log-entry-line")
       end
@@ -40,6 +42,69 @@ module Admin
       lines << "Referer: #{entry['referer']}" if entry["referer"].present?
       lines << "User-Agent: #{entry['user_agent']}" if entry["user_agent"].present?
       safe_join(lines, "\n")
+    end
+
+    def render_performance_log_entry(text)
+      entry = JSON.parse(text)
+
+      blocks = []
+      blocks << tag.pre(format_performance_log_summary(entry), class: "log-entry-line")
+      blocks << render_performance_table("Queries", entry["queries"], %w[Name SQL Cached Duration Allocations]) { |query| render_query_row(query) }
+      blocks << render_performance_table("Renders", entry["renders"], %w[File Type Duration Allocations]) { |render_entry| render_render_row(render_entry) }
+      tag.div(safe_join(blocks.compact), class: "log-entry")
+    rescue JSON::ParserError
+      tag.pre(text, class: "log-entry-line")
+    end
+
+    def format_performance_log_summary(entry)
+      lines = []
+      lines << safe_join([format_request_log_time(entry["time"]), "Request ID: #{entry['request_id']}"].compact, " ")
+      lines << "Queries: #{entry['queries']&.size || 0}"
+      lines << "Renders: #{entry['renders']&.size || 0}"
+      safe_join(lines, "\n")
+    end
+
+    def render_performance_table(title, rows, column_names, &)
+      return if rows.blank?
+
+      tag.details(class: "log-entry-details", open: true) do
+        safe_join([
+          tag.summary("#{title} (#{rows.size})"),
+          tag.table(class: "striped autofit") do
+            safe_join([
+              tag.thead do
+                tag.tr { safe_join(column_names.map { |name| tag.th(name) }) }
+              end,
+              tag.tbody do
+                safe_join(rows.map(&))
+              end,
+            ])
+          end,
+        ])
+      end
+    end
+
+    def render_query_row(query)
+      tag.tr do
+        safe_join([
+          tag.td(query["name"]),
+          tag.td(tag.code(query["sql"])),
+          tag.td(query["cached"] ? "Yes" : "No"),
+          tag.td("#{query['duration']}ms"),
+          tag.td(query["allocations"]),
+        ])
+      end
+    end
+
+    def render_render_row(render_entry)
+      tag.tr do
+        safe_join([
+          tag.td(render_entry["file"]),
+          tag.td(render_entry["type"]),
+          tag.td("#{render_entry['duration']}ms"),
+          tag.td(render_entry["allocations"]),
+        ])
+      end
     end
 
     def format_status(status)

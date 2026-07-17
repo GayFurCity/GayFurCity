@@ -12,6 +12,7 @@ module Logging
     def initialize(path)
       super()
       @json_formatter = JsonFormatter.new
+      FileUtils.mkdir_p(File.dirname(path))
       @device = File.open(path, "a")
       @device.sync = true
     end

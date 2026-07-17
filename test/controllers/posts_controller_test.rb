@@ -306,6 +306,61 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
+    context("finish_in_progress action") do
+      setup { @post.update_column(:is_in_progress, true) }
+
+      should("let the uploader finish their own post") do
+        assert_difference(-> { PostEvent.count }, 1) do
+          put_auth(finish_in_progress_post_path(@post), @post.uploader, params: { format: :json })
+
+          assert_response(:success)
+        end
+
+        assert_not(@post.reload.is_in_progress?)
+        assert_predicate(@post, :is_pending?)
+      end
+
+      should("let a janitor force it into the queue") do
+        janitor = create(:janitor_user)
+        put_auth(finish_in_progress_post_path(@post), janitor, params: { format: :json })
+
+        assert_response(:success)
+        assert_not(@post.reload.is_in_progress?)
+      end
+
+      should("not let an unrelated member finish it") do
+        put_auth(finish_in_progress_post_path(@post), @user, params: { format: :json })
+
+        assert_response(:forbidden)
+        assert_predicate(@post.reload, :is_in_progress?)
+      end
+
+      context("that has been replaced") do
+        setup do
+          member = create(:user, created_at: 2.weeks.ago)
+          @post = create(:gif_upload, uploader: member, tag_string: create(:artist_tag).name).post
+          @post.update_column(:is_in_progress, true)
+          @replacement = create(:png_replacement, creator: member, post: @post)
+        end
+
+        should("not mention a replacement before one is approved") do
+          get(post_path(@post))
+
+          assert_response(:success)
+          assert_not_includes(@response.body, "has been replaced from the original upload")
+        end
+
+        should("mention that the post has been replaced once a replacement is approved") do
+          @replacement.approve!(@replacement.creator, penalize_current_uploader: false)
+
+          get(post_path(@post))
+
+          assert_response(:success)
+          assert_includes(@response.body, "has been replaced from the original upload")
+        end
+      end
+    end
+
     context("expunge action") do
       should("work") do
         put_auth(expunge_post_path(@post), @admin, params: { format: :json })

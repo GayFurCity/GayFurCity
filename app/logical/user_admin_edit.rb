@@ -8,6 +8,7 @@ class UserAdminEdit
   PREFERENCES = [
     [:can_approve_posts, "approve posts", :is_admin?],
     [:unrestricted_uploads, "unrestricted uploads", :is_admin?],
+    [:can_upload_in_progress, "upload in-progress posts", :is_admin?],
     [:no_flagging, "flagging ban", :is_admin?],
     [:no_replacements, "replacements ban", :is_admin?],
     [:no_aibur_voting, "tag change request voting ban", :is_admin?],

@@ -145,6 +145,12 @@ class PostsController < ApplicationController
     respond_with(@post)
   end
 
+  def finish_in_progress
+    @post = authorize(Post.find(params[:id]))
+    @post.finish_in_progress!(CurrentUser.user)
+    respond_with(@post)
+  end
+
   def expunge
     @post = authorize(Post.find(params[:id]))
     @post.expunge!(CurrentUser.user, reason: params[:reason])

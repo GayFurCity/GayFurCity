@@ -6,7 +6,9 @@ class PostReplacementPolicy < ApplicationPolicy
   end
 
   def approve?
-    approver?
+    # While a post is in progress, its own uploader can approve/revert between its replacements
+    # without needing the can_approve_posts permission - approvers already have it regardless.
+    approver? || (record.post.is_in_progress? && member? && user.id == record.post.uploader_id)
   end
 
   def reject?
@@ -49,6 +51,8 @@ class PostReplacementPolicy < ApplicationPolicy
     q = super
     return q.not_rejected if user.is_anonymous?
     return q if user.is_staff?
-    q.for_creator(user).or(q.not_rejected)
+    # Rejected replacements on an in-progress post need to stay visible to its own uploader too,
+    # so they can revert to them (see #approve? above) without the approve permission.
+    q.for_creator(user).or(q.not_rejected).or(q.where(post_id: Post.in_progress.where(uploader_id: user.id).select(:id)))
   end
 end

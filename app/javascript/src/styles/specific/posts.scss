@@ -357,7 +357,7 @@ div#c-posts {
       border: 1px solid themed("color-foreground");
     }
 
-    &.notice-unlisted {
+    &.notice-unlisted, &.notice-in-progress {
       background-color: palette("background-yellow");
       border: 1px solid themed("color-foreground");
     }

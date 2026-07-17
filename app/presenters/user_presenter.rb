@@ -35,6 +35,10 @@ class UserPresenter < ApplicationPresenter
       permissions << "unrestricted uploads"
     end
 
+    if user.can_upload_in_progress?
+      permissions << "upload in-progress posts"
+    end
+
     if user.can_manage_aibur?
       permissions << "manage tag change requests"
     end

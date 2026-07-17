@@ -18,6 +18,10 @@
           <% next %>
         <% end %>
 
+        <% if flag_reason[:name] == "stuck_in_progress" && !@post.flaggable_for_stuck_in_progress?(CurrentUser.user) %>
+          <% next %>
+        <% end %>
+
         <label class="flag-reason-label">
           <%= radio_button_tag("post_flag[reason_name]", flag_reason[:name], false, data: { require_explanation: flag_reason[:require_explanation] }) %>
           <span class="flag-reason-description">

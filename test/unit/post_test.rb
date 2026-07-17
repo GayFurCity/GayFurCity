@@ -517,6 +517,42 @@ class PostTest < ActiveSupport::TestCase
       end
     end
 
+    context("An in-progress post") do
+      setup do
+        @post = create(:post, is_in_progress: true, uploader: @user, tag_string: create(:artist_tag).name)
+      end
+
+      should("let the uploader finish it into the pending queue") do
+        @post.finish_in_progress!(@user)
+
+        assert_not(@post.is_in_progress?)
+        assert_predicate(@post, :is_pending?)
+        assert_equal("in_progress_finished", PostEvent.last.action)
+      end
+
+      should("let a janitor force it into the pending queue") do
+        janitor = create(:janitor_user)
+        @post.finish_in_progress!(janitor)
+
+        assert_not(@post.is_in_progress?)
+        assert_predicate(@post, :is_pending?)
+        assert_equal("in_progress_forced", PostEvent.last.action)
+      end
+
+      should("reset the approver, since instant-replacement approval isn't a real moderation approval") do
+        @post.update_column(:approver_id, create(:janitor_user).id)
+        @post.finish_in_progress!(@user)
+
+        assert_nil(@post.reload.approver_id)
+      end
+
+      should("not let an unrelated member finish it") do
+        other = create(:user)
+
+        assert_not(@post.finishable_in_progress?(other))
+      end
+    end
+
     context("A status locked post") do
       setup do
         @post = create(:post, is_status_locked: true, is_pending: true)
@@ -1589,6 +1625,23 @@ class PostTest < ActiveSupport::TestCase
           assert_match(/Uploads must have at least \d+ general tags/, post.warnings.full_messages.join)
         end
 
+        should("skip the normal tag requirements for in-progress uploads that have an artist tag") do
+          artist_tag = create(:artist_tag)
+          post = create(:post, tag_string: artist_tag.name, is_in_progress: true)
+
+          assert_empty(post.errors.full_messages)
+          assert_no_match(/Uploads must have at least \d+ general tags/, post.warnings.full_messages.join)
+          assert_no_match(/Artist tag is required/, post.warnings.full_messages.join)
+        end
+
+        should("require an artist tag for in-progress uploads") do
+          post = build(:post, tag_string: "tagme", is_in_progress: true)
+          post.save
+
+          assert_not(post.persisted?)
+          assert_match(/Artist tag is required for in-progress uploads/, post.errors.full_messages.join)
+        end
+
         should("error if the tagcount is above the limit") do
           Config.any_instance.stubs(:max_tags_per_post).returns(5)
           post = create(:post, tag_string: "1 2 3 4 5")
@@ -2200,6 +2253,19 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(all, "status:all")
       assert_tag_match([listed], "-status:unlisted")
       assert_tag_match([unlisted], "id:#{unlisted.id}")
+    end
+
+    should("hide in-progress posts from search unless searched for by status or id") do
+      in_progress = create(:post, is_in_progress: true, tag_string: create(:artist_tag).name)
+      listed = create(:post)
+      all = [listed, in_progress]
+
+      assert_tag_match([listed], "")
+      assert_tag_match([in_progress], "status:in_progress")
+      assert_tag_match(all, "status:any")
+      assert_tag_match(all, "status:all")
+      assert_tag_match([listed], "-status:in_progress")
+      assert_tag_match([in_progress], "id:#{in_progress.id}")
     end
 
     should("return posts for the filetype:<ext> metatag") do

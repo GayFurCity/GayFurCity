@@ -121,15 +121,17 @@
     </dl>
   <% end %>
   <% t.column do |post_replacement| %>
-    <% if CurrentUser.user.can_approve_posts? %>
+    <% if CurrentUser.user.can_approve_posts? || policy(post_replacement).approve? %>
       <div class="pending-links">
         <% case post_replacement.status %>
         <% when "pending" %>
           <%= link_to("Approve", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: post_replacement.post.uploader != post_replacement.creator }) %><br>
-          <br>
-          <%= link_to("Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id }) %><br>
-          <%= link_to("Reject With Reason", reject_with_reason_post_replacement_path(post_replacement), class: "replacement-reject-with-reason-action") %><br>
-          <%= link_to("As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id }) %><br>
+          <% if CurrentUser.user.can_approve_posts? %>
+            <br>
+            <%= link_to("Reject", "#reject", class: "replacement-reject-action", data: { replacement_id: post_replacement.id }) %><br>
+            <%= link_to("Reject With Reason", reject_with_reason_post_replacement_path(post_replacement), class: "replacement-reject-with-reason-action") %><br>
+            <%= link_to("As New Post", "#promote", class: "replacement-promote-action", data: { replacement_id: post_replacement.id }) %><br>
+          <% end %>
         <% when "original" %>
           <%= link_to("Reset To", "#approve", class: "replacement-approve-action", data: { replacement_id: post_replacement.id, penalize: false }) %><br>
         <% when "rejected" %>

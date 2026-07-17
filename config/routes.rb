@@ -360,6 +360,7 @@ Rails.application.routes.draw do
       get(:favorites)
 
       put(:expunge)
+      put(:finish_in_progress)
       get(:delete)
       put(:undelete)
       put(:regenerate_thumbnails)

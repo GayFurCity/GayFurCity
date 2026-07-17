@@ -36,6 +36,8 @@ class PostEvent < ApplicationRecord
     set_min_edit_level:      29,
     unlisted:                30,
     relisted:                31,
+    in_progress_finished:    32,
+    in_progress_forced:      33,
   })
 
   MOD_ONLY_SEARCH_ACTIONS = [
@@ -217,6 +219,8 @@ class PostEvent < ApplicationRecord
     },
     unlisted:                BLANK,
     relisted:                BLANK,
+    in_progress_finished:    BLANK,
+    in_progress_forced:      BLANK,
   }.freeze
 
   def self.url

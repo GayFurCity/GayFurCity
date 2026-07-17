@@ -10,6 +10,7 @@
   <%= f.input(:max_level, collection: User::Levels.hash.to_a, include_blank: true) %>
 
   <%= f.input(:unrestricted_uploads, label: "Unrestricted uploads?", collection: [%w[Yes true], %w[No false]], include_blank: true) %>
+  <%= f.input(:can_upload_in_progress, label: "Can upload in-progress posts?", collection: [%w[Yes true], %w[No false]], include_blank: true) %>
   <%= f.input(:can_approve_posts, label: "Approver?", collection: [%w[Yes true], %w[No false]], include_blank: true) %>
   <%= f.input(:can_manage_aibur, label: "Can manage AIBUR?", collection: [%w[Yes true], %w[No false]], include_blank: true) %>
 

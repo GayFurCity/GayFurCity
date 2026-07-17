@@ -53,6 +53,10 @@ class PostPolicy < ApplicationPolicy
     user.is_approver? && (!(!record.is_a?(Post) || record.is_taken_down?) || user.can_handle_takedowns?)
   end
 
+  def finish_in_progress?
+    !record.is_a?(Post) || record.finishable_in_progress?(user)
+  end
+
   def move_favorites?
     user.is_approver?
   end

@@ -51,6 +51,8 @@
     Status:
     <% if @post.is_pending? %>
       Pending
+    <% elsif @post.is_in_progress? %>
+      In Progress
     <% elsif @post.is_flagged? %>
       Flagged
     <% elsif @post.is_appealed? %>

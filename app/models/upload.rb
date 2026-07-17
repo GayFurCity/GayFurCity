@@ -6,7 +6,7 @@ class Upload < ApplicationRecord
   class Error < StandardError; end
   has_media_asset(:upload_media_asset)
 
-  attr_accessor(:as_pending, :original_post_id, :locked_rating, :locked_tags, :is_replacement, :replacement_id)
+  attr_accessor(:as_pending, :as_in_progress, :original_post_id, :locked_rating, :locked_tags, :is_replacement, :replacement_id)
 
   belongs_to_user(:uploader, ip: true, aliases: :creator)
   belongs_to(:post, optional: true)
@@ -127,6 +127,10 @@ class Upload < ApplicationRecord
     as_pending.to_s.truthy?
   end
 
+  def upload_as_in_progress?
+    as_in_progress.to_s.truthy?
+  end
+
   def visible?(user)
     user.is_janitor?
   end
@@ -145,7 +149,9 @@ class Upload < ApplicationRecord
       p.upload_url = direct_url
       p.media_asset = media_asset
 
-      if !uploader.unrestricted_uploads? || (!uploader.can_approve_posts? && p.avoid_posting_artists.any?) || upload_as_pending?
+      if upload_as_in_progress? && uploader.can_upload_in_progress?
+        p.is_in_progress = true
+      elsif !uploader.unrestricted_uploads? || (!uploader.can_approve_posts? && p.avoid_posting_artists.any?) || upload_as_pending?
         p.is_pending = true
       end
     end

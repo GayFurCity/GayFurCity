@@ -103,6 +103,7 @@ class PostPresenter < Presenter
     klass << "post-status-flagged" if post.is_flagged?
     klass << "post-status-deleted" if post.is_deleted?
     klass << "post-status-unlisted" if post.is_unlisted?
+    klass << "post-status-in-progress" if post.is_in_progress?
     klass << "post-status-has-parent" if post.parent_id
     klass << "post-status-has-children" if post.has_visible_children?(CurrentUser.user)
     klass << "post-rating-safe" if post.rating == "s"
@@ -136,6 +137,7 @@ class PostPresenter < Presenter
         rating_locked: post.is_rating_locked?,
         deleted:       post.is_deleted?,
         unlisted:      post.is_unlisted?,
+        in_progress:   post.is_in_progress?,
         has_notes:     post.has_notes?,
       },
       score:         {

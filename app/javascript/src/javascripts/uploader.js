@@ -14,6 +14,7 @@ import Page from "./utility/page";
  * @prop {boolean} allow_locked_tags
  * @prop {boolean} allow_rating_lock
  * @prop {boolean} allow_upload_as_pending
+ * @prop {boolean} allow_upload_as_in_progress
  * @prop {number} max_file_size
  * @prop {Record<string, number>} max_file_size_map
  * @prop {number} max_file_size_per_request

@@ -158,6 +158,12 @@ module GayFurCity
           text:   "A superior version of this post already exists on the site.\nThis may include images with better visual quality (larger, less compressed), but may also feature \"fixed\" versions, with visual mistakes accounted for by the artist.\nNote that edits and alternate versions do not fall under this category.",
           parent: true,
         },
+        {
+          name:                "stuck_in_progress",
+          reason:              "Misused or stuck in-progress post",
+          text:                "This post is marked in-progress, but appears abandoned, stalled, or is being used outside of its intended purpose.\nPlease explain the issue so a janitor can review it.",
+          require_explanation: true,
+        },
       ]
     end
 

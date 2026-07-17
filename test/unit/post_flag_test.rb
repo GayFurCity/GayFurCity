@@ -59,6 +59,22 @@ class PostFlagTest < ActiveSupport::TestCase
       assert_equal(IPAddr.new("127.0.0.1"), @post_flag.creator_ip_addr)
     end
 
+    context("the stuck_in_progress reason") do
+      should("not be usable on a post that isn't in progress") do
+        flag = build(:post_flag, post: @post, creator: @bob, reason_name: "stuck_in_progress", note: "explanation")
+
+        assert_not(flag.valid?)
+        assert_includes(flag.errors[:reason], "cannot be used")
+      end
+
+      should("be usable on a post that is in progress") do
+        @post.update_column(:is_in_progress, true)
+        flag = build(:post_flag, post: @post, creator: @bob, reason_name: "stuck_in_progress", note: "explanation")
+
+        assert_predicate(flag, :valid?, flag.errors.full_messages.join(", "))
+      end
+    end
+
     context("a user with no_flag=true") do
       setup do
         @bob = create(:user, no_flagging: true, created_at: 2.weeks.ago)

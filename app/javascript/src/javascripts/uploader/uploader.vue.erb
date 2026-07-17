@@ -33,6 +33,9 @@
                         <div>Please don't use <a href="/wiki_pages/show_or_new?title=anonymous_artist">anonymous_artist</a> or <a href="/wiki_pages/show_or_new?title=unknown_artist">unknown_artist</a> tags unless they fall under the definitions found on the wiki.</div>
                     </div>
                     <div class="col2">
+                        <div class="box-section background-red" v-show="showErrors && missingArtistTag">
+                            An artist tag is required for in-progress uploads.
+                        </div>
                         <div>
             <textarea class="tag-textarea" v-model="tagEntries.artist" id="post_artist" rows="2"
                       placeholder="Ex: artist_name, unknown_artist, anonymous_artist etc." data-autocomplete="tag-edit"></textarea>
@@ -240,13 +243,13 @@
                     <%= ApplicationController.new.render_to_string(partial: "dtext_input", locals: { limit: Config.instance.post_description_max_size, textarea: '<textarea  class="dtext-formatter-input tag-textarea dtext" id="post_description" rows="10" v-model="description"></textarea>'.html_safe, allow_color: true }) %>
                 </div>
             </div>
-            <div v-if="allowUploadAsPending" class="flex-grid border-bottom">
+            <div v-if="allowUploadAsPending || allowUploadAsInProgress" class="flex-grid border-bottom">
                 <div class="col">
-                    <label class="section-label">Upload as Pending</label>
-                    <div>If you aren't sure if this particular post is up to the standards, checking this box will put it into the moderation queue.</div>
+                    <label class="section-label">Upload Options</label>
                 </div>
                 <div class="col2">
-                    <label><input type="checkbox" v-model="uploadAsPending"/> Upload as Pending</label>
+                    <label><input type="checkbox" v-model="uploadAsPending"/> Upload As Pending<sup title="Puts the post straight into the pending queue for approval, even if you'd normally skip it." style="cursor: help; margin-left: 0.15em; font-size: 0.75em;">?</sup></label><br>
+                    <label><input type="checkbox" v-model="uploadAsInProgress"/> Upload As In Progress<sup title="Hides the post from search results until searched for directly, and lets you replace it instantly with no approval needed while you keep working on it. Push it into the pending queue yourself when you're done, or a janitor can force it in if it's abandoned." style="cursor: help; margin-left: 0.15em; font-size: 0.75em;">?</sup></label>
                 </div>
             </div>
             <div class="flex-grid">
@@ -449,7 +452,9 @@
         allowRatingLock: Uploader.settings.allow_rating_lock,
         ratingLocked: false,
         allowUploadAsPending: Uploader.settings.allow_upload_as_pending,
+        allowUploadAsInProgress: Uploader.settings.allow_upload_as_in_progress,
         uploadAsPending: false,
+        uploadAsInProgress: false,
 
         relatedTags: [],
         lastRelatedCategoryId: undefined,
@@ -524,6 +529,8 @@
         fillField("lockedTags", "locked_tags");
       if(this.allowUploadAsPending)
         fillFieldBool("uploadAsPending", "upload_as_pending")
+      if(this.allowUploadAsInProgress)
+        fillFieldBool("uploadAsInProgress", "upload_as_in_progress")
     },
     methods: {
       setCheck(tag, value) {
@@ -666,6 +673,8 @@
           data.append("upload[locked_rating]", this.ratingLocked);
         if (this.allowUploadAsPending)
           data.append("upload[as_pending]", this.uploadAsPending);
+        if (this.allowUploadAsInProgress)
+          data.append("upload[as_in_progress]", this.uploadAsInProgress);
         jQuery.ajax("/uploads.json", {
           contentType: false,
           processData: false,
@@ -901,13 +910,20 @@
         }).length;
       },
       notEnoughTags: function () {
+        // In-progress uploads only need an artist tag (see missingArtistTag) - everything else
+        // gets finished up before the post is pushed into the pending queue.
+        if (this.uploadInProgress)
+          return false;
         return this.tagCount < 4;
+      },
+      missingArtistTag: function () {
+        return this.uploadInProgress && this.normalMode && !this.tagEntries.artist.trim();
       },
       invalidRating: function () {
         return !this.rating;
       },
       preventUpload: function () {
-        return this.sourceWarning || this.notEnoughTags
+        return this.sourceWarning || this.notEnoughTags || this.missingArtistTag
           || this.invalidRating || this.invalidUploadValue;
       },
       duplicatePath: function () {

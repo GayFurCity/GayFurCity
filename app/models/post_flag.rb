@@ -122,6 +122,8 @@ class PostFlag < ApplicationRecord
       errors.add(:parent_id, "cannot be set to the post being flagged") if parent_post.id == post.id
     when "uploading_guidelines"
       errors.add(:reason, "cannot be used") unless post.flaggable_for_guidelines?(creator)
+    when "stuck_in_progress"
+      errors.add(:reason, "cannot be used") unless post.flaggable_for_stuck_in_progress?(creator)
     else
       errors.add(:reason, "is not one of the available choices") unless MAPPED_REASONS.key?(reason_name)
     end

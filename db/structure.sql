@@ -1,4 +1,4 @@
-\restrict hrOV92EjcHPLMbPQ03rvNLsFjIZLOwXjQbjvWRON2fG6PPVJ6v6CmeP1P8HHSjh
+\restrict 92R1HbECsiPx9epnNRMrzgxhGiB3Ra1j56ZF4785n5UTv3DUlkwEwkIk3cZRoXD
 
 -- Dumped from database version 17.5
 -- Dumped by pg_dump version 17.10
@@ -35,7 +35,7 @@ COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching
 
 CREATE FUNCTION public.posts_trigger_change_seq() RETURNS trigger
     LANGUAGE plpgsql
-    AS $$ DECLARE old_md5 text; new_md5 text; BEGIN SELECT md5 INTO old_md5 FROM upload_media_assets WHERE id = OLD.upload_media_asset_id; SELECT md5 INTO new_md5 FROM upload_media_assets WHERE id = NEW.upload_media_asset_id; IF NEW.source IS DISTINCT FROM OLD.source OR NEW.rating IS DISTINCT FROM OLD.rating OR NEW.is_note_locked IS DISTINCT FROM OLD.is_note_locked OR NEW.is_rating_locked IS DISTINCT FROM OLD.is_rating_locked OR NEW.is_status_locked IS DISTINCT FROM OLD.is_status_locked OR NEW.is_pending IS DISTINCT FROM OLD.is_pending OR NEW.is_flagged IS DISTINCT FROM OLD.is_flagged OR NEW.is_deleted IS DISTINCT FROM OLD.is_deleted OR NEW.is_appealed IS DISTINCT FROM OLD.is_appealed OR NEW.approver_id IS DISTINCT FROM OLD.approver_id OR NEW.last_noted_at IS DISTINCT FROM OLD.last_noted_at OR NEW.tag_string IS DISTINCT FROM OLD.tag_string OR NEW.typed_tag_string IS DISTINCT FROM OLD.typed_tag_string OR NEW.parent_id IS DISTINCT FROM OLD.parent_id OR NEW.has_children IS DISTINCT FROM OLD.has_children OR NEW.has_active_children IS DISTINCT FROM OLD.has_active_children OR NEW.bit_flags IS DISTINCT FROM OLD.bit_flags OR NEW.locked_tags IS DISTINCT FROM OLD.locked_tags OR NEW.description IS DISTINCT FROM OLD.description OR NEW.bg_color IS DISTINCT FROM OLD.bg_color OR NEW.is_comment_disabled IS DISTINCT FROM OLD.is_comment_disabled OR NEW.is_comment_locked IS DISTINCT FROM OLD.is_comment_locked OR NEW.thumbnail_frame IS DISTINCT FROM OLD.thumbnail_frame OR NEW.min_edit_level IS DISTINCT FROM OLD.min_edit_level OR NEW.last_commented_at IS DISTINCT FROM OLD.last_commented_at OR NEW.comment_count IS DISTINCT FROM OLD.comment_count OR NEW.qtags IS DISTINCT FROM OLD.qtags OR NEW.tag_count_general IS DISTINCT FROM OLD.tag_count_general OR NEW.tag_count_artist IS DISTINCT FROM OLD.tag_count_artist OR NEW.tag_count_contributor IS DISTINCT FROM OLD.tag_count_contributor OR NEW.tag_count_character IS DISTINCT FROM OLD.tag_count_character OR NEW.tag_count_copyright IS DISTINCT FROM OLD.tag_count_copyright OR NEW.tag_count_meta IS DISTINCT FROM OLD.tag_count_meta OR NEW.tag_count_species IS DISTINCT FROM OLD.tag_count_species OR NEW.tag_count_invalid IS DISTINCT FROM OLD.tag_count_invalid OR NEW.tag_count_lore IS DISTINCT FROM OLD.tag_count_lore OR NEW.tag_count_gender IS DISTINCT FROM OLD.tag_count_gender OR NEW.tag_count_important IS DISTINCT FROM OLD.tag_count_important OR NEW.is_unlisted IS DISTINCT FROM OLD.is_unlisted OR old_md5 IS DISTINCT FROM new_md5 THEN NEW.change_seq = nextval('public.posts_change_seq_seq'); END IF; RETURN NEW; END; $$;
+    AS $$ DECLARE old_md5 text; new_md5 text; BEGIN SELECT md5 INTO old_md5 FROM upload_media_assets WHERE id = OLD.upload_media_asset_id; SELECT md5 INTO new_md5 FROM upload_media_assets WHERE id = NEW.upload_media_asset_id; IF NEW.source IS DISTINCT FROM OLD.source OR NEW.rating IS DISTINCT FROM OLD.rating OR NEW.is_note_locked IS DISTINCT FROM OLD.is_note_locked OR NEW.is_rating_locked IS DISTINCT FROM OLD.is_rating_locked OR NEW.is_status_locked IS DISTINCT FROM OLD.is_status_locked OR NEW.is_pending IS DISTINCT FROM OLD.is_pending OR NEW.is_flagged IS DISTINCT FROM OLD.is_flagged OR NEW.is_deleted IS DISTINCT FROM OLD.is_deleted OR NEW.is_appealed IS DISTINCT FROM OLD.is_appealed OR NEW.approver_id IS DISTINCT FROM OLD.approver_id OR NEW.last_noted_at IS DISTINCT FROM OLD.last_noted_at OR NEW.tag_string IS DISTINCT FROM OLD.tag_string OR NEW.typed_tag_string IS DISTINCT FROM OLD.typed_tag_string OR NEW.parent_id IS DISTINCT FROM OLD.parent_id OR NEW.has_children IS DISTINCT FROM OLD.has_children OR NEW.has_active_children IS DISTINCT FROM OLD.has_active_children OR NEW.bit_flags IS DISTINCT FROM OLD.bit_flags OR NEW.locked_tags IS DISTINCT FROM OLD.locked_tags OR NEW.description IS DISTINCT FROM OLD.description OR NEW.bg_color IS DISTINCT FROM OLD.bg_color OR NEW.is_comment_disabled IS DISTINCT FROM OLD.is_comment_disabled OR NEW.is_comment_locked IS DISTINCT FROM OLD.is_comment_locked OR NEW.thumbnail_frame IS DISTINCT FROM OLD.thumbnail_frame OR NEW.min_edit_level IS DISTINCT FROM OLD.min_edit_level OR NEW.last_commented_at IS DISTINCT FROM OLD.last_commented_at OR NEW.comment_count IS DISTINCT FROM OLD.comment_count OR NEW.qtags IS DISTINCT FROM OLD.qtags OR NEW.tag_count_general IS DISTINCT FROM OLD.tag_count_general OR NEW.tag_count_artist IS DISTINCT FROM OLD.tag_count_artist OR NEW.tag_count_contributor IS DISTINCT FROM OLD.tag_count_contributor OR NEW.tag_count_character IS DISTINCT FROM OLD.tag_count_character OR NEW.tag_count_copyright IS DISTINCT FROM OLD.tag_count_copyright OR NEW.tag_count_meta IS DISTINCT FROM OLD.tag_count_meta OR NEW.tag_count_species IS DISTINCT FROM OLD.tag_count_species OR NEW.tag_count_invalid IS DISTINCT FROM OLD.tag_count_invalid OR NEW.tag_count_lore IS DISTINCT FROM OLD.tag_count_lore OR NEW.tag_count_gender IS DISTINCT FROM OLD.tag_count_gender OR NEW.tag_count_important IS DISTINCT FROM OLD.tag_count_important OR NEW.is_unlisted IS DISTINCT FROM OLD.is_unlisted OR NEW.is_in_progress IS DISTINCT FROM OLD.is_in_progress OR old_md5 IS DISTINCT FROM new_md5 THEN NEW.change_seq = nextval('public.posts_change_seq_seq'); END IF; RETURN NEW; END; $$;
 
 
 SET default_tablespace = '';
@@ -2305,7 +2305,8 @@ CREATE TABLE public.posts (
     updater_ip_addr inet NOT NULL,
     tag_count_important integer DEFAULT 0 NOT NULL,
     is_appealed boolean DEFAULT false NOT NULL,
-    is_unlisted boolean DEFAULT false NOT NULL
+    is_unlisted boolean DEFAULT false NOT NULL,
+    is_in_progress boolean DEFAULT false NOT NULL
 );
 
 
@@ -8207,11 +8208,12 @@ ALTER TABLE ONLY public.help_pages
 -- PostgreSQL database dump complete
 --
 
-\unrestrict hrOV92EjcHPLMbPQ03rvNLsFjIZLOwXjQbjvWRON2fG6PPVJ6v6CmeP1P8HHSjh
+\unrestrict 92R1HbECsiPx9epnNRMrzgxhGiB3Ra1j56ZF4785n5UTv3DUlkwEwkIk3cZRoXD
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260717130000'),
 ('20260717120000'),
 ('20260717023930'),
 ('20260714101404'),

@@ -81,6 +81,22 @@ class UploadTest < ActiveSupport::TestCase
       assert_not_nil(@upload.post)
     end
 
+    context("uploaded as in-progress") do
+      should("be in progress if the uploader is permitted") do
+        permitted_user = create(:user, created_at: 2.weeks.ago, can_upload_in_progress: true)
+        @upload = create(:jpg_upload, uploader: permitted_user, as_in_progress: true, tag_string: create(:artist_tag).name)
+
+        assert_predicate(@upload.post, :is_in_progress?)
+        assert_not(@upload.post.is_pending?)
+      end
+
+      should("be pending instead if the uploader isn't permitted") do
+        @upload = create(:jpg_upload, uploader: @user, as_in_progress: true)
+
+        assert_not(@upload.post.is_in_progress?)
+      end
+    end
+
     context("That is AI") do
       should("be flagged") do
         Config.any_instance.stubs(:ai_confidence_threshold).returns(50)

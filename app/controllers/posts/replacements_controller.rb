@@ -35,7 +35,9 @@ module Posts
       if @post_replacement.errors.none?
         flash.now[:notice] = "Post replacement submitted"
       end
-      if @post_replacement.pending? && CurrentUser.user.can_approve_posts? && @post_replacement.as_pending.to_s.falsy?
+      # Posts being actively worked on (imports, etc.) get instant replacements - no approval
+      # queue - regardless of who's replacing them or whether they can normally approve posts.
+      if @post_replacement.pending? && (@post.is_in_progress? || (CurrentUser.user.can_approve_posts? && @post_replacement.as_pending.to_s.falsy?))
         @post_replacement.approve!(CurrentUser.user, penalize_current_uploader: @post_replacement.post.uploader != @post_replacement.creator)
       end
       respond_to do |format|

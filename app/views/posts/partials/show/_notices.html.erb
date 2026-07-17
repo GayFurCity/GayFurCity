@@ -4,6 +4,24 @@
   </div>
 <% end %>
 
+<% if post.is_in_progress? %>
+  <div class="notice notice-in-progress">
+    <p>This post is in progress. It won't appear in search results unless searched for directly by id or status:in_progress. Replacements are applied instantly while it's in progress.</p>
+    <% if post.replacements.approved.any? %>
+      <p>This post's file has been replaced from the original upload. <%= link_to("View replacement history.", post_replacements_path(search: { post_id: post.id })) %></p>
+    <% end %>
+    <% if policy(post).finish_in_progress? %>
+      <div>
+        <% if CurrentUser.user.id == post.uploader_id %>
+          <%= link_to("Mark as Done", finish_in_progress_post_path(post), method: :put, class: "button btn-neutral") %>
+        <% else %>
+          <%= link_to("Force into Pending Queue", finish_in_progress_post_path(post), method: :put, class: "button btn-neutral") %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
 <% if post.is_pending? %>
   <div class="notice notice-pending" id="pending-approval-notice">
     <div class="notice-pending-status">

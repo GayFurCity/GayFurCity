@@ -3,7 +3,7 @@
 class UploadSettings
   include(ActiveModel::Serializers::JSON)
 
-  ATTRIBUTES = %i[compact_mode safe_site post_tags upload_tags recent_tags allow_locked_tags allow_rating_lock allow_upload_as_pending max_file_size max_file_size_map max_file_size_per_request].freeze
+  ATTRIBUTES = %i[compact_mode safe_site post_tags upload_tags recent_tags allow_locked_tags allow_rating_lock allow_upload_as_pending allow_uploading_in_progress max_file_size max_file_size_map max_file_size_per_request].freeze
 
   attr_accessor(:user, :post)
 
@@ -43,6 +43,10 @@ class UploadSettings
 
   def allow_upload_as_pending
     user.policy_for(Upload).can_use_attribute?(:as_pending)
+  end
+
+  def allow_upload_as_in_progress
+    user.policy_for(Upload).can_use_attribute?(:as_in_progress)
   end
 
   def max_file_size

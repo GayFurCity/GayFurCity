@@ -41,7 +41,7 @@ class UserPolicy < ApplicationPolicy
   end
 
   def permitted_search_params
-    params = super + %i[name_matches about_me avatar_id level min_level max_level unrestricted_uploads can_approve_posts can_manage_aibur]
+    params = super + %i[name_matches about_me avatar_id level min_level max_level unrestricted_uploads can_upload_in_progress can_approve_posts can_manage_aibur]
     params += %i[ip_addr] if can_search_ip_addr?
     params += %i[email_matches] if user.is_admin?
     params

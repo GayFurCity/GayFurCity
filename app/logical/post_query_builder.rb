@@ -80,6 +80,8 @@ class PostQueryBuilder
       relation = relation.where("posts.is_deleted": true)
     elsif q[:status] == "unlisted"
       relation = relation.where("posts.is_unlisted": true)
+    elsif q[:status] == "in_progress"
+      relation = relation.where("posts.is_in_progress": true)
     elsif q[:status] == "active"
       relation = relation.where("posts.is_pending": false, "posts.is_deleted": false, "posts.is_flagged": false)
     elsif %w[all any].include?(q[:status])
@@ -98,6 +100,8 @@ class PostQueryBuilder
       relation = relation.where("posts.is_deleted": false)
     elsif q[:status_must_not] == "unlisted"
       relation = relation.where("posts.is_unlisted": false)
+    elsif q[:status_must_not] == "in_progress"
+      relation = relation.where("posts.is_in_progress": false)
     elsif q[:status_must_not] == "active"
       relation = relation.where("posts.is_pending": true).or(relation.where("posts.is_deleted": true)).or(relation.where("posts.is_flagged": true))
     end

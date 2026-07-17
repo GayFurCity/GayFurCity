@@ -105,6 +105,30 @@ module Posts
           assert_equal("pending", @post.replacements.last.status)
         end
 
+        should("automatically approve replacements on in-progress posts regardless of approver status") do
+          disable_image_size_checks!
+          member = create(:user, created_at: 2.weeks.ago)
+          post = create(:gif_upload, uploader: member).post
+          post.update_column(:is_in_progress, true)
+          file = fixture_file_upload("alpha.png")
+          params = {
+            format:           :json,
+            post_id:          post.id,
+            post_replacement: {
+              file:   file,
+              reason: "test replacement",
+            },
+          }
+
+          assert_difference("post.reload.replacements.size", 2) do
+            post_auth(post_replacements_path, member, params: params)
+
+            assert_response(:success)
+          end
+
+          assert_equal(%w[approved original], post.replacements.last(2).pluck(:status))
+        end
+
         context("with a previously destroyed post") do
           setup do
             @admin = create(:admin_user)
@@ -236,6 +260,37 @@ module Posts
         end
       end
 
+      context("approve action on an in-progress post") do
+        setup do
+          disable_image_size_checks!
+          @member = create(:user, created_at: 2.weeks.ago)
+          @in_progress_post = create(:gif_upload, uploader: @member, tag_string: create(:artist_tag).name).post
+          @in_progress_post.update_column(:is_in_progress, true)
+          @old_replacement = create(:apng_replacement, creator: @member, post: @in_progress_post, status: "rejected")
+        end
+
+        should("let the post's own uploader revert to a previous replacement without the approve permission") do
+          put_auth(approve_post_replacement_path(@old_replacement), @member)
+
+          assert_response(:redirect)
+          assert_equal("approved", @old_replacement.reload.status)
+        end
+
+        should("not let an unrelated member do so") do
+          other = create(:user, created_at: 2.weeks.ago)
+          put_auth(approve_post_replacement_path(@old_replacement), other)
+
+          assert_response(:forbidden)
+          assert_equal("rejected", @old_replacement.reload.status)
+        end
+
+        should("not let the uploader do this on a post that isn't in progress") do
+          put_auth(approve_post_replacement_path(@replacement), @member)
+
+          assert_response(:forbidden)
+        end
+      end
+
       context("promote action") do
         should("create post") do
           post_auth(promote_post_replacement_path(@replacement), create(:janitor_user))
@@ -287,6 +342,46 @@ module Posts
           get(post_replacements_path)
 
           assert_response(:success)
+        end
+
+        should("show rejected replacements on an in-progress post to its own uploader") do
+          disable_image_size_checks!
+          member = create(:user, created_at: 2.weeks.ago)
+          in_progress_post = create(:gif_upload, uploader: member, tag_string: create(:artist_tag).name).post
+          in_progress_post.update_column(:is_in_progress, true)
+          rejected = create(:apng_replacement, creator: member, post: in_progress_post, status: "rejected")
+
+          get_auth(post_replacements_path, member, params: { search: { post_id: in_progress_post.id }, format: :json })
+
+          assert_response(:success)
+          assert_includes(@response.parsed_body.pluck("id"), rejected.id)
+        end
+
+        should("not show rejected replacements on an in-progress post to an unrelated member") do
+          disable_image_size_checks!
+          member = create(:user, created_at: 2.weeks.ago)
+          viewer = create(:user, created_at: 2.weeks.ago)
+          in_progress_post = create(:gif_upload, uploader: member, tag_string: create(:artist_tag).name).post
+          in_progress_post.update_column(:is_in_progress, true)
+          rejected = create(:apng_replacement, creator: member, post: in_progress_post, status: "rejected")
+
+          get_auth(post_replacements_path, viewer, params: { search: { post_id: in_progress_post.id }, format: :json })
+
+          assert_response(:success)
+          assert_not_includes(@response.parsed_body.pluck("id"), rejected.id)
+        end
+
+        should("not show rejected replacements on a normal post to anyone but their creator") do
+          disable_image_size_checks!
+          member = create(:user, created_at: 2.weeks.ago)
+          viewer = create(:user, created_at: 2.weeks.ago)
+          post = create(:gif_upload, uploader: member, tag_string: create(:artist_tag).name).post
+          rejected = create(:apng_replacement, creator: member, post: post, status: "rejected")
+
+          get_auth(post_replacements_path, viewer, params: { search: { post_id: post.id }, format: :json })
+
+          assert_response(:success)
+          assert_not_includes(@response.parsed_body.pluck("id"), rejected.id)
         end
 
         context("access control") do

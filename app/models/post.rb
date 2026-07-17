@@ -55,8 +55,9 @@ class Post < ApplicationRecord
   validates(:description, length: { maximum: -> { Config.instance.post_description_max_size } }, if: :description_changed?)
   validate(:added_tags_are_valid, if: :should_process_tags?)
   validate(:removed_tags_are_valid, if: :should_process_tags?)
-  validate(:has_artist_tag, if: :should_process_tags?)
-  validate(:has_enough_tags, if: :should_process_tags?)
+  validate(:has_artist_tag, if: -> { should_process_tags? && !is_in_progress? })
+  validate(:has_enough_tags, if: -> { should_process_tags? && !is_in_progress? })
+  validate(:in_progress_requires_artist_tag, if: -> { should_process_tags? && is_in_progress? })
   validate(:post_is_not_its_own_parent)
   validate(:updater_can_change_rating)
   validate(:validate_thumbnail_frame)
@@ -120,6 +121,8 @@ class Post < ApplicationRecord
   scope(:not_appealed, -> { where(is_appealed: false) })
   scope(:unlisted, -> { where(is_unlisted: true) })
   scope(:not_unlisted, -> { where(is_unlisted: false) })
+  scope(:in_progress, -> { where(is_in_progress: true) })
+  scope(:not_in_progress, -> { where(is_in_progress: false) })
   scope(:pending_or_flagged, -> { pending.or(flagged) })
   scope(:has_notes, -> { where.not(last_noted_at: nil) })
   scope(:expired, -> { pending.where(posts: { created_at: ...PostPruner::MODERATION_WINDOW.days.ago }) })
@@ -415,7 +418,23 @@ class Post < ApplicationRecord
     end
 
     def is_active?
-      !is_pending? && !is_deleted?
+      !is_pending? && !is_deleted? && !is_in_progress?
+    end
+
+    def finishable_in_progress?(user)
+      is_in_progress? && (uploader_id == user.id || user.is_janitor?)
+    end
+
+    # Moves the post from in-progress into the normal pending queue - called either by the
+    # uploader themselves ("done importing") or by a janitor forcing a stuck upload out of
+    # in-progress. `approver` is reset because instant-replacement while in-progress reuses
+    # PostReplacement#approve!, which sets it as a side effect - that isn't a real moderation
+    # approval, and leaving it set would make the post fail is_approvable? once it's pending.
+    def finish_in_progress!(user)
+      return unless is_in_progress?
+      forced = uploader_id != user.id
+      update(is_in_progress: false, is_pending: true, approver: nil, updater: user)
+      PostEvent.add!(id, user, forced ? :in_progress_forced : :in_progress_finished)
     end
 
     def unflag!(user)
@@ -543,6 +562,7 @@ class Post < ApplicationRecord
       flags << "deleted"  if is_deleted?
       flags << "appealed" if is_appealed?
       flags << "unlisted" if is_unlisted?
+      flags << "in_progress" if is_in_progress?
       flags.join(" ")
     end
 
@@ -1807,6 +1827,8 @@ class Post < ApplicationRecord
     def status
       if is_pending?
         "pending"
+      elsif is_in_progress?
+        "in_progress"
       elsif is_deleted?
         "deleted"
       elsif is_flagged?
@@ -1855,6 +1877,7 @@ class Post < ApplicationRecord
           rating_locked: is_rating_locked?,
           deleted:       is_deleted?,
           unlisted:      is_unlisted?,
+          in_progress:   is_in_progress?,
           takedown:      is_taken_down?,
         },
         rating:          rating,
@@ -2097,7 +2120,7 @@ class Post < ApplicationRecord
       return unless new_record?
       return if tags.artist.any?
 
-      warnings.add(:base, 'Artist tag is required. "Click here":/help/tags#categorychange if you need help changing the category of an tag. Ask on the forum if you need naming help')
+      warnings.add(:base, 'Artist tag is required. "Click here":/help/tags#categorychange if you need help changing the category of a tag. Ask on the forum if you need naming help')
     end
 
     def has_enough_tags
@@ -2106,6 +2129,16 @@ class Post < ApplicationRecord
       if tags.general.count < 10
         warnings.add(:base, "Uploads must have at least 10 general tags. Read the \"Tagging Checklist\":/help/tagging_checklist for information on tagging your uploads")
       end
+    end
+
+    # In-progress uploads are for content that hasn't been fully tagged yet, so the normal tag
+    # requirements (has_artist_tag/has_enough_tags above) are soft warnings only. An artist tag
+    # is still required though, so it's still a real (blocking) validation here.
+    def in_progress_requires_artist_tag
+      return unless new_record?
+      return if tags.artist.any?
+
+      errors.add(:base, 'Artist tag is required for in-progress uploads. "Click here":/help/tags#categorychange if you need help changing the category of a tag. Ask on the forum if you need naming help')
     end
   end
 
@@ -2279,6 +2312,10 @@ class Post < ApplicationRecord
 
   def flaggable_for_guidelines?(_user)
     true
+  end
+
+  def flaggable_for_stuck_in_progress?(_user)
+    is_in_progress?
   end
 
   def is_edit_protected?

@@ -2,11 +2,7 @@
 
 class BulkUpdateRequestUndoJob < ApplicationJob
   queue_as(:tags)
-  sidekiq_options(lock: :until_executed, lock_args_method: :lock_args)
-
-  def self.lock_args(args)
-    [args[0].id]
-  end
+  good_job_control_concurrency_with(total_limit: 1, key: -> { "BulkUpdateRequestUndoJob-#{arguments[0].id}" })
 
   def perform(bur, user)
     bur.process_undo!(user)

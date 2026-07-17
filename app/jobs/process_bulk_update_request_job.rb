@@ -2,11 +2,7 @@
 
 class ProcessBulkUpdateRequestJob < ApplicationJob
   queue_as(:tags)
-  sidekiq_options(lock: :until_executed, lock_args_method: :lock_args)
-
-  def self.lock_args(args)
-    [args[0].id]
-  end
+  good_job_control_concurrency_with(total_limit: 1, key: -> { "ProcessBulkUpdateRequestJob-#{arguments[0].id}" })
 
   def perform(bur, approver, update_topic)
     bur.process!(approver, update_topic: update_topic)

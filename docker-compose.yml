@@ -52,7 +52,7 @@ services:
     user: ${DOCKER_USER:-root}
     image: gayfurcity
     healthcheck:
-      # this healthcheck is only for the rails app, sidekiq needs to be separated to be healthchecked
+      # this healthcheck is only for the rails app, the jobs process needs to be separated to be healthchecked
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:9000/up || exit 1
       interval: 30s
       timeout: 5s

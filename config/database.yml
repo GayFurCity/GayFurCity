@@ -22,5 +22,5 @@ production:
   password: <%= ENV.fetch("GAYFURCITY_DB_PASSWORD", "") %>
   host: <%= ENV.fetch("GAYFURCITY_DB_HOST", "postgres") %>
   port: <%= ENV.fetch("GAYFURCITY_DB_PORT", 5432) %>
-  pool: <%= Sidekiq.server? ? ENV.fetch("GAYFURCITY_DB_WORKER_POOL_SIZE", 5) : ENV.fetch("GAYFURCITY_DB_POOL_SIZE", 5) %>
+  pool: <%= ENV["GOOD_JOB_PROCESS"] ? ENV.fetch("GAYFURCITY_DB_WORKER_POOL_SIZE", 5) : ENV.fetch("GAYFURCITY_DB_POOL_SIZE", 5) %>
 <% end %>

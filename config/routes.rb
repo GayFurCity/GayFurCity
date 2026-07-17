@@ -2,10 +2,7 @@
 
 id_name_constraint = { id: %r{[^/]+?}, format: /json|html/ }.freeze
 Rails.application.routes.draw do
-  require("sidekiq/web")
-  require("sidekiq_unique_jobs/web")
-
-  mount(Sidekiq::Web, at: "/sidekiq", constraints: AdminRouteConstraint.new)
+  mount(GoodJob::Engine, at: "/good_job", constraints: AdminRouteConstraint.new)
   mount(YiffSpace::Auth::Engine.for(:default), at: "/auth/yiffspace", as: "yiffspace_auth")
 
   namespace(:users) do

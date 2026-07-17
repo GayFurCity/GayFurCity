@@ -2,11 +2,8 @@
 
 class UploadMediaAssetImageVariantsJob < ApplicationJob
   queue_as(:variants)
-  sidekiq_options(lock: :until_executed, lock_args_method: :lock_args, retry: 3)
-
-  def self.lock_args(args)
-    [args[0]]
-  end
+  good_job_control_concurrency_with(total_limit: 1, key: -> { "UploadMediaAssetImageVariantsJob-#{arguments[0]}" })
+  retry_on(StandardError, attempts: 3)
 
   def perform(id)
     asset = UploadMediaAsset.find(id)

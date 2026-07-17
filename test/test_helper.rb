@@ -18,7 +18,6 @@ SimpleCov.start
 require("simplecov-cobertura")
 SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
 
-require("sidekiq/testing")
 require("redis/namespace")
 
 unless ENV["RM_INFO"]
@@ -29,12 +28,6 @@ unless ENV["RM_INFO"]
 end
 
 Dir["#{__dir__}/test_helpers/**/*.rb"].each { require(it) }
-
-Sidekiq::Testing.fake!
-# https://github.com/sidekiq/sidekiq/issues/5907#issuecomment-1536457365
-Sidekiq.configure_client do |cfg|
-  cfg.logger.level = Logger::WARN
-end
 
 Shoulda::Matchers.configure do |config|
   config.integrate do |with|
@@ -150,6 +143,7 @@ class ActiveSupport::TestCase # rubocop:disable Style/ClassAndModuleChildren
     Config.any_instance.stubs(:enable_sock_puppet_validation).returns(false)
     GayFurCity.config.stubs(:disable_throttles).returns(true)
     GayFurCity.config.stubs(:reports_enabled).returns(false)
+    GayFurCity.config.stubs(:openobserve_enabled).returns(false)
     GayFurCity.config.stubs(:cdn_domain).returns(host)
     GayFurCity.config.stubs(:domain).returns(host)
     GayFurCity.config.stubs(:hostname).returns("https://#{host}")

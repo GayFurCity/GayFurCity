@@ -20,12 +20,8 @@ gem("addressable")
 gem("recaptcha", require: "recaptcha/rails")
 gem("webpacker", ">= 4.0.x")
 gem("retriable")
-gem("sidekiq", "~> 7.0")
+gem("good_job")
 gem("marcel")
-# bookmarks for later, if they are needed
-# gem 'sidekiq-worker-killer'
-gem("sidekiq-unique-jobs")
-gem("sidekiq-failures")
 gem("redis")
 gem("request_store")
 
@@ -46,7 +42,6 @@ gem("yabeda-rails")
 gem("yabeda-prometheus")
 gem("yabeda-activerecord")
 gem("yabeda-gc")
-gem("yabeda-sidekiq")
 gem("yabeda-http_requests")
 gem("yabeda-latency")
 

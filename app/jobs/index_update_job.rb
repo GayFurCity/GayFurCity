@@ -2,7 +2,7 @@
 
 class IndexUpdateJob < ApplicationJob
   queue_as(:high)
-  sidekiq_options(lock: :until_executing)
+  good_job_control_concurrency_with(enqueue_limit: 1, key: -> { "IndexUpdateJob-#{arguments[0]}-#{arguments[1]}" })
 
   def perform(klass, id)
     obj = klass.constantize.find(id)

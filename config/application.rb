@@ -49,7 +49,7 @@ module GayFurCity
     config.log_tags = [->(_req) { "PID:#{Process.pid}" }]
     config.action_controller.action_on_unpermitted_parameters = :raise
     config.force_ssl = true
-    config.active_job.queue_adapter = :sidekiq
+    config.active_job.queue_adapter = :good_job
 
     if Rails.env.production? && GayFurCity.config.ssl_options.present?
       config.ssl_options = GayFurCity.config.ssl_options

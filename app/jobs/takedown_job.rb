@@ -2,11 +2,7 @@
 
 class TakedownJob < ApplicationJob
   queue_as(:high)
-  sidekiq_options(lock: :until_executing, lock_args_method: :lock_args)
-
-  def self.lock_args(args)
-    [args[0]]
-  end
+  good_job_control_concurrency_with(enqueue_limit: 1, key: -> { "TakedownJob-#{arguments[0]}" })
 
   def perform(id, approver, del_reason)
     @takedown = Takedown.find(id)

@@ -3,7 +3,8 @@
 class PostFilesStatusJob < ApplicationJob
   queue_as(:default)
 
-  sidekiq_options(unique_for: 30.minutes, retry: 4)
+  good_job_control_concurrency_with(total_limit: 1)
+  retry_on(StandardError, attempts: 4)
 
   def perform
     PostFilesStatus.clear_cache

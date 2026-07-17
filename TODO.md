@@ -6,7 +6,7 @@
 | [app/models/artist.rb](app/models/artist.rb#L230) | 230 | This is a hack. Setting an association directly immediately updates without regard for the parents validity. |
 | [app/models/tag_relationship.rb](app/models/tag_relationship.rb#L109) | 109 | Rails assigns different join aliases for joins(:antecedent_tag) and joins(:antecedent_tag, :consquent_tag) |
 | [app/models/user_vote.rb](app/models/user_vote.rb#L62) | 62 | the logic around this is a mess, and I'm frankly amazed it works |
-| [test/unit/post_test.rb](test/unit/post_test.rb#L2293) | 2293 | This test fails randomly at different assertions |
+| [test/unit/post_test.rb](test/unit/post_test.rb#L2306) | 2306 | This test fails randomly at different assertions |
 
 ### TODOs
 | Filename | line # | TODO |
@@ -17,7 +17,7 @@
 | [app/logical/favorite_manager.rb](app/logical/favorite_manager.rb#L53) | 53 | Much better and more intelligent logic can exist for this |
 | [app/logical/view_count_cache.rb](app/logical/view_count_cache.rb#L6) | 6 | replace with defaults with rails 7.2 upgrade |
 | [app/models/forum_topic.rb](app/models/forum_topic.rb#L172) | 172 | revisit muting, it may need to be further optimized or removed due to performance issues |
-| [app/models/post_event.rb](app/models/post_event.rb#L94) | 94 | We need access control/blocks for associations |
+| [app/models/post_event.rb](app/models/post_event.rb#L96) | 96 | We need access control/blocks for associations |
 | [app/models/post_flag.rb](app/models/post_flag.rb#L52) | 52 | We need access control/blocks for associations |
 | [app/models/post_set.rb](app/models/post_set.rb#L122) | 122 | convert to user throttle |
 | [app/models/tag_alias.rb](app/models/tag_alias.rb#L140) | 140 | This causes every empty line except for the very first one will get stripped. At the end of the day, it's not a huge deal. |
@@ -40,14 +40,14 @@
 | [test/unit/post_test.rb](test/unit/post_test.rb#L771) | 771 | These are now warnings and don't trigger these. |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L1729) | 1729 | Needs to reload relationship to obtain non cached value |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L2183) | 2183 | These don't quite make sense, what should hide deleted posts and what shouldn't? |
-| [test/unit/post_test.rb](test/unit/post_test.rb#L2590) | 2590 | These are pretty messed up, both structurally, and expectation wise. |
+| [test/unit/post_test.rb](test/unit/post_test.rb#L2603) | 2603 | These are pretty messed up, both structurally, and expectation wise. |
 | [config/config.rb](config/config.rb#L189) | 189 | appealed posts should be visible, but this makes it far too easy to get the contents of deleted posts at a moments notice |
 
 ### XXXs
 | Filename | line # | XXX |
 |:------|:------:|:------|
 | [app/models/pool.rb](app/models/pool.rb#L308) | 308 | finds wrong post when the pool contains multiple copies of the same post (#2042). |
-| [app/models/post.rb](app/models/post.rb#L1621) | 1621 | This must happen *after* the `is_deleted` flag is set to true (issue #3419). |
+| [app/models/post.rb](app/models/post.rb#L1624) | 1624 | This must happen *after* the `is_deleted` flag is set to true (issue #3419). |
 | [app/logical/gay_fur_city/paginator/active_record_extension.rb](app/logical/gay_fur_city/paginator/active_record_extension.rb#L46) | 46 | Hack: in sequential pagination we fetch one more record than we need |
 | [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L3) | 3 | Testing modules should not have a say in if we can or cannot use assert_equal with nil |
 

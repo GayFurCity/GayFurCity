@@ -3,10 +3,10 @@
 class ExceptionLog < ApplicationRecord
   serialize(:extra_params, coder: JSON)
 
-  def self.add!(exception, user_id: nil, request: nil, source: nil, **extra)
+  def self.add!(exception, user_id: nil, request: nil, source: nil, report: true, **extra)
     source ||= request.present? ? request.filtered_parameters.slice(:controller, :action).values.join("#") : "Unknown"
     extra_params = {
-      host:       Socket.gethostname,
+      host:       GayFurCity.config.server_name,
       params:     request.try(:filtered_parameters),
       user_id:    user_id,
       referrer:   request.try(:referrer),
@@ -27,7 +27,7 @@ class ExceptionLog < ApplicationRecord
       extra_params[:sql][:binds] = unwrapped_exception&.binds&.map(&:value_for_database)
     end
 
-    create!(
+    log = create!(
       ip_addr:      request.try(:remote_ip) || "0.0.0.0",
       class_name:   unwrapped_exception.class.name,
       message:      unwrapped_exception.message,
@@ -36,6 +36,12 @@ class ExceptionLog < ApplicationRecord
       version:      GitHelper.instance.local.short_commit,
       extra_params: extra_params,
     )
+
+    if report
+      Telemetry.exception(exception, source: source, ip_addr: log.ip_addr.to_s, code: log.code, referrer: extra_params[:referrer], user_agent: extra_params[:user_agent], **extra)
+    end
+
+    log
   rescue ActiveRecord::StatementInvalid => e
     TraceLogger.error("ExceptionLog", "Failed to log exception: #{e.message}")
     TraceLogger.error(exception)

@@ -143,7 +143,7 @@ class ActiveSupport::TestCase # rubocop:disable Style/ClassAndModuleChildren
     Config.any_instance.stubs(:enable_sock_puppet_validation).returns(false)
     GayFurCity.config.stubs(:disable_throttles).returns(true)
     GayFurCity.config.stubs(:reports_enabled).returns(false)
-    GayFurCity.config.stubs(:openobserve_enabled).returns(false)
+    GayFurCity.config.stubs(:telemetry_enabled).returns(false)
     GayFurCity.config.stubs(:cdn_domain).returns(host)
     GayFurCity.config.stubs(:domain).returns(host)
     GayFurCity.config.stubs(:hostname).returns("https://#{host}")

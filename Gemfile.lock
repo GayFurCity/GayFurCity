@@ -96,6 +96,7 @@ GEM
     ast (2.4.3)
     base64 (0.3.0)
     bcrypt (3.1.20)
+    benchmark (0.5.0)
     better_html (2.1.1)
       actionview (>= 6.0)
       activesupport (>= 6.0)
@@ -169,6 +170,7 @@ GEM
     faraday-retry (2.2.1)
       faraday (~> 2.0)
     ffi (1.16.3)
+    fiddle (1.1.8)
     fugit (1.13.0)
       et-orbi (~> 1.4)
       raabro (~> 1.4)
@@ -521,6 +523,7 @@ DEPENDENCIES
   addressable
   after_commit_everywhere (~> 1.6)
   bcrypt
+  benchmark (~> 0.5.0)
   bootsnap
   brakeman (~> 8.0)
   builder (~> 3.3)
@@ -540,6 +543,7 @@ DEPENDENCIES
   faraday
   faraday-follow_redirects
   faraday-retry
+  fiddle (~> 1.1)
   good_job
   image_processing (~> 1.14)
   irb (~> 1.15.2)

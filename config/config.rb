@@ -14,7 +14,7 @@ module GayFurCity
     config(:discord_site) { nil }
     config(:app_url) { hostname }
     config(:canonical_app_url) { app_url }
-    config(:server_name) { `hostname`[..-2] }
+    config(:server_name) { Socket.gethostname }
     config(:source_code_url) { "https://github.com/GayFurCity/GayFurCity" }
     config(:local_source_code_url) { source_code_url }
     config(:custom_html_header_content) { nil }
@@ -72,13 +72,12 @@ module GayFurCity
       config(:server_internal) { reports_server }
     end
 
-    # Ships unexpected exceptions (web + background job) to an OpenObserve instance via
-    # its HTTP _json ingestion API. Leave endpoint unset to disable entirely.
-    subconfig(:openobserve) do
-      config(:enabled, :boolean) { present?(:openobserve_endpoint, :openobserve_username, :openobserve_password) }
+    # Ships telemetry to an OpenObserve instance via its HTTP _json ingestion API
+    subconfig(:telemetry) do
+      config(:enabled, :boolean) { present?(:telemetry_endpoint, :telemetry_username, :telemetry_password) }
       config(:endpoint) { nil }
       config(:organization) { "default" }
-      config(:stream) { "gayfurcity_exceptions" }
+      config(:stream) { Config.safe_app_name.downcase }
       config(:username) { nil }
       config(:password) { nil }
     end

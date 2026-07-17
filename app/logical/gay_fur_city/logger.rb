@@ -10,7 +10,7 @@ module GayFurCity
         Rails.logger.error("#{exception.class}: #{exception.message}\n#{backtrace}")
       end
 
-      OpenObserveReporter.report!(exception, **params) unless expected
+      Telemetry.exception(exception, **params) unless expected
     end
 
     def self.initialize(user)

@@ -3,6 +3,7 @@
 class UserEvent < ApplicationRecord
   belongs_to_user(:user, ip: true)
   belongs_to(:user_session)
+  after_create(:track_telemetry)
 
   enum(:category, {
     login:                                         0,
@@ -36,7 +37,11 @@ class UserEvent < ApplicationRecord
     mfa_linked_account_login_pending_verification: 933,
   })
 
-  delegate(:session_id, :ip_addr, :ip_geolocation, to: :user_session)
+  delegate(:session_id, :ip_addr, :user_agent, to: :user_session)
+
+  def track_telemetry
+    Telemetry.track(category, user: user, session_id: session_id, ip: ip_addr, user_agent: user_agent)
+  end
 
   module ConstructorMethods
     def create_from_request!(user, category, request, metadata: {})

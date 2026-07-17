@@ -112,3 +112,8 @@ gem("image_processing", "~> 1.14")
 
 gem("yiffspace", "~> 0.1.3")
 gem("yiffspace-auth", "~> 0.0.3")
+
+# XXX: Added to silence "loaded from standard library" warnings
+# TODO: Upgrade rails
+gem("benchmark", "~> 0.5.0")
+gem("fiddle", "~> 1.1")

@@ -34,6 +34,8 @@ class PostEvent < ApplicationRecord
     appeal_rejected:         27,
     copied_notes:            28,
     set_min_edit_level:      29,
+    unlisted:                30,
+    relisted:                31,
   })
 
   MOD_ONLY_SEARCH_ACTIONS = [
@@ -213,6 +215,8 @@ class PostEvent < ApplicationRecord
       text: ->(log) { "To: [b]#{User::Levels.id_to_name(log.min_edit_level)}[/b]" },
       json: %i[min_edit_level],
     },
+    unlisted:                BLANK,
+    relisted:                BLANK,
   }.freeze
 
   def self.url

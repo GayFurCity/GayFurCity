@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 module PostsHelper
+  def field_help_label(label, help_text)
+    safe_join([label, tag.sup("?", title: help_text, style: "cursor: help; margin-left: 0.15em; font-size: 0.75em;")])
+  end
+
   def discover_mode?
     params[:tags]&.include?("order:rank")
   end

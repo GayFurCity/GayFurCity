@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_17_023930) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_17_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -1142,6 +1142,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_17_023930) do
     t.inet "updater_ip_addr", null: false
     t.integer "tag_count_important", default: 0, null: false
     t.boolean "is_appealed", default: false, null: false
+    t.boolean "is_unlisted", default: false, null: false
     t.index "string_to_array(tag_string, ' '::text)", name: "index_posts_on_string_to_array_tag_string", using: :gin
     t.index ["change_seq"], name: "index_posts_on_change_seq", unique: true
     t.index ["created_at"], name: "index_posts_on_created_at"

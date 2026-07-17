@@ -1,3 +1,9 @@
+<% if post.is_unlisted? %>
+  <div class="notice notice-unlisted">
+    <p>This post is unlisted. It won't appear in search results unless searched for directly by id or status:unlisted.</p>
+  </div>
+<% end %>
+
 <% if post.is_pending? %>
   <div class="notice notice-pending" id="pending-approval-notice">
     <div class="notice-pending-status">

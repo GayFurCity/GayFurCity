@@ -356,6 +356,11 @@ div#c-posts {
       background-color: themed("color-danger-darken-10");
       border: 1px solid themed("color-foreground");
     }
+
+    &.notice-unlisted {
+      background-color: palette("background-yellow");
+      border: 1px solid themed("color-foreground");
+    }
   }
 
   div.nav-notice {

@@ -30,6 +30,14 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     true
   end
 
+  def hide_unlisted_posts?
+    return false if @always_show_deleted
+    return false if q[:status].in?(%w[unlisted any all])
+    return false if q[:status_must_not] == "unlisted"
+    return false if q[:post_id].present?
+    true
+  end
+
   def build
     if @enable_safe_mode
       must.push({ term: { rating: "s" } })
@@ -78,6 +86,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       must.push(match_any({ term: { pending: true } }, { term: { flagged: true } }, { term: { appealed: true } }))
     elsif q[:status] == "deleted"
       must.push({ term: { deleted: true } })
+    elsif q[:status] == "unlisted"
+      must.push({ term: { unlisted: true } })
     elsif q[:status] == "active"
       must.push({ term: { pending: false } },
                 { term: { deleted: false } },
@@ -94,12 +104,18 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
       must_not.push(match_any({ term: { pending: true } }, { term: { flagged: true } }, { term: { appealed: true } }))
     elsif q[:status_must_not] == "deleted"
       must_not.push({ term: { deleted: true } })
+    elsif q[:status_must_not] == "unlisted"
+      must_not.push({ term: { unlisted: true } })
     elsif q[:status_must_not] == "active"
       must.push(match_any({ term: { pending: true } }, { term: { deleted: true } }, { term: { flagged: true } }))
     end
 
     if hide_deleted_posts?
       must.push({ term: { deleted: false } })
+    end
+
+    if hide_unlisted_posts?
+      must.push({ term: { unlisted: false } })
     end
 
     add_array_relation(:uploader_ids, :uploader)

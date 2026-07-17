@@ -118,6 +118,8 @@ class Post < ApplicationRecord
   scope(:not_flagged, -> { where(is_flagged: false) })
   scope(:appealed, -> { where(is_appealed: true) })
   scope(:not_appealed, -> { where(is_appealed: false) })
+  scope(:unlisted, -> { where(is_unlisted: true) })
+  scope(:not_unlisted, -> { where(is_unlisted: false) })
   scope(:pending_or_flagged, -> { pending.or(flagged) })
   scope(:has_notes, -> { where.not(last_noted_at: nil) })
   scope(:expired, -> { pending.where(posts: { created_at: ...PostPruner::MODERATION_WINDOW.days.ago }) })
@@ -540,6 +542,7 @@ class Post < ApplicationRecord
       flags << "flagged"  if is_flagged?
       flags << "deleted"  if is_deleted?
       flags << "appealed" if is_appealed?
+      flags << "unlisted" if is_unlisted?
       flags.join(" ")
     end
 
@@ -1808,6 +1811,8 @@ class Post < ApplicationRecord
         "deleted"
       elsif is_flagged?
         "flagged"
+      elsif is_unlisted?
+        "unlisted"
       else
         "active"
       end
@@ -1849,6 +1854,7 @@ class Post < ApplicationRecord
           status_locked: is_status_locked?,
           rating_locked: is_rating_locked?,
           deleted:       is_deleted?,
+          unlisted:      is_unlisted?,
           takedown:      is_taken_down?,
         },
         rating:          rating,
@@ -2004,6 +2010,10 @@ class Post < ApplicationRecord
       end
       if saved_change_to_min_edit_level?
         PostEvent.add!(id, updater, :set_min_edit_level, min_edit_level: min_edit_level)
+      end
+      if saved_change_to_is_unlisted?
+        action = is_unlisted? ? :unlisted : :relisted
+        PostEvent.add!(id, updater, action)
       end
     end
   end

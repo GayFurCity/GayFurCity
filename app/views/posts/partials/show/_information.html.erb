@@ -57,6 +57,8 @@
       Appealed
     <% elsif @post.is_deleted? %>
       Deleted
+    <% elsif @post.is_unlisted? %>
+      Unlisted
     <% else %>
       Active
     <% end %>

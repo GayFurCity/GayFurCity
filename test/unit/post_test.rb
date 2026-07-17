@@ -2189,6 +2189,19 @@ class PostTest < ActiveSupport::TestCase
       assert_tag_match(all, "-status:active")
     end
 
+    should("hide unlisted posts from search unless searched for by status or id") do
+      unlisted = create(:post, is_unlisted: true)
+      listed = create(:post)
+      all = [listed, unlisted]
+
+      assert_tag_match([listed], "")
+      assert_tag_match([unlisted], "status:unlisted")
+      assert_tag_match(all, "status:any")
+      assert_tag_match(all, "status:all")
+      assert_tag_match([listed], "-status:unlisted")
+      assert_tag_match([unlisted], "id:#{unlisted.id}")
+    end
+
     should("return posts for the filetype:<ext> metatag") do
       png = create(:post, media_asset: build(:random_upload_media_asset, file_ext: "png"))
       jpg = create(:post, media_asset: build(:random_upload_media_asset, file_ext: "jpg"))

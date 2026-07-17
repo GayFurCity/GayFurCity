@@ -54,16 +54,16 @@
 
       <fieldset class="locks">
         <% if can_use_attribute?(post, :is_note_locked) %>
-          <%= f.input(:is_note_locked, label: "Notes") %>
+          <%= f.input(:is_note_locked, label: field_help_label("Notes", "Prevents notes from being added, edited, or removed.")) %>
         <% end %>
         <% if can_use_attribute?(post, :is_rating_locked) %>
-          <%= f.input(:is_rating_locked, label: "Rating") %>
+          <%= f.input(:is_rating_locked, label: field_help_label("Rating", "Prevents the rating from being changed.")) %>
         <% end %>
         <% if can_use_attribute?(post, :is_comment_locked) %>
-          <%= f.input(:is_comment_locked, label: "Comments") %>
+          <%= f.input(:is_comment_locked, label: field_help_label("Comments", "Prevents new comments from being posted, except by moderators.")) %>
         <% end %>
         <% if can_use_attribute?(post, :is_status_locked) %>
-          <%= f.input(:is_status_locked, label: "Status") %>
+          <%= f.input(:is_status_locked, label: field_help_label("Status", "Prevents the post from being approved, deleted, or undeleted.")) %>
         <% end %>
       </fieldset>
     </div>
@@ -82,18 +82,21 @@
     <%= f.input(:bg_color, label: "Background Color", input_html: { size: 6 }) %>
   <% end %>
 
-  <% if can_use_any_attribute?(post, :hide_from_anonymous, :hide_from_search_engines, :is_comment_disabled) %>
+  <% if can_use_any_attribute?(post, :hide_from_anonymous, :hide_from_search_engines, :is_comment_disabled, :is_unlisted) %>
     <div class="input">
       <%= f.label(:blank, "Limits") %>
       <fieldset class="limits">
         <% if can_use_attribute?(post, :hide_from_anonymous) %>
-          <%= f.input(:hide_from_anonymous, as: :boolean, label: "Hide from Anon") %>
+          <%= f.input(:hide_from_anonymous, as: :boolean, label: field_help_label("Hide from Anon", "Hides the post from logged-out users.")) %>
         <% end %>
         <% if can_use_attribute?(post, :hide_from_search_engines) %>
-          <%= f.input(:hide_from_search_engines, as: :boolean, label: "Hide from search engines") %>
+          <%= f.input(:hide_from_search_engines, as: :boolean, label: field_help_label("Hide from search engines", "Adds a noindex tag to the post page, asking search engines not to index it.")) %>
         <% end %>
         <% if can_use_attribute?(post, :is_comment_disabled) %>
-          <%= f.input(:is_comment_disabled, label: "Hide comments") %>
+          <%= f.input(:is_comment_disabled, label: field_help_label("Hide comments", "Hides existing comments and blocks new ones from non-moderators.")) %>
+        <% end %>
+        <% if can_use_attribute?(post, :is_unlisted) %>
+          <%= f.input(:is_unlisted, as: :boolean, label: field_help_label("Unlisted", "Hidden from search results unless searched for directly by id or status:unlisted. Post content remains visible.")) %>
         <% end %>
       </fieldset>
     </div>

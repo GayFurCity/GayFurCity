@@ -94,7 +94,18 @@ module MigrationHelpers
     change_column_default(table, name, from: value, to: nil)
   end
 
-  def update_change_seq_sql(columns)
+  # Reads back the columns currently tracked by the live posts_trigger_change_seq
+  # function, so callers can add/remove a column without respecifying the full list.
+  def existing_change_seq_columns
+    row = connection.select_one("SELECT prosrc FROM pg_proc WHERE proname = $1", nil, ["posts_trigger_change_seq"])
+    return [] if row.nil?
+    row["prosrc"].scan(/NEW\.([a-z_]+) IS DISTINCT FROM OLD\.([a-z_]+)/).flatten.uniq
+  end
+
+  def update_change_seq_sql(columns = nil, add: [], remove: [])
+    columns = (columns || existing_change_seq_columns).map(&:to_s)
+    columns = (columns | Array(add).map(&:to_s)) - Array(remove).map(&:to_s)
+
     ctext = ""
     columns.each do |name|
       ctext += "\n    OR NEW.#{name} IS DISTINCT FROM OLD.#{name}"
@@ -122,7 +133,14 @@ module MigrationHelpers
     SQL
   end
 
-  def update_change_seq(columns)
-    execute(update_change_seq_sql(columns))
+  def update_change_seq(columns = nil, add: [], remove: [])
+    if add.blank? && remove.blank? # use execute directly so migration is marked as irreversible
+      execute(update_change_seq_sql(columns, add: [], remove: []))
+    else
+      reversible do |dir|
+        dir.up   { execute(update_change_seq_sql(columns, add: add, remove: remove)) }
+        dir.down { execute(update_change_seq_sql(columns, add: remove, remove: add)) }
+      end
+    end
   end
 end

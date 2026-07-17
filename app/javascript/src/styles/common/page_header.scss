@@ -5,17 +5,19 @@
 
 #nav {
   display: grid;
-  grid-template-columns: 3.75em 1fr;
-  grid-template-areas: "logo main" "logo secondary" "tertiary tertiary";
+  grid-template-columns: 3.75em 1fr auto;
+  grid-template-areas: "logo main user" "logo secondary user" "tertiary tertiary tertiary";
 
   .logo {
     grid-area: logo;
 
     margin-top: 6px;
+    background-color: themed("color-foreground");
     background-image: url("main-icon.png");
     background-repeat: no-repeat;
     background-size: contain;
     background-position-y: center;
+    border-radius: $border-radius-full;
   }
 
   .mobile-logo {
@@ -28,10 +30,24 @@
 
   .secondary {
     grid-area: secondary;
+
+    // Without this, an overflowing .secondary (see menu.secondary below) would force this grid
+    // track wider instead of respecting it - min-width: 0 is grid's own escape hatch for that
+    // (the implicit min-width for a grid item is auto, i.e. "at least as wide as my content").
+    min-width: 0;
   }
 
   .tertiary {
     grid-area: tertiary;
+  }
+
+  // Spans the same two rows .logo does, so it reaches up alongside .main and its bottom lines up
+  // with .secondary's bottom - `align-self: stretch` (grid's default, stated explicitly here since
+  // it's easy to lose track of) fills that whole spanned height rather than shrinking to content
+  // and floating in the middle of it.
+  .user-info {
+    grid-area: user;
+    align-self: stretch;
   }
 }
 
@@ -46,9 +62,13 @@ header#top {
     visibility: hidden;
   }
 
+  #nav {
+    background-color: themed("color-foreground");
+    border-radius: 0 0 6px 6px ;
+  }
+
   menu {
     margin-top: -2px;
-    background-color: themed("color-foreground");
     border-radius: $border-radius-full;
     padding: 6px;
 
@@ -71,25 +91,55 @@ header#top {
     }
 
     li a {
-      padding: 6px 10px;
+      padding: 4.5px 10px;
+    }
+  }
+
+  // Darker than the rest of the nav (.logo/.main/.user-info all share the plain menu background
+  // above) so the subnav reads as its own distinct control rather than blending into the bar.
+  menu.secondary {
+    background: #00000040;
+    border-radius: 6px 6px 0 0;
+
+    // menu li is display: inline (see base.scss) with no flex/nowrap of its own, so by default
+    // too many items just wrap onto a second line rather than shrinking - force everything onto
+    // one line and let subnav.js's JS measure the overflow this produces (scrollWidth vs
+    // clientWidth) to shrink font-size until it actually fits.
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  menu.main, menu.user-info {
+    // The same darker shade menu.secondary uses (above) - a current/active main-nav link (or
+    // the user-info link, when on the account page) shares menu.secondary's color and sits right
+    // above/beside it, so the two visually connect into one shape rather than reading as unrelated
+    // grey pills that happen to be near each other.
+    li.current a {
+      background: #00000040;
+      font-weight: bold;
+    }
+
+    li.unread a::after {
+      content: unicode('f111');
+      @include FontAwesomeFamily;
+      font-weight: 900;
+      font-size: 0.5em;
+      color: red;
+
+      position: absolute;
+      @include window-larger-than(800px) {
+        top: -3px;
+      }
     }
   }
 
   menu.main {
-    margin-top: 0;
-    background-color: themed("color-background");
-
-    li.current a {
-      background-color: themed("color-foreground");
-      font-weight: bold;
-    }
-
     li#nav-sign-in a {
       font-weight: bold;
       color: $page-header-sign-in-link-color;
     }
 
-    li.unread a::after, li.forum-updated a[data-form="bubble"]::after {
+    li.forum-updated a[data-form="bubble"]::after {
       content: unicode('f111');
       @include FontAwesomeFamily;
       font-weight: 900;
@@ -107,13 +157,44 @@ header#top {
     }
   }
 
-  &:not(.notification) {
-    menu.tertiary {
-      display: none;
+  menu.user-info {
+    // #nav's align-self: stretch (above) makes this menu span the full logo-height area, but that
+    // stretch stops at the menu box itself - without also stretching li/a to match, the two-line
+    // name/level text would still just size to its own content and sit at the top of that tall
+    // box. Stretch the whole li/a chain too, so the content can be vertically centered in the
+    // actual full height instead.
+    display: flex;
+
+    li {
+      display: flex;
+      flex: 1;
+    }
+
+    li a {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      line-height: 1.2;
+      padding: 4px 10px;
+    }
+
+    .level {
+      font-size: 0.75em;
+      opacity: 0.75;
+      margin-top: 0.3em;
     }
   }
 
-  &.notification {
+  &:not(.notification) {
+     menu.tertiary {
+       display: none;
+     }
+   }
+
+  // TODO
+  /*&.notification {
     menu.secondary {
       border-radius: 6px 6px 0 0;
     }
@@ -123,5 +204,5 @@ header#top {
       font-size: 1.5em;
       font-weight: bold;
     }
-  }
+  }*/
 }

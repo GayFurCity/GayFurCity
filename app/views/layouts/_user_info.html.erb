@@ -1,0 +1,19 @@
+<% classes = [] %>
+<% unless CurrentUser.user.is_anonymous? %>
+  <% classes << "unread" if CurrentUser.user.has_mail? || CurrentUser.user.has_unread_notifications? %>
+<% end %>
+<menu class="user-info">
+  <%= tag.li(class: classes.presence&.join(" "), id: "nav-user-info") do %>
+    <% if CurrentUser.user.is_anonymous? %>
+      <%= link_to(new_session_path, id: "nav-user-info-link") do %>
+        <%= tag.span(CurrentUser.user.pretty_name, class: [CurrentUser.user.level_css_class, ("with-style" if CurrentUser.user.style_usernames?)].compact.join(" ")) %>
+        <%= tag.span("Sign In »", class: "level") %>
+      <% end %>
+    <% else %>
+      <%= link_to(home_users_path, id: "nav-user-info-link") do %>
+        <%= tag.span(CurrentUser.user.pretty_name, class: [CurrentUser.user.level_css_class, ("with-style" if CurrentUser.user.style_usernames?)].compact.join(" ")) %>
+        <%= tag.span(CurrentUser.user.level_string_pretty, class: "level") %>
+      <% end %>
+    <% end %>
+  <% end %>
+</menu>

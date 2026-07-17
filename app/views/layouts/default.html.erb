@@ -26,6 +26,7 @@
           <%= subnav_link_to("Height Placeholder", "") %>
         <% end %>
       </menu>
+      <%= render("layouts/user_info") %>
 
       <menu id="notification-return" class="tertiary">
         <%= link_to("<i class=\"fa-solid fa-arrow-left\"></i> Return to notifications".html_safe, notifications_path) %>

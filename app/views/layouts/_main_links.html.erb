@@ -2,7 +2,6 @@
 <% if CurrentUser.user.is_anonymous? %>
   <%= nav_link_to("Sign in", new_session_path) %>
 <% else %>
-  <%= nav_link_to("Account", home_users_path) %>
   <%= nav_link_to("Notifications #{unread_notifications(CurrentUser.user)}", notifications_path, class: (CurrentUser.user.has_unread_notifications? ? "unread" : nil)) %>
 <% end %>
 <%= nav_link_to("Posts", posts_path) %>

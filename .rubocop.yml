@@ -21,6 +21,7 @@ AllCops:
   NewCops: enable
   Exclude:
     - "lib/dtext_rb/**/*"
+    - "db/migrate/20260717023930_create_good_jobs.rb"
 
 Bundler/OrderedGems:
   Enabled: false

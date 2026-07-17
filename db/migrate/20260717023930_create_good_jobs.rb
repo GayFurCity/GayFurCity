@@ -88,9 +88,9 @@ class CreateGoodJobs < ActiveRecord::Migration[7.1]
     add_index(:good_jobs, %i[cron_key cron_at], where: "(cron_key IS NOT NULL)", unique: true, name: :index_good_jobs_on_cron_key_and_cron_at_cond)
     add_index(:good_jobs, [:finished_at], where: "finished_at IS NOT NULL", name: :index_good_jobs_jobs_on_finished_at_only)
     add_index(:good_jobs, %i[priority created_at], order: { priority: "DESC NULLS LAST", created_at: :asc },
-      where: "finished_at IS NULL", name: :index_good_jobs_jobs_on_priority_created_at_when_unfinished)
+              where: "finished_at IS NULL", name: :index_good_jobs_jobs_on_priority_created_at_when_unfinished)
     add_index(:good_jobs, %i[priority created_at], order: { priority: "ASC NULLS LAST", created_at: :asc },
-      where: "finished_at IS NULL", name: :index_good_job_jobs_for_candidate_lookup)
+              where: "finished_at IS NULL", name: :index_good_job_jobs_for_candidate_lookup)
     add_index(:good_jobs, [:batch_id], where: "batch_id IS NOT NULL")
     add_index(:good_jobs, [:batch_callback_id], where: "batch_callback_id IS NOT NULL")
     add_index(:good_jobs, :job_class, name: :index_good_jobs_on_job_class)
@@ -98,7 +98,7 @@ class CreateGoodJobs < ActiveRecord::Migration[7.1]
 
     add_index(:good_job_executions, %i[active_job_id created_at], name: :index_good_job_executions_on_active_job_id_and_created_at)
     add_index(:good_jobs, %i[priority scheduled_at], order: { priority: "ASC NULLS LAST", scheduled_at: :asc },
-      where: "finished_at IS NULL AND locked_by_id IS NULL", name: :index_good_jobs_on_priority_scheduled_at_unfinished_unlocked)
+              where: "finished_at IS NULL AND locked_by_id IS NULL", name: :index_good_jobs_on_priority_scheduled_at_unfinished_unlocked)
     add_index(:good_jobs, %i[priority scheduled_at id],
               where: "finished_at IS NULL", name: "index_good_jobs_on_priority_scheduled_at_unfinished")
     add_index(:good_jobs, %i[queue_name scheduled_at id],

@@ -104,13 +104,20 @@ module TestHelpers
         path = instance_exec(&path)
         include = instance_exec(&include)
         ignore = instance_exec(&ignore)
-        send("#{method}_auth", path, user, params: { search: { param => value }, format: format })
-        expected = records.map { |r| CurrentUser.scoped(user) { r.as_json(user: user, include: include) } } # rubocop:disable YiffSpace/CurrentOutsideOfRequests
-        expected = expected.map { |r| r.without(*ignore) } if ignore&.any?
-        actual = @response.parsed_body.map { |r| r.try(:without, *ignore) }
-        actual = actual.map { |r| r.without(*ignore) } if ignore&.any?
+        # StorageManager::Base#protected_params signs file urls with the current wall-clock time
+        # (auth hmac + expires). Computing "expected" via a second, separate #as_json call after
+        # the request already ran can straddle a second boundary and sign a different timestamp
+        # than the response did, even though both describe the same record - freeze time across
+        # both so they sign identically.
+        freeze_time do
+          send("#{method}_auth", path, user, params: { search: { param => value }, format: format })
+          expected = records.map { |r| CurrentUser.scoped(user) { r.as_json(user: user, include: include) } } # rubocop:disable YiffSpace/CurrentOutsideOfRequests
+          expected = expected.map { |r| r.without(*ignore) } if ignore&.any?
+          actual = @response.parsed_body.map { |r| r.try(:without, *ignore) }
+          actual = actual.map { |r| r.without(*ignore) } if ignore&.any?
 
-        assert_equal(expected, actual)
+          assert_equal(expected, actual)
+        end
       rescue Minitest::Assertion => e
         e.set_backtrace([*caller, *e.backtrace]) if caller.any?
         raise

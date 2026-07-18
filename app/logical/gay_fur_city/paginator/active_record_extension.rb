@@ -6,7 +6,12 @@ module GayFurCity
       include(BaseExtension)
 
       def paginate_numbered
-        limit(records_per_page).offset((current_page - 1) * records_per_page)
+        # Without an explicit order, LIMIT/OFFSET has no guaranteed row order - it usually matches
+        # insertion order in practice, but isn't guaranteed, and can flip under a different query
+        # plan. Only default it, mirroring DocumentStoreExtensions#paginate_numbered - a caller that
+        # already applied its own order (e.g. a search with an explicit order:) is left alone.
+        q = order_values.empty? ? order(id: :asc) : self
+        q.limit(records_per_page).offset((current_page - 1) * records_per_page)
       end
 
       def paginate_sequential_before

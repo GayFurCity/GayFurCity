@@ -34,5 +34,12 @@ export default class ApplicationLogs {
 }
 
 $(function () {
-  if (Page.matches("admin-logs", "application_logs") || Page.matches("admin-logs", "request_logs")) ApplicationLogs.init();
+  if (Page.matches("admin-logs", "application-logs") || Page.matches("admin-logs", "request-logs")) ApplicationLogs.init();
+
+  if (Page.matches("admin-logs", "performance-logs")) {
+    $(document).on("click", ".log-query-sql", function () {
+      const cell = $(this).toggleClass("expanded");
+      cell.attr("title", cell.hasClass("expanded") ? "Click to collapse" : "Click to expand");
+    });
+  }
 });

@@ -1,0 +1,34 @@
+.log-entry {
+  td.log-query-sql {
+    max-width: min(480px, 45vw);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &.expanded {
+      max-width: 100%;
+      overflow: visible;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      cursor: default;
+    }
+  }
+
+  tr.duration-warning {
+    background-color: palette("background-yellow");
+
+    &:hover {
+      background-color: palette("background-yellow-d5");
+    }
+  }
+
+  tr.duration-critical {
+    background-color: palette("background-red");
+
+    &:hover {
+      background-color: palette("background-red-d5");
+    }
+  }
+}

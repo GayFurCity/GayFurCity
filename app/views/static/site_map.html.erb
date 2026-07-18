@@ -118,6 +118,7 @@
     <%= li_link_to_if(policy(StaffAuditLog).index?, "Audit Logs", admin_audit_logs_path) %>
     <%= li_link_to_if(policy(Admin::ApplicationLog).index?, "Application Logs", application_admin_logs_path) %>
     <%= li_link_to_if(policy(Admin::RequestLog).index?, "Request Logs", request_admin_logs_path) %>
+    <%= li_link_to_if(policy(Admin::PerformanceLog).index?, "Performance Logs", performance_admin_logs_path) %>
     <%= li_link_to_if(policy(AdminDashboard).show?, "Admin Dashboard", admin_dashboard_path) %>
     <%= li_link_to_if(policy(EmailBlacklist).index?, "Email Blacklist", email_blacklists_path) %>
     <%= li_link_to_if(policy(Config).index?, "Config", admin_config_path) %>

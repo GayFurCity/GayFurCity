@@ -4,6 +4,12 @@ module Admin
   module LogsHelper
     include(ApplicationLogsHelper)
 
+    QUERY_DURATION_WARNING_MS = 100
+    QUERY_DURATION_CRITICAL_MS = 500
+
+    RENDER_DURATION_WARNING_MS = 500
+    RENDER_DURATION_CRITICAL_MS = 1250
+
     def render_log_entry(log, text)
       case log
       when Admin::RequestLog
@@ -85,10 +91,10 @@ module Admin
     end
 
     def render_query_row(query)
-      tag.tr do
+      tag.tr(class: duration_severity_class(query["duration"], warning: QUERY_DURATION_WARNING_MS, critical: QUERY_DURATION_CRITICAL_MS)) do
         safe_join([
           tag.td(query["name"]),
-          tag.td(tag.code(query["sql"])),
+          tag.td(tag.code(query["sql"]), class: "log-query-sql", title: "Click to expand"),
           tag.td(query["cached"] ? "Yes" : "No"),
           tag.td("#{query['duration']}ms"),
           tag.td(query["allocations"]),
@@ -96,8 +102,18 @@ module Admin
       end
     end
 
+    def duration_severity_class(duration, warning:, critical:)
+      return if duration.blank?
+
+      if duration.to_f >= critical
+        "duration-critical"
+      elsif duration.to_f >= warning
+        "duration-warning"
+      end
+    end
+
     def render_render_row(render_entry)
-      tag.tr do
+      tag.tr(class: duration_severity_class(render_entry["duration"], warning: RENDER_DURATION_WARNING_MS, critical: RENDER_DURATION_CRITICAL_MS)) do
         safe_join([
           tag.td(render_entry["file"]),
           tag.td(render_entry["type"]),

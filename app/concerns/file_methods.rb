@@ -292,7 +292,8 @@ module FileMethods
       output.puts("TUPLTYPE RGB_ALPHA")
       output.puts("ENDHDR")
       output.flush
-      image.rawsave_fd(output.fileno)
+      output.write(image.rawsave_buffer)
+      output.flush
       hash = md5(output.path)
       output.close!
       hash

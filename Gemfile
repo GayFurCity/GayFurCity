@@ -84,6 +84,9 @@ group(:test) do
   gem("simplecov-cobertura", require: false)
   gem("minitest-reporters", require: false)
   gem("redis-namespace", require: false)
+  # Rails 7.1's test_unit integration isn't compatible with minitest 6's run_suite signature yet.
+  # TODO: Upgrade rails
+  gem("minitest", "~> 5.27")
 end
 
 gem("pundit", "~> 2.3")

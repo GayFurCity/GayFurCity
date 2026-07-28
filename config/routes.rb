@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   end
 
   namespace(:admin) do
-    resources(:users, only: %i[edit update edit_blacklist update_blacklist alt_list]) do
+    resources(:users, only: %i[edit update]) do
       member do
         get(:edit_blacklist)
         post(:update_blacklist)
@@ -41,7 +41,7 @@ Rails.application.routes.draw do
 
   namespace(:security) do
     root(to: "dashboard#index")
-    resource(:dashboard, only: %i[index])
+    get("dashboard", to: "dashboard#index", as: :dashboard)
     resources(:lockdown, only: %i[index]) do
       collection do
         put(:panic)
@@ -159,7 +159,7 @@ Rails.application.routes.draw do
     resource(:edits, controller: "edit_histories", only: %i[show])
     collection do
       get(:search)
-      resources(:votes, controller: "comments/votes", as: "comment_votes", only: %i[index delete lock]) do
+      resources(:votes, controller: "comments/votes", as: "comment_votes", only: %i[index]) do
         collection do
           post(:lock)
           post(:delete)
@@ -301,7 +301,7 @@ Rails.application.routes.draw do
       end
     end
   end
-  resources(:posts, only: %i[index show update delete destroy]) do
+  resources(:posts, only: %i[index show update destroy]) do
     resource(:recommended, only: %i[show], controller: "posts/recommendations")
     resource(:similar, only: %i[show], controller: "posts/iqdb")
     resource(:votes, controller: "posts/votes", only: %i[create destroy])
@@ -343,7 +343,7 @@ Rails.application.routes.draw do
           put(:undo)
         end
       end
-      resources(:votes, controller: "posts/votes", as: "post_votes", only: %i[index delete lock]) do
+      resources(:votes, controller: "posts/votes", as: "post_votes", only: %i[index]) do
         collection do
           post(:lock)
           post(:delete)
@@ -393,7 +393,7 @@ Rails.application.routes.draw do
       end
     end
   end
-  resource(:session, only: %i[new create destroy confirm_password]) do
+  resource(:session, only: %i[new create destroy]) do
     collection do
       get(:confirm_password)
       post(:verify_mfa)
@@ -434,7 +434,7 @@ Rails.application.routes.draw do
   resources(:users, except: %i[edit update]) do
     resource(:password, only: %i[edit], controller: "users/passwords")
     resources(:api_keys, controller: "api_keys")
-    resources(:staff_notes, only: %i[index new create destroy undelete update], controller: "staff_notes") do
+    resources(:staff_notes, only: %i[index new create destroy update], controller: "staff_notes") do
       put(:undelete)
     end
     resources(:text_versions, only: %i[index], to: "moderator/user_text_versions#for_user")
@@ -483,7 +483,7 @@ Rails.application.routes.draw do
     collection do
       get(:search)
       get(:show_or_new)
-      resources(:versions, controller: "wiki_pages/versions", as: "wiki_page_versions", only: %i[index show diff]) do
+      resources(:versions, controller: "wiki_pages/versions", as: "wiki_page_versions", only: %i[index show]) do
         collection do
           get(:diff)
         end

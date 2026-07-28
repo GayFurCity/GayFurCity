@@ -125,6 +125,9 @@ class PostEvent < ApplicationRecord
   module ApiMethods
     def serializable_hash(options)
       hash = super
+      # Rails 8.0+ may hand us a frozen options hash (e.g. reused internally for template lookup
+      # caching when rendering through `respond_with`/`responders`), so work off our own copy.
+      options = (options || {}).dup
       options[:user] ||= CurrentUser.user || User.anonymous
       hash[:creator_id] = nil unless is_creator_visible?(options[:user])
       hash

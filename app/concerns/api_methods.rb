@@ -49,7 +49,10 @@ module ApiMethods
   end
 
   def serializable_hash(options = {})
-    options ||= {}
+    # Rails 8.0+ may hand us a frozen options hash (e.g. reused internally for template lookup
+    # caching when rendering through `respond_with`/`responders`), and we mutate this hash
+    # throughout this method, so always work off of our own mutable copy.
+    options = (options || {}).dup
     options[:user] ||= CurrentUser.user || User.anonymous
     return :not_visible unless visible?(options[:user])
     if options[:only].is_a?(String)

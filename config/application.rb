@@ -29,14 +29,7 @@ module GayFurCity
   # Config.ensure_required_set!
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults(7.2)
-
-    # Rails 7.2's :default keeps existing behavior for adapters that don't opt in, but the
-    # :test adapter opts in by default, deferring every perform_later call until its enclosing
-    # DB transaction commits. Since we never designed job call sites around that assumption
-    # (and a lot of them ride along inside an in-progress transaction that may still roll back),
-    # keep enqueuing immediately everywhere, matching pre-7.2 behavior.
-    config.active_job.enqueue_after_transaction_commit = :never
+    config.load_defaults(8.0)
 
     # https://github.com/rails/rails/issues/50897
     config.active_record.raise_on_assign_to_attr_readonly = false

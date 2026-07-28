@@ -1841,7 +1841,9 @@ class Post < ApplicationRecord
     end
 
     def serializable_hash(options = {})
-      options ||= {}
+      # Rails 8.0+ may hand us a frozen options hash (e.g. reused internally for template lookup
+      # caching when rendering through `respond_with`/`responders`), so work off our own copy.
+      options = (options || {}).dup
       options[:user] ||= CurrentUser.user || User.anonymous
       user = options[:user]
       {

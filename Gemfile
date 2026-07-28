@@ -4,7 +4,7 @@ source("https://rubygems.org/")
 
 gem("dotenv", require: "dotenv/load")
 
-gem("rails", "~> 7.1.0")
+gem("rails", "~> 7.2.0")
 gem("pg")
 gem("dalli", platforms: :ruby)
 gem("simple_form")
@@ -84,9 +84,6 @@ group(:test) do
   gem("simplecov-cobertura", require: false)
   gem("minitest-reporters", require: false)
   gem("redis-namespace", require: false)
-  # Rails 7.1's test_unit integration isn't compatible with minitest 6's run_suite signature yet.
-  # TODO: Upgrade rails
-  gem("minitest", "~> 5.27")
 end
 
 gem("pundit", "~> 2.3")
@@ -117,6 +114,5 @@ gem("yiffspace", "~> 0.1.3")
 gem("yiffspace-auth", "~> 0.0.3")
 
 # XXX: Added to silence "loaded from standard library" warnings
-# TODO: Upgrade rails
 gem("benchmark", "~> 0.5.0")
 gem("fiddle", "~> 1.1")

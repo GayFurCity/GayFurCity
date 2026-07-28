@@ -19,7 +19,7 @@ class NotificationsController < ApplicationController
     respond_with(@notification) do |format|
       format.html do
         @notification.update!(is_read: true)
-        redirect_to(@notification.view_link)
+        redirect_to(@notification.view_link || notifications_path)
       end
     end
   end

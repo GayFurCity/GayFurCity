@@ -29,7 +29,11 @@ module ActiveRecordExtensions
 
     # CrossJoinLateral, LeftJoinLateral, nil
     def unnest(column, name: column.singularize, type: Arel::Nodes::LeftJoinLateral)
-      function = Arel::Nodes::NamedFunction.new("unnest", [arel(column)], name)
+      function = Arel::Nodes::NamedFunction.new("unnest", [arel(column)]).as(name)
+      # Rails 8.1's Relation#references_eager_loaded_tables? calls `.name` on the `left` side of
+      # every non-string join (used to decide whether `includes` needs to eager-load), so our
+      # aliased function needs to answer that the same way Arel::Table/TableAlias would.
+      function.define_singleton_method(:name) { name }
       return function if type.nil?
       joins(type.new(
               function,

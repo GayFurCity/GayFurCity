@@ -114,7 +114,7 @@ class PostVersion < ApplicationRecord
     # HACK: if all the post versions for this post have already been preloaded,
     # we can use that to avoid a SQL query.
     if association(:post).loaded? && post&.association(:versions)&.loaded?
-      @previous = post.versions.sort_by(&:version).reverse.find { |v| v.version < version }
+      @previous = post.versions.sort_by(&:version).rfind { |v| v.version < version }
     else
       @previous = PostVersion.where(post_id: post_id).where.lt(version: version).order(version: :desc).first
     end

@@ -2,8 +2,8 @@
 
 namespace(:fixes) do
   desc("List available fix scripts in db/fixes")
-  task(:list) do
-    Dir["db/fixes/*.rb"].sort.each { |f| puts(File.basename(f, ".rb")) }
+  task(list: :environment) do
+    Dir["db/fixes/*.rb"].each { |f| puts(File.basename(f, ".rb")) }
   end
 
   desc("Run a fix script from db/fixes by id or name, e.g. `rake fixes:run[208]`")
@@ -11,7 +11,7 @@ namespace(:fixes) do
     name = args[:name].to_s.delete_suffix(".rb")
     abort("Usage: rake fixes:run[id_or_name] (see `rake fixes:list`)") if name.blank?
 
-    candidates = Dir["db/fixes/*.rb"].sort
+    candidates = Dir["db/fixes/*.rb"]
     exact = candidates.find { |path| File.basename(path, ".rb") == name }
     matches = exact ? [exact] : candidates.select { |path| File.basename(path, ".rb").start_with?("#{name}_") || File.basename(path, ".rb").include?(name) }
 

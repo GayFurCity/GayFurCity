@@ -1,23 +1,14 @@
 # frozen_string_literal: true
 
 class CurrentUser < ActiveSupport::CurrentAttributes
-  attribute(:user, :ip_addr, :request, :safe_mode)
+  attribute(:user, default: -> { User.anonymous })
+  attribute(:ip_addr, default: "127.0.0.1")
+  attribute(:request)
+  attribute(:safe_mode, default: -> { Config.instance.safe_mode? })
 
   alias safe_mode? safe_mode
   delegate(:id, to: :user, allow_nil: true)
   delegate_missing_to(:user, allow_nil: true)
-
-  # TODO: replace with defaults with rails 7.2 upgrade
-  def initialize
-    super
-    reset
-  end
-
-  after_reset do
-    attributes[:safe_mode] = Config.instance.safe_mode?
-    attributes[:user] = User.anonymous
-    attributes[:ip_addr] = "127.0.0.1"
-  end
 
   def safe_mode=(value)
     value = true if Config.instance.safe_mode?

@@ -29,7 +29,7 @@ module GayFurCity
   # Config.ensure_required_set!
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults(8.0)
+    config.load_defaults(8.1)
 
     # https://github.com/rails/rails/issues/50897
     config.active_record.raise_on_assign_to_attr_readonly = false

@@ -40,7 +40,7 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
       should("redirect") do
         get_auth(notification_path(@notification), @user)
 
-        assert_redirected_to(@notification.view_link)
+        assert_redirected_to(@notification.view_link || notifications_path)
       end
 
       context("access control") do

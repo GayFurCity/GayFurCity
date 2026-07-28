@@ -1,18 +1,8 @@
 # frozen_string_literal: true
 
 class ViewCountCache < ActiveSupport::CurrentAttributes
-  attribute(:cache, :user)
-
-  # TODO: replace with defaults with rails 7.2 upgrade
-  def initialize
-    super
-    reset
-  end
-
-  after_reset do
-    attributes[:cache] = {}
-    attributes[:user] = User.anonymous
-  end
+  attribute(:cache, default: {})
+  attribute(:user, default: -> { User.anonymous })
 
   def add!(post_id, count, type)
     cache[:"view_count_#{type}_cache"] ||= {}

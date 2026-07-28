@@ -89,8 +89,6 @@ class Notification < ApplicationRecord
       h.post_appeals_path(search: { id: post_appeal_id }, n: id)
     when "replacement_approve", "replacement_reject", "replacement_promote"
       h.post_replacements_path(search: { id: post_replacement_id }, n: id)
-    else
-      "#"
     end
   end
 

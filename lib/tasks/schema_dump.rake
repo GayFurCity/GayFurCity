@@ -4,6 +4,6 @@
 # but we still dump it for use with rubocop rules
 Rake::Task["db:schema:dump"].enhance do
   Rails.root.join("db/schema.rb").open("w") do |stream|
-    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
+    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection_pool, stream)
   end
 end

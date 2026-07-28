@@ -1,8 +1,3 @@
-\restrict 92R1HbECsiPx9epnNRMrzgxhGiB3Ra1j56ZF4785n5UTv3DUlkwEwkIk3cZRoXD
-
--- Dumped from database version 17.5
--- Dumped by pg_dump version 17.10
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -8207,8 +8202,6 @@ ALTER TABLE ONLY public.help_pages
 --
 -- PostgreSQL database dump complete
 --
-
-\unrestrict 92R1HbECsiPx9epnNRMrzgxhGiB3Ra1j56ZF4785n5UTv3DUlkwEwkIk3cZRoXD
 
 SET search_path TO "$user", public;
 

@@ -69,19 +69,28 @@ Yabeda.configure do
   end
 
   collect do
-    site.total_posts.set({}, MetricsRecord.estimated_count(Post.table_name))
-    site.total_active_posts.set({}, MetricsRecord.exact_count(Post.not_deleted))
-    site.total_deleted_posts.set({}, MetricsRecord.exact_count(Post.deleted))
-    site.total_pending_posts.set({}, MetricsRecord.exact_count(Post.pending))
+    # The /metrics rack app (config/pitchfork.rb, config/puma.rb) runs outside the Rails
+    # middleware stack, so nothing checks connections back in after the request the way
+    # ActiveRecord::ConnectionAdapters::ConnectionManagement normally would. Without
+    # with_connection here, every scrape leases a MetricsRecord connection on a fresh
+    # WEBrick thread and never returns it, quietly exhausting the pool scrape by scrape.
+    # estimated_count/exact_count call .connection themselves, which marks the checkout
+    # sticky (permanent) unless prevent_permanent_checkout forces it to release anyway.
+    MetricsRecord.with_connection(prevent_permanent_checkout: true) do
+      site.total_posts.set({}, MetricsRecord.estimated_count(Post.table_name))
+      site.total_active_posts.set({}, MetricsRecord.exact_count(Post.not_deleted))
+      site.total_deleted_posts.set({}, MetricsRecord.exact_count(Post.deleted))
+      site.total_pending_posts.set({}, MetricsRecord.exact_count(Post.pending))
 
-    site.total_users.set({}, MetricsRecord.estimated_count(User.table_name))
-    site.total_tags.set({}, MetricsRecord.estimated_count(Tag.table_name))
+      site.total_users.set({}, MetricsRecord.estimated_count(User.table_name))
+      site.total_tags.set({}, MetricsRecord.estimated_count(Tag.table_name))
 
-    site.total_comments.set({}, MetricsRecord.estimated_count(Comment.table_name))
-    site.total_forum_posts.set({}, MetricsRecord.estimated_count(ForumPost.table_name))
+      site.total_comments.set({}, MetricsRecord.estimated_count(Comment.table_name))
+      site.total_forum_posts.set({}, MetricsRecord.estimated_count(ForumPost.table_name))
 
-    site.pending_tickets.set({}, MetricsRecord.exact_count(Ticket.pending))
-    site.pending_bulk_update_requests.set({}, MetricsRecord.exact_count(BulkUpdateRequest.pending))
+      site.pending_tickets.set({}, MetricsRecord.exact_count(Ticket.pending))
+      site.pending_bulk_update_requests.set({}, MetricsRecord.exact_count(BulkUpdateRequest.pending))
+    end
   end
 end
 

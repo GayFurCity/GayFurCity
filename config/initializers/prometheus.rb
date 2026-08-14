@@ -10,7 +10,7 @@ Prometheus::Client.config.data_store = Prometheus::Client::DataStores::Redis.new
 # worker 0 hosts the /metrics exporter in a background thread inside that worker's process). Giving
 # it its own connection pool, instead of sharing ActiveRecord::Base's, keeps a slow or bursty scrape
 # from starving that worker's normal request handling of connections (and vice versa).
-class MetricsRecord < ActiveRecord::Base
+class MetricsRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRecord
   self.abstract_class = true
 
   # reltuples is a planner estimate, not an exact count, but it's cheap (catalog lookup, no
@@ -82,5 +82,29 @@ Yabeda.configure do
 
     site.pending_tickets.set({}, MetricsRecord.exact_count(Ticket.pending))
     site.pending_bulk_update_requests.set({}, MetricsRecord.exact_count(BulkUpdateRequest.pending))
+  end
+end
+
+# /metrics runs the collect block above on every scrape, which is a handful of sequential
+# COUNT(*)/estimate queries and can take a while under load. Add a /up route alongside it on
+# the same internal port that just answers instantly, so uptime checks don't have to pay for
+# a full metrics collection. This patches the one method both server configs build their rack
+# app from (config/puma.rb via the yabeda-puma-plugin, config/pitchfork.rb directly), so it
+# covers both without duplicating the rack app setup in each.
+module Yabeda
+  module Prometheus
+    class Exporter
+      UP_HANDLER = ->(_env) do
+        [200, { "Content-Type" => "text/plain" }, ["OK\n"]]
+      end.freeze
+
+      class << self
+        alias metrics_rack_app rack_app
+
+        def rack_app(exporter = self, **)
+          ::Rack::URLMap.new("/up" => UP_HANDLER, "/" => metrics_rack_app(exporter, **))
+        end
+      end
+    end
   end
 end

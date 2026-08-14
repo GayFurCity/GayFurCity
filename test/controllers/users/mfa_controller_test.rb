@@ -11,7 +11,7 @@ module Users
 
       context("edit action") do
         should("render") do
-          get_auth(edit_user_mfa_path, @user)
+          assert_nothing_raised { get_auth(edit_user_mfa_path, @user) }
         end
       end
 

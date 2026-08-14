@@ -15,7 +15,7 @@ module WikiPages
 
       context("show action") do
         should("render") do
-          get_auth(merge_wiki_page_path(@wiki_page), @admin)
+          assert_nothing_raised { get_auth(merge_wiki_page_path(@wiki_page), @admin) }
         end
 
         context("access control") do

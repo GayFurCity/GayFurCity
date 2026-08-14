@@ -6,7 +6,7 @@ class StaticControllerTest < ActionDispatch::IntegrationTest
   context("The static controller") do
     context("the robots action") do
       should("render") do
-        get(robots_path)
+        assert_nothing_raised { get(robots_path) }
       end
     end
   end

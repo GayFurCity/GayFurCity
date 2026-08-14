@@ -11,7 +11,7 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
 
     context("index action") do
       should("render") do
-        get_auth(notifications_path, @user)
+        assert_nothing_raised { get_auth(notifications_path, @user) }
       end
 
       context("access control") do

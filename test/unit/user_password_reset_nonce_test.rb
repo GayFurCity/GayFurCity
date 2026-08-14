@@ -18,7 +18,7 @@ class UserPasswordResetNonceTest < ActiveSupport::TestCase
     end
 
     should("reset the password when reset") do
-      @nonce.reset_user!("test", "test")
+      assert_nothing_raised { @nonce.reset_user!("test", "test") }
     end
   end
 end

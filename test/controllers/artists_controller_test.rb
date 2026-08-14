@@ -281,7 +281,7 @@ class ArtistsControllerTest < ActionDispatch::IntegrationTest
       should("work") do
         @artist.update_with(@user, name: "xyz")
         @artist.update_with(@user, name: "abc")
-        put_auth(revert_artist_path(@artist), @user, params: { version_id: @artist.versions.first.id })
+        assert_nothing_raised { put_auth(revert_artist_path(@artist), @user, params: { version_id: @artist.versions.first.id }) }
       end
 
       should("not allow reverting to a previous version of another artist") do

@@ -8,7 +8,7 @@ class QueryDslTest < ActiveSupport::TestCase
   context("#query_dsl") do
     MODELS.each do |klass|
       should("validate for #{klass.name}") do
-        klass.query_dsl
+        assert_nothing_raised { klass.query_dsl }
       end
     end
   end
@@ -16,7 +16,7 @@ class QueryDslTest < ActiveSupport::TestCase
   context("#apply_order") do
     MODELS.each do |klass|
       should("validate for #{klass.name}") do
-        klass.apply_order({})
+        assert_nothing_raised { klass.apply_order({}) }
       end
     end
   end
@@ -28,7 +28,7 @@ class QueryDslTest < ActiveSupport::TestCase
 
     MODELS.each do |klass|
       should("validate for #{klass.name}") do
-        klass.search({}, @user)
+        assert_nothing_raised { klass.search({}, @user) }
       end
     end
   end

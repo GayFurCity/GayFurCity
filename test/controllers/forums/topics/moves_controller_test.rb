@@ -13,7 +13,7 @@ module Forums
 
         context("show action") do
           should("render") do
-            get_auth(move_forum_topic_path(@forum_topic), @mod)
+            assert_nothing_raised { get_auth(move_forum_topic_path(@forum_topic), @mod) }
           end
 
           context("access control") do

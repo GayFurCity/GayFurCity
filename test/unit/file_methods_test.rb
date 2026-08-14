@@ -34,7 +34,10 @@ class FileMethodsTest < ActiveSupport::TestCase
 
   def assert_not_metadata(type, file, field, allow_nil: false, allow_none: true)
     data = @obj.public_send("#{type}_metadata", file)
-    return if data.blank? && allow_none
+    if data.blank?
+      assert(allow_none, "expected #{type}_metadata to return data, but got none")
+      return
+    end
     assert_not(data.key?(field.to_sym)) unless allow_nil
 
     assert_nil(data[field.to_sym])

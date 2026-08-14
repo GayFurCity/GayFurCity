@@ -17,7 +17,7 @@ module Forums
 
         context("show action") do
           should("render") do
-            get_auth(merge_forum_topic_path(@topic), @admin)
+            assert_nothing_raised { get_auth(merge_forum_topic_path(@topic), @admin) }
           end
 
           context("access control") do
@@ -65,7 +65,7 @@ module Forums
           end
 
           should("render") do
-            get_auth(undo_merge_forum_topic_path(@topic), @admin)
+            assert_nothing_raised { get_auth(undo_merge_forum_topic_path(@topic), @admin) }
           end
 
           context("access control") do

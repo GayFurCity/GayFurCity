@@ -13,9 +13,7 @@
 |:------|:------:|:------|
 | [app/controllers/takedowns_controller.rb](app/controllers/takedowns_controller.rb#L41) | 41 | this *should* be changed eventually to use the update method & be strictly validated |
 | [app/controllers/uploads_controller.rb](app/controllers/uploads_controller.rb#L12) | 12 | this route has many performance issues and needs to be revised |
-| [app/logical/current_user.rb](app/logical/current_user.rb#L10) | 10 | replace with defaults with rails 7.2 upgrade |
 | [app/logical/favorite_manager.rb](app/logical/favorite_manager.rb#L53) | 53 | Much better and more intelligent logic can exist for this |
-| [app/logical/view_count_cache.rb](app/logical/view_count_cache.rb#L6) | 6 | replace with defaults with rails 7.2 upgrade |
 | [app/models/forum_topic.rb](app/models/forum_topic.rb#L172) | 172 | revisit muting, it may need to be further optimized or removed due to performance issues |
 | [app/models/post_event.rb](app/models/post_event.rb#L98) | 98 | We need access control/blocks for associations |
 | [app/models/post_flag.rb](app/models/post_flag.rb#L52) | 52 | We need access control/blocks for associations |

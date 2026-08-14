@@ -132,11 +132,11 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         asserts do
           access.gte(User::Levels::MEMBER).post(pools_path).params do |user|
             user.update_column(:created_at, 1.year.ago)
-            { pool: { name: SecureRandom.hex(6) } }
+            { pool: { name: "pool_#{SecureRandom.hex(6)}" } }
           end.success(:redirect)
           access.gte(User::Levels::MEMBER).json.post(pools_path).params do |user|
             user.update_column(:created_at, 1.year.ago)
-            { pool: { name: SecureRandom.hex(6) } }
+            { pool: { name: "pool_#{SecureRandom.hex(6)}" } }
           end
         end
       end

@@ -5,9 +5,10 @@ module PostVersionIndex
     base.document_store.index = {
       settings: {
         index: {
-          number_of_shards:   8,
-          number_of_replicas: 1,
-        },
+          number_of_shards:   ENV.fetch("GAYFURCITY_ELASTICSEARCH_POSTVERSION_INDEX_SHARDS", 8).to_i,
+          number_of_replicas: ENV.fetch("GAYFURCITY_ELASTICSEARCH_POSTVERSION_INDEX_REPLICAS", 0).to_i,
+          max_result_window:  ENV["GAYFURCITY_ELASTICSEARCH_POSTVERSION_INDEX_RESULTS"]&.to_i,
+        }.compact,
       },
       mappings: {
         dynamic:    false,

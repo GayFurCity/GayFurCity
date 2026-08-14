@@ -27,9 +27,9 @@ module PostIndex
     base.document_store.index = {
       settings: {
         index: {
-          number_of_shards:   5,
-          number_of_replicas: 1,
-          max_result_window:  500_000,
+          number_of_shards:   ENV.fetch("GAYFURCITY_ELASTICSEARCH_POST_INDEX_SHARDS", 5).to_i,
+          number_of_replicas: ENV.fetch("GAYFURCITY_ELASTICSEARCH_POST_INDEX_REPLICAS", 0).to_i,
+          max_result_window:  ENV.fetch("GAYFURCITY_ELASTICSEARCH_POST_INDEX_RESULTS", 500_000).to_i,
         },
       },
       mappings: {

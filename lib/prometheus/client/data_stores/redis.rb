@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require("cgi")
+require("uri")
+
 # Copied from https://github.com/wearemolecule/prometheus-client-data_stores-redis/tree/2fc4cbc12380fd349f6a4dbb01886bebfe3948fc with minor adaptations
 module Prometheus
   module Client
@@ -138,11 +141,11 @@ module Prometheus
             raw_timestamps ||= {}
 
             labelset_data = raw_redis.each_with_object({}) do |(labels_qs, v), acc|
-              # Labels come as a query string, and CGI::parse returns arrays for each key
-              # "foo=bar&x=y" => { "foo" => ["bar"], "x" => ["y"] }
-              # Turn the keys back into symbols, and remove the arrays
-              labels = CGI.parse(labels_qs).to_h do |k, vs|
-                [k.to_sym, vs.first]
+              # Labels come as a query string. CGI.parse was removed in Ruby 4.0, so decode with
+              # URI.decode_www_form instead and turn the keys back into symbols.
+              # "foo=bar&x=y" => { foo: "bar", x: "y" }
+              labels = URI.decode_www_form(labels_qs).each_with_object({}) do |(k, v), acc|
+                acc[k.to_sym] ||= v
               end
 
               label_set = labels.except(:__pid)

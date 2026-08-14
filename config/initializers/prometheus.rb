@@ -3,7 +3,7 @@
 require_relative("../../app/logical/cache")
 require_relative("../../lib/prometheus/client/data_stores/redis")
 
-pool = ConnectionPool.new(size: 5, timeout: 5) { Cache.redis }
+pool = ConnectionPool.new(size: ENV.fetch("GAYFURCITY_METRICS_REDIS_POOL_SIZE", 5), timeout: 5) { Cache.redis }
 Prometheus::Client.config.data_store = Prometheus::Client::DataStores::Redis.new(connection_pool: pool)
 
 # The metrics collector below runs off the request cycle (see config/pitchfork.rb, where only

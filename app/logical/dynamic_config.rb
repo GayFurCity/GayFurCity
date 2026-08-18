@@ -211,6 +211,13 @@ module DynamicConfig
     add_text_field(:default_blacklist, large: true, input_options: { size: "40x10" })
   end
 
+  category("Timeouts") do
+    add_per_level_field(:postgres_query_timeout, hint: "Max time in milliseconds a single Postgres query may run before being canceled")
+    add_per_level_field(:elasticsearch_query_timeout, hint: "Max time in milliseconds Elasticsearch spends executing a single search before returning whatever it has")
+    add_per_level_field(:elasticsearch_request_timeout, hint: "Max time in seconds to wait on an Elasticsearch response before aborting the request client-side")
+    add_per_level_field(:request_cycle_timeout, hint: "Max time in milliseconds a full request (queries, rendering, everything) may run before being canceled")
+  end
+
   category("Wiki Pages") do
     add_text_field(:flag_notice_wiki_page)
     add_text_field(:replacement_notice_wiki_page)

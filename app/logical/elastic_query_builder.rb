@@ -15,7 +15,7 @@ class ElasticQueryBuilder
   end
 
   def search
-    model_class.document_store.search(search_body)
+    model_class.document_store.search(search_body, request_timeout: elasticsearch_request_timeout)
   end
 
   def search_body
@@ -38,12 +38,24 @@ class ElasticQueryBuilder
       query = { function_score: @function_score }
     end
 
-    {
+    body = {
       query:   query,
       sort:    order,
       _source: false,
-      timeout: "#{user.try(:statement_timeout) || 3_000}ms",
     }
+    # Omitted (rather than sent as a literal "Infinityms") when an admin configures -1/unlimited -
+    # ES treats a missing timeout as "run to completion", the same intent.
+    body[:timeout] = "#{elasticsearch_query_timeout.to_i}ms" if elasticsearch_query_timeout.finite?
+    body
+  end
+
+  def elasticsearch_query_timeout
+    user ? Config.get_user(:elasticsearch_query_timeout, user) : 3_000
+  end
+
+  # In seconds, not ms - matches what Elasticsearch::Client#request_timeout natively expects.
+  def elasticsearch_request_timeout
+    user ? Config.get_user(:elasticsearch_request_timeout, user) : 5
   end
 
   def match_any(*args)

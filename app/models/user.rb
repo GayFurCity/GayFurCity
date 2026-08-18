@@ -956,13 +956,7 @@ class User < ApplicationRecord
     end
 
     def statement_timeout
-      if is_former_staff?
-        9_000
-      elsif is_trusted?
-        6_000
-      else
-        3_000
-      end
+      Config.get_user(:postgres_query_timeout, self)
     end
   end
 

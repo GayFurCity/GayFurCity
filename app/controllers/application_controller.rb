@@ -1,12 +1,20 @@
 # frozen_string_literal: true
 
+require("timeout")
+
 class ApplicationController < ActionController::Base
   class APIThrottled < StandardError; end
   class FeatureUnavailable < StandardError; end
+  class RequestTimeoutError < StandardError; end
 
   skip_forgery_protection(if: -> { SessionLoader.new(request).has_api_authentication? || request.options? })
   before_action(:reset_current_user)
   before_action(:set_current_user)
+  # Registered after set_current_user (so CurrentUser is resolved) but before everything else, so
+  # it wraps the rest of the before_actions, the action itself, and rendering - the parts the
+  # per-query timeouts (Postgres statement_timeout, the Elasticsearch client's request_timeout)
+  # don't cover, e.g. a slow view or a runaway Ruby-level loop.
+  around_action(:enforce_request_cycle_timeout)
   before_action(:normalize_search)
   before_action(:api_check)
   before_action(:enable_cors)
@@ -106,6 +114,8 @@ class ApplicationController < ActionController::Base
       render_expected_error(501, "This feature isn't available")
     when PG::ConnectionBad
       render_error_page(503, exception, message: "The database is unavailable. Try again later.")
+    when RequestTimeoutError
+      render_error_page(504, exception, message: "This request took too long to process and was canceled.")
     when ActionController::UnpermittedParameters, ActionController::ParameterMissing
       render_expected_error(400, exception.message)
     when BCrypt::Errors::InvalidHash
@@ -185,6 +195,17 @@ class ApplicationController < ActionController::Base
     CurrentUser.request = request
     SessionLoader.new(request).load
     session.send(:load!) unless session.send(:loaded?)
+  end
+
+  # Uses Ruby's Timeout, which interrupts the running thread wherever it happens to be - unsafe in
+  # general (it can abort mid-query/mid-transaction), but this sits behind the tighter, cleaner
+  # timeouts on individual Postgres queries (statement_timeout) and Elasticsearch requests
+  # (request_timeout) that fire first for the common case. This is only a backstop for the rest of
+  # the action - rendering, view logic, non-DB work - not the primary defense.
+  def enforce_request_cycle_timeout(&action)
+    timeout = Config.get_user(:request_cycle_timeout, CurrentUser.user)
+    return action.call unless timeout.finite?
+    Timeout.timeout(timeout / 1000.0, RequestTimeoutError, &action)
   end
 
   def reset_current_user

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_17_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_18_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -235,6 +235,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_17_130000) do
     t.integer "dmail_minute_limit", default: 2, null: false
     t.integer "dmail_minute_limit_bypass", default: 20, null: false
     t.integer "dmail_restricted_day_limit", default: 5, null: false
+    t.jsonb "elasticsearch_query_timeout", default: {"0" => 3000, "15" => 6000, "19" => 9000}, null: false
+    t.jsonb "elasticsearch_request_timeout", default: {"0" => 5, "15" => 10, "19" => 15}, null: false
     t.boolean "enable_autotagging", default: true, null: false
     t.boolean "enable_bad_sources", default: true, null: false
     t.boolean "enable_email_verification", default: false, null: false
@@ -300,9 +302,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_17_130000) do
     t.integer "post_sample_size", default: 300, null: false
     t.integer "post_vote_limit", default: 1000, null: false
     t.integer "post_vote_limit_bypass", default: 15, null: false
+    t.jsonb "postgres_query_timeout", default: {"0" => 3000, "15" => 6000, "19" => 9000}, null: false
     t.integer "records_per_page", default: 100, null: false
     t.string "rejected_notice_wiki_page", default: "internal:rejected_notice", null: false
     t.string "replacement_notice_wiki_page", default: "internal:replacement_notice", null: false
+    t.jsonb "request_cycle_timeout", default: {"0" => 10000, "15" => 20000, "19" => 30000}, null: false
     t.string "restricted_notice_wiki_page", default: "internal:restricted_notice", null: false
     t.string "rules_body_wiki_page", default: "internal:rules_body", null: false
     t.boolean "safe_mode", default: false, null: false

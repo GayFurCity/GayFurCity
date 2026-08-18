@@ -606,7 +606,11 @@ CREATE TABLE public.config (
     image_width jsonb DEFAULT '{"max": 40000, "min": 300}'::jsonb NOT NULL,
     image_height jsonb DEFAULT '{"max": 40000, "min": 300}'::jsonb NOT NULL,
     mascot_width jsonb DEFAULT '{"max": 1000, "min": 250}'::jsonb NOT NULL,
-    mascot_height jsonb DEFAULT '{"max": 1000, "min": 250}'::jsonb NOT NULL
+    mascot_height jsonb DEFAULT '{"max": 1000, "min": 250}'::jsonb NOT NULL,
+    postgres_query_timeout jsonb DEFAULT '{"0": 3000, "15": 6000, "19": 9000}'::jsonb NOT NULL,
+    elasticsearch_query_timeout jsonb DEFAULT '{"0": 3000, "15": 6000, "19": 9000}'::jsonb NOT NULL,
+    elasticsearch_request_timeout jsonb DEFAULT '{"0": 5, "15": 10, "19": 15}'::jsonb NOT NULL,
+    request_cycle_timeout jsonb DEFAULT '{"0": 10000, "15": 20000, "19": 30000}'::jsonb NOT NULL
 );
 
 
@@ -8206,6 +8210,7 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260818140000'),
 ('20260717130000'),
 ('20260717120000'),
 ('20260717023930'),

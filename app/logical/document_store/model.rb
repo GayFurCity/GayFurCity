@@ -48,7 +48,11 @@ module DocumentStore
     end
   end
 
-  def self.client
-    @client ||= Elasticsearch::Client.new(host: GayFurCity.config.elasticsearch_host, request_timeout: 120)
+  # request_timeout is baked into the client at construction (the transport has no per-request
+  # override), so distinct timeout values - one per config tier that's actually in use - each get
+  # their own memoized client/connection instead of building one from scratch per search.
+  def self.client(request_timeout: 120)
+    @clients ||= {}
+    @clients[request_timeout] ||= Elasticsearch::Client.new(host: GayFurCity.config.elasticsearch_host, request_timeout: request_timeout)
   end
 end

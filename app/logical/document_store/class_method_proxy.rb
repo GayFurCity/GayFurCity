@@ -9,8 +9,8 @@ module DocumentStore
       @target = target
     end
 
-    def search(body)
-      search = SearchRequest.new({ index: index_name, body: body }, client)
+    def search(body, request_timeout: nil)
+      search = SearchRequest.new({ index: index_name, body: body }, client(request_timeout: request_timeout || 120))
       Response.new(@target, search)
     end
 

@@ -204,6 +204,7 @@ class ApplicationController < ActionController::Base
   # the action - rendering, view logic, non-DB work - not the primary defense.
   def enforce_request_cycle_timeout(&action)
     timeout = Config.get_user(:request_cycle_timeout, CurrentUser.user)
+    timeout = 10_000 unless timeout.is_a?(Numeric) # jsonb has no schema - guard against a corrupt stored value
     return action.call unless timeout.finite?
     Timeout.timeout(timeout / 1000.0, RequestTimeoutError, &action)
   end

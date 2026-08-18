@@ -37,7 +37,8 @@ class Config < ApplicationRecord
     value = get(option)
     return nil if value.blank?
     return value unless value.is_a?(Hash)
-    v = value.transform_keys(&:to_i).select { |k,| k <= user.level }.max_by(&:first)&.second || 0
+    v = value.transform_keys(&:to_i).select { |k,| k <= user.level }.max_by(&:first)&.second
+    v = 0 unless v.is_a?(Numeric) # jsonb has no schema - guard against a corrupt/non-numeric stored value
     return Float::INFINITY if v == -1
     v
   end

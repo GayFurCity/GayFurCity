@@ -64,7 +64,7 @@ class SessionLoader
 
   def set_statement_timeout
     timeout = CurrentUser.user.statement_timeout
-    timeout = 0 unless timeout.finite? # Postgres: 0 means "no timeout", not Infinity
+    timeout = 0 unless timeout.is_a?(Numeric) && timeout.finite? # Postgres: 0 means "no timeout", not Infinity
     ActiveRecord::Base.connection.execute("set statement_timeout = #{timeout.to_i}")
   end
 

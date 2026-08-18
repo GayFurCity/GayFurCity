@@ -15,7 +15,8 @@ module Admin
       input.select! { |key,| attr.include?(key.to_sym) }
       values = input.to_h do |key, value|
         col = Config.columns.find { |c| c.name == key }
-        if value.is_a?(Hash)
+        if col&.type == :jsonb
+          next [key, {}] unless value.is_a?(Hash)
           next [key, value.reject { |_k, v| v == "" }.transform_values(&:to_i)]
         end
         next [key, value] if col&.null == true && value == ""

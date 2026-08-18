@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require("base64")
+
 class SessionLoader
   class AuthenticationFailure < StandardError; end
 

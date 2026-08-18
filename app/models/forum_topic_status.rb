@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require("net/smtp")
+
 class ForumTopicStatus < ApplicationRecord
   belongs_to(:forum_topic)
   belongs_to_user(:user)
@@ -18,8 +20,8 @@ class ForumTopicStatus < ApplicationRecord
         forum_posts = forum_topic.posts.where("created_at > ?", subscription.subscription_last_read_at).order(id: :desc)
         begin
           UserMailer.forum_notice(subscription.user, forum_topic, forum_posts).deliver_now
-        rescue Net::SMTPSyntaxError
-          # Ignored
+        rescue Net::SMTPError, Mail::Sendmail::DeliveryError
+          # Ignore
         end
         subscription.update_attribute(:subscription_last_read_at, forum_topic.updated_at)
       end

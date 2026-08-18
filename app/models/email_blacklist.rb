@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require("resolv")
+
 class EmailBlacklist < ApplicationRecord
   UNVERIFY_COUNT_TRESHOLD = 250
 

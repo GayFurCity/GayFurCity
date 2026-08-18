@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require("resolv")
+require("ipaddr")
+
 module Downloads
   class File
     include(ActiveModel::Validations)

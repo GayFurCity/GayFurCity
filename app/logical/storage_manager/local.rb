@@ -35,6 +35,16 @@ module StorageManager
       end
     end
 
+    def delete_dir(path)
+      with_metrics(:delete_dir) do
+        log(%{delete_dir("#{path}")}) do
+          Dir.rmdir(p(path))
+        rescue Errno::ENOENT, Errno::ENOTEMPTY
+          # doesn't exist, or something else is still in it - either way, nothing to do
+        end
+      end
+    end
+
     def open(path, &)
       with_metrics(:open) do
         log(%{open("#{path}")}) do

@@ -7,7 +7,10 @@ module ConfigHelper
 
   def boolean_config_field(config, attribute, *, **options)
     input_options = options.delete(:input_options) || {}
-    field_tag(:check_box_tag, config, attribute, *, input_options: input_options.merge({ checked: config.public_send(attribute).to_s.truthy? }), **options)
+    # value must be a fixed "true" sentinel, not the field's current value (field_tag's default) -
+    # otherwise a currently-false field's checkbox submits value="false" when checked, and checking
+    # it never actually saves as true.
+    field_tag(:check_box_tag, config, attribute, *, value: "true", input_options: input_options.merge({ checked: config.public_send(attribute).to_s.truthy? }), **options)
   end
 
   def text_config_field(...)
@@ -25,7 +28,11 @@ module ConfigHelper
         tag.td { label_for_attribute(attribute, name: name, disabled: disabled || !usable) },
         tag.td do
           arr = [send(type, "config[#{attribute}]", value, disabled: disabled || !usable, **input_options)]
-          arr += [hidden_field_tag("config[#{attribute}]", "false", disabled: disabled || !usable)] if type == :check_box_tag # thanks rails
+          # The hidden fallback must come BEFORE the checkbox in submission order: when both are
+          # present, a duplicate param key resolves to whichever value was submitted last (Rack
+          # just overwrites), so a hidden field placed after the checkbox would always win and a
+          # checked box could never actually save as true.
+          arr = [hidden_field_tag("config[#{attribute}]", "false", disabled: disabled || !usable), *arr] if type == :check_box_tag # thanks rails
           arr += [tag.br, self.hint(hint)] if hint
           safe_join(arr)
         end,

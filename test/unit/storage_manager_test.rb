@@ -111,5 +111,71 @@ class StorageManagerTest < ActiveSupport::TestCase
         assert_equal("#{base_dir}/posts/480p/#{md5}.mp4", format.call("mp4", :"480p"))
       end
     end
+
+    context("#db_export_path method") do
+      should("return the correct path") do
+        assert_equal("#{base_dir}/db_export/2026-08-18/posts.csv.gz", @storage_manager.db_export_path("2026-08-18/posts.csv.gz"))
+      end
+    end
+
+    context("#db_export_dir_path method") do
+      should("return the correct path") do
+        assert_equal("#{base_dir}/db_export/2026-08-18", @storage_manager.db_export_dir_path("2026-08-18"))
+      end
+    end
+
+    context("#db_export_url method") do
+      should("return the correct url") do
+        assert_equal("#{@base_url}/data/db_export/2026-08-18/posts.csv.gz", @storage_manager.db_export_url("2026-08-18/posts.csv.gz"))
+      end
+    end
+
+    context("#store_db_export/#delete_db_export methods") do
+      should("store and delete the export file, nested under its date directory") do
+        @storage_manager.store_db_export(StringIO.new("data"), "2026-08-18/posts.csv.gz")
+
+        assert_equal("data", File.read(@storage_manager.db_export_path("2026-08-18/posts.csv.gz")))
+
+        @storage_manager.delete_db_export("2026-08-18/posts.csv.gz")
+
+        assert_not(File.exist?(@storage_manager.db_export_path("2026-08-18/posts.csv.gz")))
+      end
+    end
+
+    context("#delete_dir method") do
+      should("remove an empty directory") do
+        dir = "#{base_dir}/empty"
+        FileUtils.mkdir_p(dir)
+
+        @storage_manager.delete_dir(dir)
+
+        assert_not(Dir.exist?(dir))
+      end
+
+      should("not fail if the directory doesn't exist") do
+        assert_nothing_raised { @storage_manager.delete_dir("#{base_dir}/dne") }
+      end
+
+      should("not remove a directory that still has something in it") do
+        dir = "#{base_dir}/not-empty"
+        FileUtils.mkdir_p(dir)
+        FileUtils.touch("#{dir}/file.txt")
+
+        @storage_manager.delete_dir(dir)
+
+        assert(Dir.exist?(dir))
+      end
+    end
+
+    context("#delete_db_export_dir method") do
+      should("remove the empty date directory") do
+        @storage_manager.store_db_export(StringIO.new("data"), "2026-08-18/posts.csv.gz")
+        @storage_manager.delete_db_export("2026-08-18/posts.csv.gz")
+
+        @storage_manager.delete_db_export_dir("2026-08-18")
+
+        assert_not(Dir.exist?(@storage_manager.db_export_dir_path("2026-08-18")))
+      end
+    end
   end
 end

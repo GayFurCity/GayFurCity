@@ -10,6 +10,10 @@ module StorageManager
       # no-op
     end
 
+    def delete_dir(path)
+      # no-op
+    end
+
     def open(path)
       # no-op
     end

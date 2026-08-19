@@ -64,6 +64,18 @@ module StorageManager
       end
     end
 
+    def delete_dir(path)
+      with_metrics(:delete_dir) do
+        log(%{delete_dir("#{path}")}) do
+          open_ftp do |ftp|
+            # Servers commonly reuse 550 for "doesn't exist" and "not empty" alike, same as
+            # a missing file on #delete - ignore_notfound covers both here too.
+            ignore_notfound { ftp.rmdir(path) }
+          end
+        end
+      end
+    end
+
     def open(path, &)
       with_metrics(:open) do
         log(%{open("#{path}"}) do

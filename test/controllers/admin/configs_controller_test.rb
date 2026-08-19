@@ -31,6 +31,15 @@ module Admin
           assert_response(:success)
         end
 
+        should("save a boolean field flipped from false to true") do
+          Config.instance.update_column(:db_exports_enabled, false)
+
+          put_auth(admin_config_path, @owner, params: { config: { db_exports_enabled: "true" } })
+
+          assert_response(:redirect)
+          assert(Config.uncached.db_exports_enabled)
+        end
+
         context("access control") do
           asserts do
             access.gte(User::Levels::OWNER).json.put(admin_config_path).params({ config: { comment_limit: 1 } })

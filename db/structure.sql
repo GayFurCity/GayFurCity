@@ -585,7 +585,6 @@ CREATE TABLE public.config (
     tag_ai_posts boolean DEFAULT true NOT NULL,
     ai_confidence_threshold integer DEFAULT 50 NOT NULL,
     post_flag_note_max_size integer DEFAULT 10000 NOT NULL,
-    db_exports_path character varying DEFAULT '/db_exports'::character varying,
     pool_category_change_cutoff integer DEFAULT 30 NOT NULL,
     pool_category_change_cutoff_bypass integer DEFAULT 20 NOT NULL,
     pool_name_max_size integer DEFAULT 250 NOT NULL,
@@ -610,8 +609,44 @@ CREATE TABLE public.config (
     postgres_query_timeout jsonb DEFAULT '{"0": 3000, "15": 6000, "19": 9000}'::jsonb NOT NULL,
     elasticsearch_query_timeout jsonb DEFAULT '{"0": 3000, "15": 6000, "19": 9000}'::jsonb NOT NULL,
     elasticsearch_request_timeout jsonb DEFAULT '{"0": 5, "15": 10, "19": 15}'::jsonb NOT NULL,
-    request_cycle_timeout jsonb DEFAULT '{"0": 10000, "15": 20000, "19": 30000}'::jsonb NOT NULL
+    request_cycle_timeout jsonb DEFAULT '{"0": 10000, "15": 20000, "19": 30000}'::jsonb NOT NULL,
+    db_exports_enabled boolean DEFAULT false NOT NULL
 );
+
+
+--
+-- Name: db_exports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.db_exports (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    date date NOT NULL,
+    file_size bigint DEFAULT 0 NOT NULL,
+    checksum character varying,
+    columns jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: db_exports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.db_exports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: db_exports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.db_exports_id_seq OWNED BY public.db_exports.id;
 
 
 --
@@ -3511,6 +3546,13 @@ ALTER TABLE ONLY public.comments ALTER COLUMN id SET DEFAULT nextval('public.com
 
 
 --
+-- Name: db_exports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.db_exports ALTER COLUMN id SET DEFAULT nextval('public.db_exports_id_seq'::regclass);
+
+
+--
 -- Name: destroyed_posts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4095,6 +4137,14 @@ ALTER TABLE ONLY public.comments
 
 ALTER TABLE ONLY public.config
     ADD CONSTRAINT config_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: db_exports db_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.db_exports
+    ADD CONSTRAINT db_exports_pkey PRIMARY KEY (id);
 
 
 --
@@ -4969,6 +5019,20 @@ CREATE INDEX index_comments_on_post_id_and_is_hidden ON public.comments USING bt
 --
 
 CREATE INDEX index_comments_on_to_tsvector_english_body ON public.comments USING gin (to_tsvector('english'::regconfig, body));
+
+
+--
+-- Name: index_db_exports_on_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_db_exports_on_date ON public.db_exports USING btree (date);
+
+
+--
+-- Name: index_db_exports_on_name_and_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_db_exports_on_name_and_date ON public.db_exports USING btree (name, date);
 
 
 --
@@ -8210,6 +8274,8 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260818151000'),
+('20260818150000'),
 ('20260818140000'),
 ('20260717130000'),
 ('20260717120000'),

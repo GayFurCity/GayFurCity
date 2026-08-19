@@ -1,0 +1,70 @@
+<h1>Database Exports</h1>
+
+<p>
+  Database exports in gzipped CSV format, generated daily. Most tables keep the last
+  <%= DbExport::MAX_AGE.inspect %> of exports, plus a permanent snapshot from the 1st of each month.
+</p>
+<p>
+  Each export lists a SHA-256 checksum of its <code>.csv.gz</code> file. After downloading, verify it
+  with <code>sha256sum &lt;file&gt;</code>. For programmatic access, use the
+  <%= link_to("JSON endpoint", db_exports_path(format: :json)) %>.
+</p>
+
+<% if @exports.any? %>
+  <% @exports.group_by(&:date).sort_by(&:first).reverse.each_with_index do |(date, exports), index| %>
+    <%= tag.details(class: "db-export-date-section", open: index == 0) do %>
+      <summary><%= date.iso8601 %></summary>
+      <%= table_for(exports) do |t| %>
+        <% t.column("Name") do |export| %>
+          <% if export.columns.present? %>
+            <details class="db-export-columns">
+              <summary>
+                <strong><%= export.name %></strong>
+                <%= tag.span("(archived)", class: "db-export-archived") if export.archived? %>
+              </summary>
+              <table class="db-export-columns-table">
+                <thead>
+                  <tr>
+                    <th>Column</th>
+                    <th>Postgres Type</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% export.columns.each do |column_name, column_type| %>
+                    <tr>
+                      <td><code><%= column_name %></code></td>
+                      <td><code><%= column_type %></code></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </details>
+          <% else %>
+            <strong><%= export.name %></strong>
+            <%= tag.span("(archived)", class: "db-export-archived") if export.archived? %>
+          <% end %>
+        <% end %>
+        <% t.column("Size") do |export| %><%= number_to_human_size(export.file_size) %><% end %>
+        <% t.column("Updated") do |export| %><%= time_ago_in_words_tagged(export.updated_at) %><% end %>
+        <% t.column("Checksum (SHA-256)") do |export| %>
+          <% if export.checksum.present? %>
+            <input type="text" class="db-export-checksum select-all" value="<%= export.checksum %>" readonly />
+          <% else %>
+            &mdash;
+          <% end %>
+        <% end %>
+        <% t.column("") do |export| %>
+          <%= link_to(export.url) do %>
+            <i class="fa-solid fa-download"></i> Download
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% else %>
+  <p>No exports are currently available.</p>
+<% end %>
+
+<% content_for(:page_title) do %>
+  Database Exports
+<% end %>

@@ -39,7 +39,7 @@ Yabeda.configure do
   default_tag(:version, GayFurCity.config.version)
 
   group(:storage) do
-    %i[store delete open exists move_file].each do |method|
+    %i[store delete delete_dir open exists move_file].each do |method|
       counter(:"#{method}", comment: "A counter of storage #{method} calls", tags: %i[class])
       counter(:"#{method}_failures", comment: "A counter of failed storage #{method} calls", tags: %i[class])
       histogram(:"#{method}_runtime", comment: "The runtime of storage #{method} calls", tags: %i[class], unit: :seconds, buckets: Prometheus::Client::Histogram::DEFAULT_BUCKETS)

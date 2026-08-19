@@ -174,6 +174,7 @@ Rails.application.routes.draw do
       put(:mark_not_spam)
     end
   end
+  resources(:db_exports, only: %i[index])
   resources(:dmails, only: %i[new create index show destroy]) do
     member do
       put(:mark_as_read)

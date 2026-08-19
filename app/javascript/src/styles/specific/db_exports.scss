@@ -1,0 +1,58 @@
+.db-export-archived {
+  color: themed("color-text-muted");
+  font-size: 0.85em;
+}
+
+.db-export-checksum {
+  width: 100%;
+  font-family: monospace;
+}
+
+.db-export-date-section {
+  margin-bottom: 1em;
+
+  > summary {
+    cursor: pointer;
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 0.5em 0;
+  }
+
+  table.striped {
+    // table.striped defaults to vertical-align: middle - fine for single-line cells, but the Name
+    // cell's columns <details> can grow much taller than the rest of the row when expanded, which
+    // would otherwise center every other cell's content in the middle of that taller row.
+    td {
+      vertical-align: top;
+    }
+
+    // The Download column has no name/class of its own (t.column("")), so target it positionally -
+    // it's always the last column.
+    td:last-child {
+      text-align: right;
+    }
+  }
+}
+
+.db-export-columns {
+  > summary {
+    cursor: pointer;
+    list-style-position: inside;
+  }
+}
+
+.db-export-columns-table {
+  margin-top: 0.5em;
+  font-size: 0.9em;
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.25em 0.5em;
+    border-bottom: 1px solid themed("color-table-border");
+  }
+
+  th {
+    color: themed("color-text-table-header");
+  }
+}

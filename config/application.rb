@@ -50,6 +50,14 @@ module GayFurCity
     config.action_controller.action_on_unpermitted_parameters = :raise
     config.force_ssl = true
     config.active_job.queue_adapter = :good_job
+    config.good_job.enable_cron = true
+    config.good_job.cron = {
+      db_export: {
+        cron:        "0 4 * * *",
+        class:       "DbExportJob",
+        description: "Generate the daily public database exports",
+      },
+    }
 
     if Rails.env.production? && GayFurCity.config.ssl_options.present?
       config.ssl_options = GayFurCity.config.ssl_options

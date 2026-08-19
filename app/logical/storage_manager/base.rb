@@ -4,6 +4,8 @@ module StorageManager
   class Base
     attr_reader(:base_url, :base_dir, :base_path, :hierarchical)
 
+    DB_EXPORT_PREFIX = "db_export"
+
     def initialize(base_url: default_base_url, base_path: default_base_path, base_dir: DEFAULT_BASE_DIR, hierarchical: false)
       @base_url = base_url.chomp("/")
       @base_dir = base_dir
@@ -31,6 +33,13 @@ module StorageManager
     # should be raised.
     def delete(path)
       raise(NotImplementedError, "#{self.class.name}#delete not implemented")
+    end
+
+    # Delete the directory at the given path. If the directory doesn't exist, isn't empty, or the
+    # backend has no real notion of directories, no error should be raised - this is best-effort
+    # cleanup, not a guarantee.
+    def delete_dir(path)
+      raise(NotImplementedError, "#{self.class.name}#delete_dir not implemented")
     end
 
     # Return a readonly copy of the file located at the given path.
@@ -93,6 +102,34 @@ module StorageManager
       old = file_path(md5, file_ext, type, protected: true, prefix: prefix, protected_prefix: protected_prefix, hierarchical: hierarchical)
       new = file_path(md5, file_ext, type, protected: false, prefix: prefix, protected_prefix: protected_prefix, hierarchical: hierarchical)
       move_file(old, new)
+    end
+
+    def db_export_path(file_name)
+      clean_path("#{base_dir}/#{DB_EXPORT_PREFIX}/#{file_name}")
+    end
+
+    def db_export_dir_path(date)
+      clean_path("#{base_dir}/#{DB_EXPORT_PREFIX}/#{date}")
+    end
+
+    def db_export_url_path(file_name)
+      clean_path("#{base_path}/#{DB_EXPORT_PREFIX}/#{file_name}")
+    end
+
+    def db_export_url(file_name)
+      "#{base_url}#{db_export_url_path(file_name)}"
+    end
+
+    def store_db_export(io, file_name)
+      store(io, db_export_path(file_name))
+    end
+
+    def delete_db_export(file_name)
+      delete(db_export_path(file_name))
+    end
+
+    def delete_db_export_dir(date)
+      delete_dir(db_export_dir_path(date))
     end
 
     def subdir_for(md5, hierarchical: :default)

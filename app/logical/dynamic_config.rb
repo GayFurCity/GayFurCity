@@ -207,7 +207,7 @@ module DynamicConfig
     add_boolean_field(:flag_ai_posts, hint: "If posts detected as ai generated should be automatically flagged")
     add_boolean_field(:tag_ai_posts, hint: "If posts detected as ai generated should be automatically tagged")
     add_number_field(:ai_confidence_threshold, hint: "The minimum required threshold to flag/tag ai generated content")
-    add_text_field(:db_exports_path, hint: "The path db exports are located at.")
+    add_boolean_field(:db_exports_enabled, hint: "Whether the database exports page is enabled.")
     add_text_field(:default_blacklist, large: true, input_options: { size: "40x10" })
   end
 

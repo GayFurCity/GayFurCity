@@ -30,8 +30,8 @@
     <%= li_link_to("API Documentation", help_page_path(id: "api")) %>
     <%= li_link_to("Stats", stats_path) %>
     <%= li_link_to("Status", status_path) %>
-    <% if Config.db_exports_path.present? %>
-      <%= li_link_to("DB Exports", Config.db_exports_path) %>
+    <% if Config.db_exports_enabled? %>
+      <%= li_link_to("DB Exports", db_exports_path) %>
     <% end %>
   </ul>
   <ul>

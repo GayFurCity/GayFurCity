@@ -3,6 +3,11 @@
 require("test_helper")
 
 class TelemetryTest < ActiveSupport::TestCase
+  # Cache.redis (unlike the DB) isn't reset between individual tests - only at process boot/teardown
+  # (see test_helper.rb) - so a test that queues an event without flushing it would otherwise leak
+  # into whichever test runs next.
+  setup { Cache.redis.del(Telemetry::QUEUE_KEY) }
+
   def stub_config(enabled:)
     GayFurCity.config.stubs(:telemetry_enabled).returns(enabled)
     GayFurCity.config.stubs(:telemetry_endpoint).returns("https://telemetry.example.com")
@@ -48,12 +53,12 @@ class TelemetryTest < ActiveSupport::TestCase
     should("not enqueue anything when disabled") do
       stub_config(enabled: false)
 
-      assert_no_enqueued_jobs(only: ReportTelemetryJob) do
+      assert_no_enqueued_jobs(only: FlushTelemetryJob) do
         Telemetry.exception(StandardError.new("boom"), source: "Test")
       end
     end
 
-    should("report the exception through ReportTelemetryJob") do
+    should("report the exception through FlushTelemetryJob") do
       stub_config(enabled: true)
       request_stub = stub_request(:post, "https://telemetry.example.com/api/default/gayfurcity/_json")
                      .with do |req|
@@ -72,7 +77,7 @@ class TelemetryTest < ActiveSupport::TestCase
       stub_config(enabled: false)
       user = create(:user)
 
-      assert_no_enqueued_jobs(only: ReportTelemetryJob) do
+      assert_no_enqueued_jobs(only: FlushTelemetryJob) do
         Telemetry.track(:login, user: user, ip: "127.0.0.1")
       end
     end
@@ -80,7 +85,7 @@ class TelemetryTest < ActiveSupport::TestCase
     # track rescues StandardError internally (logging it via ExceptionLog, which itself reports
     # through Telemetry.exception) so bad input never propagates to the caller - a telemetry call
     # shouldn't be able to crash whatever triggered it. The invalid call still results in one
-    # ReportTelemetryJob: a report of the ArgumentError it raised internally, not the original
+    # flushed event: a report of the ArgumentError it raised internally, not the original
     # (never-sent) tracked event.
     should("report the internal error instead of raising for an event that isn't a known UserEvent category") do
       stub_config(enabled: true)
@@ -107,7 +112,7 @@ class TelemetryTest < ActiveSupport::TestCase
       assert_requested(request_stub)
     end
 
-    should("report the event through ReportTelemetryJob") do
+    should("report the event through FlushTelemetryJob") do
       stub_config(enabled: true)
       user = create(:user)
       request_stub = stub_request(:post, "https://telemetry.example.com/api/default/gayfurcity/_json")
@@ -119,6 +124,47 @@ class TelemetryTest < ActiveSupport::TestCase
       with_inline_jobs { Telemetry.track(:login, user: user, ip: "127.0.0.1") }
 
       assert_requested(request_stub)
+    end
+
+    # Telemetry.track only pushes onto the pending queue and schedules a flush - it doesn't itself
+    # send anything. Draining is FlushTelemetryJob/Telemetry.flush!'s job, tested below.
+    should("only queue the event, not send a request, without a flush") do
+      stub_config(enabled: true)
+      user = create(:user)
+
+      Telemetry.track(:login, user: user, ip: "127.0.0.1")
+
+      assert_not_requested(:post, /telemetry\.example\.com/)
+      assert_equal(1, Cache.redis.llen(Telemetry::QUEUE_KEY))
+    end
+  end
+
+  context("flush!") do
+    # This is what actually implements the batching: FlushTelemetryJob (debounced via
+    # good_job_control_concurrency_with so only one is enqueued/running at a time) calls this to
+    # drain whatever accumulated in the pending queue and send it as a single bulk request, instead
+    # of one request per originally-queued event.
+    should("combine every pending event into a single bulk request") do
+      stub_config(enabled: true)
+      request_stub = stub_request(:post, "https://telemetry.example.com/api/default/gayfurcity/_json")
+                     .with { |req| JSON.parse(req.body).pluck("event") == %w[login login logout] }
+
+      Telemetry.enqueue!(event: "login")
+      Telemetry.enqueue!(event: "login")
+      Telemetry.enqueue!(event: "logout")
+
+      Telemetry.flush!
+
+      assert_requested(request_stub, times: 1)
+      assert_equal(0, Cache.redis.llen(Telemetry::QUEUE_KEY))
+    end
+
+    should("not make a request when there is nothing pending") do
+      stub_config(enabled: true)
+
+      Telemetry.flush!
+
+      assert_not_requested(:post, /telemetry\.example\.com/)
     end
   end
 end

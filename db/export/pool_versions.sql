@@ -10,6 +10,7 @@ SELECT pool_versions.id,
        pool_versions.name_changed,
        pool_versions.created_at,
        pool_versions.updated_at,
-       pool_versions.is_active,
+       pool_versions.is_ongoing,
+       pool_versions.is_ongoing_changed,
        pool_versions.version
 FROM public.pool_versions ORDER BY pool_versions.id ASC

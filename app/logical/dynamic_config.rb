@@ -212,10 +212,10 @@ module DynamicConfig
   end
 
   category("Timeouts") do
-    add_per_level_field(:postgres_query_timeout, hint: "Max time in milliseconds a single Postgres query may run before being canceled")
-    add_per_level_field(:elasticsearch_query_timeout, hint: "Max time in milliseconds Elasticsearch spends executing a single search before returning whatever it has")
-    add_per_level_field(:elasticsearch_request_timeout, hint: "Max time in seconds to wait on an Elasticsearch response before aborting the request client-side")
-    add_per_level_field(:request_cycle_timeout, hint: "Max time in milliseconds a full request (queries, rendering, everything) may run before being canceled")
+    add_per_level_field(:postgres_query_timeout, hint: "Max time in milliseconds a single Postgres query may run before being canceled", minimum: User::Levels::ANONYMOUS)
+    add_per_level_field(:elasticsearch_query_timeout, hint: "Max time in milliseconds Elasticsearch spends executing a single search before returning whatever it has", minimum: User::Levels::ANONYMOUS)
+    add_per_level_field(:elasticsearch_request_timeout, hint: "Max time in seconds to wait on an Elasticsearch response before aborting the request client-side", minimum: User::Levels::ANONYMOUS)
+    add_per_level_field(:request_cycle_timeout, hint: "Max time in milliseconds a full request (queries, rendering, everything) may run before being canceled", minimum: User::Levels::ANONYMOUS)
   end
 
   category("Wiki Pages") do

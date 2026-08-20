@@ -189,7 +189,7 @@ class PostEvent < ApplicationRecord
         %i[post_replacement_id md5 storage_id]
       end,
     },
-    replacement_transferred:       {
+    replacement_transferred: {
       text: ->(log) { "\"replacement ##{log.post_replacement_id}\":#{url.post_replacements_path(search: { id: log.post_replacement_id })} (post ##{log.old_post} -> post ##{log.new_post})" },
       json: %i[post_replacement_id old_post new_post],
     },

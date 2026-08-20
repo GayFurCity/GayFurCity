@@ -215,7 +215,14 @@ class ApplicationController < ActionController::Base
   # timeouts on individual Postgres queries (statement_timeout) and Elasticsearch requests
   # (request_timeout) that fire first for the common case. This is only a backstop for the rest of
   # the action - rendering, view logic, non-DB work - not the primary defense.
+  #
+  # Skipped entirely in test: there's no production traffic to protect, and an async Thread#raise
+  # landing mid-Open3.capture3 (exiftool/ffmpeg/webpmux, all used by upload/variant processing)
+  # leaves its reader threads blocked on a pipe the interrupted thread already closed - "stream
+  # closed in another thread (IOError)". A CPU-starved CI runner makes ordinarily-fast requests
+  # slow enough to cross even a generous timeout, so this fired for real, unrelated test failures.
   def enforce_request_cycle_timeout(&action)
+    return action.call if Rails.env.test?
     timeout = Config.get_user(:request_cycle_timeout, CurrentUser.user)
     timeout = 10_000 unless timeout.is_a?(Numeric) # jsonb has no schema - guard against a corrupt stored value
     return action.call unless timeout.finite?

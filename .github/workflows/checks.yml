@@ -3,7 +3,8 @@ name: Checks
 on:
   push:
     branches:
-      - master
+      # master is covered by build.yml, which calls this workflow itself (workflow_call below) -
+      # triggering here too would run every job twice on every push to master.
       - dev
       - build-*
   pull_request:

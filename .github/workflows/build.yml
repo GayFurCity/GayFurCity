@@ -6,6 +6,12 @@ on:
       - master
     tags:
       - '**'
+  workflow_dispatch:
+    inputs:
+      skip_checks:
+        description: "Skip checks and publish immediately"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -13,12 +19,15 @@ permissions:
 
 jobs:
   checks:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.skip_checks) }}
     uses: ./.github/workflows/checks.yml
     permissions:
       contents: read
       checks: write
   build:
-    if: github.repository_owner == 'gayfurcity'
+    # needs.checks.result is 'skipped' (not 'success') when skip_checks was used above - both
+    # count as "go ahead", only an actual check failure should block publishing.
+    if: always() && github.repository_owner == 'gayfurcity' && (needs.checks.result == 'success' || needs.checks.result == 'skipped')
     needs: [checks]
     strategy:
       fail-fast: false

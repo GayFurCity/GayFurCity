@@ -1,0 +1,7 @@
+<%= form_search(path: bulk_update_request_imports_path) do |f| %>
+  <%= f.user(:creator) %>
+  <%= f.user(:updater) %>
+  <%= f.input(:forum_topic_id, label: "Forum Topic ID") %>
+  <%= f.input(:script_matches, label: "Script") %>
+  <%= f.input(:status, collection: BulkUpdateRequestImport.statuses.keys, include_blank: true) %>
+<% end %>

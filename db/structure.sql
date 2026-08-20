@@ -304,6 +304,44 @@ ALTER SEQUENCE public.bans_id_seq OWNED BY public.bans.id;
 
 
 --
+-- Name: bulk_update_request_imports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bulk_update_request_imports (
+    id bigint NOT NULL,
+    creator_id bigint NOT NULL,
+    creator_ip_addr inet NOT NULL,
+    updater_id bigint NOT NULL,
+    updater_ip_addr inet NOT NULL,
+    forum_topic_id bigint,
+    script text NOT NULL,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    status_message text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: bulk_update_request_imports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.bulk_update_request_imports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: bulk_update_request_imports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.bulk_update_request_imports_id_seq OWNED BY public.bulk_update_request_imports.id;
+
+
+--
 -- Name: bulk_update_request_versions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3535,6 +3573,13 @@ ALTER TABLE ONLY public.bans ALTER COLUMN id SET DEFAULT nextval('public.bans_id
 
 
 --
+-- Name: bulk_update_request_imports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bulk_update_request_imports ALTER COLUMN id SET DEFAULT nextval('public.bulk_update_request_imports_id_seq'::regclass);
+
+
+--
 -- Name: bulk_update_request_versions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4114,6 +4159,14 @@ ALTER TABLE ONLY public.avoid_postings
 
 ALTER TABLE ONLY public.bans
     ADD CONSTRAINT bans_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: bulk_update_request_imports bulk_update_request_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bulk_update_request_imports
+    ADD CONSTRAINT bulk_update_request_imports_pkey PRIMARY KEY (id);
 
 
 --
@@ -4931,6 +4984,34 @@ CREATE INDEX index_bans_on_expires_at ON public.bans USING btree (expires_at);
 --
 
 CREATE INDEX index_bans_on_user_id ON public.bans USING btree (user_id);
+
+
+--
+-- Name: index_bulk_update_request_imports_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bulk_update_request_imports_on_creator_id ON public.bulk_update_request_imports USING btree (creator_id);
+
+
+--
+-- Name: index_bulk_update_request_imports_on_forum_topic_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bulk_update_request_imports_on_forum_topic_id ON public.bulk_update_request_imports USING btree (forum_topic_id);
+
+
+--
+-- Name: index_bulk_update_request_imports_on_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bulk_update_request_imports_on_status ON public.bulk_update_request_imports USING btree (status);
+
+
+--
+-- Name: index_bulk_update_request_imports_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bulk_update_request_imports_on_updater_id ON public.bulk_update_request_imports USING btree (updater_id);
 
 
 --
@@ -6995,6 +7076,14 @@ ALTER TABLE ONLY public.posts
 
 
 --
+-- Name: bulk_update_request_imports fk_rails_08b1320e63; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bulk_update_request_imports
+    ADD CONSTRAINT fk_rails_08b1320e63 FOREIGN KEY (updater_id) REFERENCES public.users(id);
+
+
+--
 -- Name: posts fk_rails_0a1365d9c4; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7040,6 +7129,14 @@ ALTER TABLE ONLY public.tag_followers
 
 ALTER TABLE ONLY public.uploads
     ADD CONSTRAINT fk_rails_127111e6ac FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: bulk_update_request_imports fk_rails_132718aca7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bulk_update_request_imports
+    ADD CONSTRAINT fk_rails_132718aca7 FOREIGN KEY (forum_topic_id) REFERENCES public.forum_topics(id);
 
 
 --
@@ -7699,6 +7796,14 @@ ALTER TABLE ONLY public.user_feedbacks
 
 
 --
+-- Name: bulk_update_request_imports fk_rails_9460e9eacc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bulk_update_request_imports
+    ADD CONSTRAINT fk_rails_9460e9eacc FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
 -- Name: post_replacement_rejection_reasons fk_rails_95ac45c762; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8305,6 +8410,7 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260820010000'),
 ('20260820000000'),
 ('20260819200000'),
 ('20260819190000'),

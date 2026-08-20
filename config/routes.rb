@@ -21,7 +21,6 @@ Rails.application.routes.draw do
         get(:alt_list)
       end
     end
-    resource(:bulk_update_request_import, only: %i[new create])
     resource(:dashboard, only: %i[show])
     resources(:exceptions, only: %i[index show])
     resource(:logs, only: []) do
@@ -152,6 +151,7 @@ Rails.application.routes.draw do
           put(:undo)
         end
       end
+      resources(:imports, controller: "bulk_update_requests/imports", as: "bulk_update_request_imports", only: %i[index show new create edit update])
     end
   end
   resources(:comments) do

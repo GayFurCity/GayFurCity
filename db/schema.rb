@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_20_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_20_010000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -117,6 +117,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_20_000000) do
     t.index ["banner_id"], name: "index_bans_on_banner_id"
     t.index ["expires_at"], name: "index_bans_on_expires_at"
     t.index ["user_id"], name: "index_bans_on_user_id"
+  end
+
+  create_table "bulk_update_request_imports", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "creator_id", null: false
+    t.inet "creator_ip_addr", null: false
+    t.bigint "forum_topic_id"
+    t.text "script", null: false
+    t.string "status", default: "pending", null: false
+    t.text "status_message"
+    t.datetime "updated_at", null: false
+    t.bigint "updater_id", null: false
+    t.inet "updater_ip_addr", null: false
+    t.index ["creator_id"], name: "index_bulk_update_request_imports_on_creator_id"
+    t.index ["forum_topic_id"], name: "index_bulk_update_request_imports_on_forum_topic_id"
+    t.index ["status"], name: "index_bulk_update_request_imports_on_status"
+    t.index ["updater_id"], name: "index_bulk_update_request_imports_on_updater_id"
   end
 
   create_table "bulk_update_request_versions", force: :cascade do |t|
@@ -1704,6 +1721,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_20_000000) do
   add_foreign_key "avoid_postings", "users", column: "updater_id"
   add_foreign_key "bans", "users"
   add_foreign_key "bans", "users", column: "banner_id"
+  add_foreign_key "bulk_update_request_imports", "forum_topics"
+  add_foreign_key "bulk_update_request_imports", "users", column: "creator_id"
+  add_foreign_key "bulk_update_request_imports", "users", column: "updater_id"
   add_foreign_key "bulk_update_request_versions", "bulk_update_requests"
   add_foreign_key "bulk_update_request_versions", "users", column: "updater_id"
   add_foreign_key "bulk_update_requests", "forum_posts", on_delete: :nullify

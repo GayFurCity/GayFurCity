@@ -331,6 +331,18 @@ class ModAction < ApplicationRecord
     },
 
     ### Bulk Update Request ###
+    bulk_update_request_import_create:          {
+      text: ->(mod, _user) { "Created bulk update request import ##{mod.subject_id}" },
+      json: %i[],
+    },
+    bulk_update_request_import_update:          {
+      text: ->(mod, _user) { "Updated bulk update request import ##{mod.subject_id}" },
+      json: %i[],
+    },
+    bulk_update_request_import_retry:           {
+      text: ->(mod, _user) { "Retried bulk update request import ##{mod.subject_id}" },
+      json: %i[],
+    },
     mass_update:                                {
       text: ->(mod, _user) { "Mass updated {{#{mod.antecedent}}} -> {{#{mod.consequent}}}" },
       json: %i[antecedent consequent],

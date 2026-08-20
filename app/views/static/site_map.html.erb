@@ -127,7 +127,7 @@
     <%= li_link_to_if(policy(%i[admin user]).alt_list?, "Alt list", alt_list_admin_users_path) %>
     <%= li_link_to_if(policy(:stuck_dnp).create?, "Stuck DNP tags", new_admin_stuck_dnp_path) %>
     <%= li_link_to_if(policy(DestroyedPost).index?, "Destroyed Posts", admin_destroyed_posts_path) %></li>
-    <%= li_link_to_if(policy(BulkUpdateRequestImport).create?, "Bulk Update Request Import", new_admin_bulk_update_request_import_path) %>
+    <%= li_link_to_if(policy(BulkUpdateRequestImport).create?, "Bulk Update Request Import", new_bulk_update_request_import_path) %>
     <%= li_link_to_if(policy(:reowner).create?, "Post Reowner", new_admin_reowner_path) %>
     <%= li_link_to_if(policy(MediaAsset).show_statuses?, "File Statuses", media_asset_status_path) %>
     <%= li_link_to("Upload Whitelist", upload_whitelists_path) %>

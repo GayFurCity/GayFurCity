@@ -12,8 +12,11 @@
     <% end %>
     <%= subnav_link_to("History", bulk_update_request_versions_path(search: { bulk_update_request_id: @bulk_update_request.id })) %>
   <% end %>
-  <% if policy(BulkUpdateRequestImport).create? %>
+  <% if policy(BulkUpdateRequestImport).index? %>
     |
-    <%= subnav_link_to("Import", new_admin_bulk_update_request_import_path) %>
+    <%= subnav_link_to("Imports", bulk_update_request_imports_path) %>
+    <% if policy(BulkUpdateRequestImport).create? %>
+      <%= subnav_link_to("New Import", new_bulk_update_request_import_path) %>
+    <% end %>
   <% end %>
 <% end %>

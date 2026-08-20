@@ -1,0 +1,28 @@
+<%= render("search") %>
+
+<%= table_for(@imports) do |t| %>
+  <% t.column("ID") do |import| %>
+    <%= import.id %>
+  <% end %>
+  <% t.column("Created At", th: { style: "width: 200px;" }) do |import| %>
+    <%= compact_time(import.created_at) %>
+  <% end %>
+  <% t.column(:status) %>
+  <% t.column("Creator") do |import| %>
+    <%= link_to_user(import.creator) %>
+  <% end %>
+  <% t.column("Message") do |import| %>
+    <%= truncate(import.status_message, length: 200) %>
+  <% end %>
+  <% t.column("Actions") do |import| %>
+    <%= link_to("Edit", edit_bulk_update_request_import_path(import)) if import.failed? %>
+  <% end %>
+<% end %>
+
+<%= render("bulk_update_requests/secondary_links") %>
+
+<% content_for(:page_title) do %>
+  Bulk Update Request Imports
+<% end %>
+
+<%= numbered_paginator(@imports) %>

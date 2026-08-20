@@ -1,0 +1,44 @@
+<h1>Bulk Update Request Import</h1>
+
+<%= form_tag(bulk_update_request_imports_path, class: "simple_form") do %>
+  <pre>Use the following format:</pre>
+  <ul class="hint" id="script-help" title="Bulk Update Request Help">
+    <li>unalias aaa -> bbb</li>
+        <li>unimply aaa -> bbb</li>
+        <li>alias aaa -> bbb</li>
+        <li>imply aaa -> bbb</li>
+        <li>update aaa -> bbb</li>
+        <li>category tag_name -> category_name</li>
+        <li>deprecate aaa</li>
+        <li>undeprecate aaa</li>
+    <% if Config.user?(:bur_nuke, CurrentUser.user) %>
+      <li>nuke tag_name</li>
+    <% end %>
+    <li># comment</li>
+  </ul>
+
+  <div class="input">
+    <label for="bulk_update_request_import_script">
+      Script
+    </label>
+    <%= text_area("bulk_update_request_import", "script", size: "60x20", value: @importer.try(:script_with_comments_and_errors)) %>
+    <% if @error %>
+      <span class="error"><%= @error.message %></span>
+    <% end %>
+  </div>
+
+  <div class="input">
+    <label for="bulk_update_request_import_forum_topic_id">
+      Topic ID
+    </label>
+    <%= text_field("bulk_update_request_import", "forum_topic_id", value: @importer.try(:forum_topic_id)) %>
+  </div>
+
+  <%= submit_tag("Import") %>
+<% end %>
+
+<%= render("bulk_update_requests/secondary_links") %>
+
+<% content_for(:page_title) do %>
+  Bulk Update Request Import
+<% end %>

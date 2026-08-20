@@ -1,0 +1,47 @@
+<h1>Edit Bulk Update Request Import</h1>
+
+<% if @error.nil? && @import.status_message.present? %>
+  <p class="error">Failed: <%= @import.status_message %></p>
+<% end %>
+
+<%= form_tag(bulk_update_request_import_path(@import), method: :patch, class: "simple_form") do %>
+  <pre>
+Use the following format:
+
+unalias aaa -> bbb
+unimply aaa -> bbb
+alias aaa -> bbb
+imply aaa -> bbb
+update aaa -> bbb
+rename aaa -> bbb
+category aaa -> general
+deprecate aaa
+undeprecate bbb
+# comment
+  </pre>
+
+  <div class="input">
+    <label for="bulk_update_request_import_script">
+      Script
+    </label>
+    <%= text_area("bulk_update_request_import", "script", size: "60x20", value: @import.script_with_comments_and_errors) %>
+    <% if @error %>
+      <span class="error"><%= @error.message %></span>
+    <% end %>
+  </div>
+
+  <div class="input">
+    <label for="bulk_update_request_import_forum_topic_id">
+      Topic ID
+    </label>
+    <%= text_field("bulk_update_request_import", "forum_topic_id", value: @import.forum_topic_id) %>
+  </div>
+
+  <%= submit_tag("Update & Retry") %>
+<% end %>
+
+<%= render("bulk_update_requests/secondary_links") %>
+
+<% content_for(:page_title) do %>
+  Edit Bulk Update Request Import
+<% end %>

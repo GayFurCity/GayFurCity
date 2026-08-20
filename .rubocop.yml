@@ -108,6 +108,7 @@ Rails/Output:
     - db/seeds.rb
     - db/seeds/*.rb
     - db/fixes/*.rb
+    - lib/fix_tracker.rb
   Include:
     - test/**/*.rb
 
@@ -285,6 +286,7 @@ Rails/SquishedSQLHeredocs:
   Enabled: true
   Exclude:
     - db/migrate/*.rb
+    - lib/fix_tracker.rb
 
 # these two cause an infinite loop with eachother
 

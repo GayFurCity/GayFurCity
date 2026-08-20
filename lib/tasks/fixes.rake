@@ -1,12 +1,21 @@
 # frozen_string_literal: true
 
+# Keep structure.sql's fixes rows in sync with the database on every schema dump, the same way
+# ActiveRecord keeps schema_migrations rows in sync - not just when `fixes:migrate` runs.
+Rake::Task["db:schema:dump"].enhance do
+  FixTracker.dump_structure_sql!
+end
+
 namespace(:fixes) do
-  desc("List available fix scripts in db/fixes")
+  desc("List available fix scripts in db/fixes, marking which have already been applied")
   task(list: :environment) do
-    Dir["db/fixes/*.rb"].each { |f| puts(File.basename(f, ".rb")) }
+    applied = FixTracker.applied
+    FixTracker.all_fixes.each do |name|
+      puts("#{applied.include?(FixTracker.key_for(name)) ? '[x]' : '[ ]'} #{name}")
+    end
   end
 
-  desc("Run a fix script from db/fixes by id or name, e.g. `rake fixes:run[208]`")
+  desc("Run a fix script from db/fixes by id or name, e.g. `rake fixes:run[208]` - re-runs even if already recorded as applied")
   task(:run, [:name] => :environment) do |_task, args|
     name = args[:name].to_s.delete_suffix(".rb")
     abort("Usage: rake fixes:run[id_or_name] (see `rake fixes:list`)") if name.blank?
@@ -21,8 +30,19 @@ namespace(:fixes) do
       abort("Multiple fixes match \"#{name}\", be more specific:\n#{matches.map { |m| "  #{File.basename(m, '.rb')}" }.join("\n")}")
     end
 
-    path = matches.first
-    puts("Running #{File.basename(path)}...")
-    load(File.expand_path(path))
+    FixTracker.run!(matches.first)
+  end
+
+  desc("Apply all fix scripts not yet recorded as applied, in order, then dump the schema like db:migrate does")
+  task(migrate: :environment) do
+    pending = FixTracker.pending
+
+    if pending.empty?
+      puts("No pending fixes.")
+    else
+      pending.each { |name| FixTracker.run!(FixTracker.fix_path(name)) }
+    end
+
+    Rake::Task["db:_dump"].invoke
   end
 end

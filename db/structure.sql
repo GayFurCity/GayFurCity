@@ -945,6 +945,16 @@ ALTER SEQUENCE public.favorites_id_seq OWNED BY public.favorites.id;
 
 
 --
+-- Name: fixes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.fixes (
+    id integer NOT NULL,
+    index integer
+);
+
+
+--
 -- Name: forum_categories; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5169,6 +5179,13 @@ CREATE UNIQUE INDEX index_favorites_on_user_id_and_post_id ON public.favorites U
 
 
 --
+-- Name: index_fixes_on_id_and_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_fixes_on_id_and_index ON public.fixes USING btree (id, index) NULLS NOT DISTINCT;
+
+
+--
 -- Name: index_forum_categories_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8288,6 +8305,7 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260820000000'),
 ('20260819200000'),
 ('20260819190000'),
 ('20260819170000'),
@@ -8455,3 +8473,65 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220203154846'),
 ('20220106081415');
 
+INSERT INTO "fixes" (id, index) VALUES
+(232, NULL),
+(231, 2),
+(231, 1),
+(230, 2),
+(230, 1),
+(229, NULL),
+(228, NULL),
+(227, NULL),
+(226, NULL),
+(225, 2),
+(225, 1),
+(224, NULL),
+(223, NULL),
+(222, NULL),
+(221, NULL),
+(220, 2),
+(220, 1),
+(219, NULL),
+(218, NULL),
+(217, NULL),
+(216, NULL),
+(215, NULL),
+(214, NULL),
+(213, NULL),
+(212, NULL),
+(211, 2),
+(211, 1),
+(210, NULL),
+(209, NULL),
+(208, NULL),
+(207, 2),
+(207, 1),
+(206, NULL),
+(205, NULL),
+(204, NULL),
+(203, 2),
+(203, 1),
+(202, NULL),
+(201, NULL),
+(200, NULL),
+(119, NULL),
+(118, NULL),
+(116, NULL),
+(115, NULL),
+(114, 2),
+(114, 1),
+(113, NULL),
+(112, NULL),
+(111, NULL),
+(110, NULL),
+(109, NULL),
+(108, NULL),
+(107, NULL),
+(106, NULL),
+(105, NULL),
+(104, 2),
+(104, 1),
+(103, NULL),
+(102, NULL),
+(101, NULL),
+(100, NULL);

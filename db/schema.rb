@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_19_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_20_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -462,6 +462,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_19_200000) do
     t.index ["post_id"], name: "index_favorites_on_post_id"
     t.index ["user_id", "post_id"], name: "index_favorites_on_user_id_and_post_id", unique: true
     t.index ["user_id"], name: "index_favorites_on_user_id"
+  end
+
+  create_table "fixes", id: false, force: :cascade do |t|
+    t.integer "id", null: false
+    t.integer "index"
+    t.index ["id", "index"], name: "index_fixes_on_id_and_index", unique: true, nulls_not_distinct: true
   end
 
   create_table "forum_categories", force: :cascade do |t|

@@ -15,13 +15,13 @@
 | [app/controllers/uploads_controller.rb](app/controllers/uploads_controller.rb#L12) | 12 | this route has many performance issues and needs to be revised |
 | [app/logical/favorite_manager.rb](app/logical/favorite_manager.rb#L53) | 53 | Much better and more intelligent logic can exist for this |
 | [app/models/forum_topic.rb](app/models/forum_topic.rb#L172) | 172 | revisit muting, it may need to be further optimized or removed due to performance issues |
-| [app/models/post_event.rb](app/models/post_event.rb#L98) | 98 | We need access control/blocks for associations |
+| [app/models/post_event.rb](app/models/post_event.rb#L99) | 99 | We need access control/blocks for associations |
 | [app/models/post_flag.rb](app/models/post_flag.rb#L52) | 52 | We need access control/blocks for associations |
 | [app/models/post_set.rb](app/models/post_set.rb#L122) | 122 | convert to user throttle |
 | [app/models/tag_alias.rb](app/models/tag_alias.rb#L140) | 140 | This causes every empty line except for the very first one will get stripped. At the end of the day, it's not a huge deal. |
 | [app/models/tag_alias.rb](app/models/tag_alias.rb#L167) | 167 | Race condition with indexing jobs here. |
 | [app/models/tag_implication.rb](app/models/tag_implication.rb#L207) | 207 | Race condition with indexing jobs here. |
-| [app/models/ticket.rb](app/models/ticket.rb#L167) | 167 | We need access control/blocks for associations |
+| [app/models/ticket.rb](app/models/ticket.rb#L170) | 170 | We need access control/blocks for associations |
 | [app/models/user_vote.rb](app/models/user_vote.rb#L61) | 61 | this join is used for both sides despite only being needed for the id side |
 | [app/controllers/forums/topics_controller.rb](app/controllers/forums/topics_controller.rb#L20) | 20 | revisit muting, it may need to be further optimized or removed due to performance issues |
 | [app/logical/vote_manager/posts.rb](app/logical/vote_manager/posts.rb#L90) | 90 | this can likely be optimized to just update post ids |
@@ -39,7 +39,7 @@
 | [test/unit/post_test.rb](test/unit/post_test.rb#L1782) | 1782 | Needs to reload relationship to obtain non cached value |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L2236) | 2236 | These don't quite make sense, what should hide deleted posts and what shouldn't? |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L2669) | 2669 | These are pretty messed up, both structurally, and expectation wise. |
-| [config/config.rb](config/config.rb#L195) | 195 | appealed posts should be visible, but this makes it far too easy to get the contents of deleted posts at a moments notice |
+| [config/config.rb](config/config.rb#L194) | 194 | appealed posts should be visible, but this makes it far too easy to get the contents of deleted posts at a moments notice |
 
 ### XXXs
 | Filename | line # | XXX |

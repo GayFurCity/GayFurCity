@@ -516,7 +516,6 @@ CREATE TABLE public.config (
     post_replacement_per_post_limit integer DEFAULT 5 NOT NULL,
     post_replacement_per_post_limit_bypass integer DEFAULT 20 NOT NULL,
     compact_uploader_minimum_posts integer DEFAULT 10 NOT NULL,
-    tag_query_limit integer DEFAULT 40 NOT NULL,
     bur_entry_limit jsonb DEFAULT '{"10": 50, "40": -1}'::jsonb NOT NULL,
     max_numbered_pages integer DEFAULT 1000 NOT NULL,
     max_per_page integer DEFAULT 500 NOT NULL,
@@ -615,7 +614,9 @@ CREATE TABLE public.config (
     deleted_preview_url character varying DEFAULT '/images/deleted-preview.png'::character varying NOT NULL,
     download_preview_url character varying DEFAULT '/images/download-preview.png'::character varying NOT NULL,
     missing_preview_url character varying DEFAULT '/images/missing-preview.png'::character varying NOT NULL,
-    placeholder_preview_url character varying DEFAULT '/images/placeholder-preview.png'::character varying NOT NULL
+    placeholder_preview_url character varying DEFAULT '/images/placeholder-preview.png'::character varying NOT NULL,
+    tag_query_limit jsonb DEFAULT '{"0": 40}'::jsonb NOT NULL,
+    anonymous_hard_tag_limit integer DEFAULT 40 NOT NULL
 );
 
 
@@ -8287,6 +8288,8 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260819200000'),
+('20260819190000'),
 ('20260819170000'),
 ('20260819160100'),
 ('20260819160000'),

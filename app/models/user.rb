@@ -928,7 +928,7 @@ class User < ApplicationRecord
     end
 
     def tag_query_limit
-      Config.instance.tag_query_limit
+      Config.get_user(:tag_query_limit, self)
     end
 
     def favorite_limit

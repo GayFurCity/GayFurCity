@@ -181,7 +181,7 @@ module Posts
           janitor = create(:janitor_user)
           put_auth(reject_post_replacement_path(@replacement), janitor)
 
-          assert_redirected_to(post_path(@post))
+          assert_response(:success)
 
           @replacement.reload
           @post.reload
@@ -195,7 +195,7 @@ module Posts
         should("reject replacement with a reason") do
           put_auth(reject_post_replacement_path(@replacement), @user, params: { post_replacement: { reason: "test" } })
 
-          assert_redirected_to(post_path(@post))
+          assert_response(:success)
           @replacement.reload
           @post.reload
 
@@ -207,7 +207,7 @@ module Posts
 
         context("access control") do
           asserts do
-            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).put { reject_post_replacement_path(@replacement) }.success(:redirect)
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).put { reject_post_replacement_path(@replacement) }
             access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).json.put { reject_post_replacement_path(@replacement) }
           end
         end
@@ -243,7 +243,7 @@ module Posts
         should("replace post") do
           put_auth(approve_post_replacement_path(@replacement), create(:janitor_user))
 
-          assert_redirected_to(post_path(@post))
+          assert_response(:success)
           @replacement.reload
           @post.reload
 
@@ -254,7 +254,7 @@ module Posts
 
         context("access control") do
           asserts do
-            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).put { approve_post_replacement_path(@replacement) }.success(:redirect)
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).put { approve_post_replacement_path(@replacement) }
             access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).json.put { approve_post_replacement_path(@replacement) }
           end
         end
@@ -272,7 +272,7 @@ module Posts
         should("let the post's own uploader revert to a previous replacement without the approve permission") do
           put_auth(approve_post_replacement_path(@old_replacement), @member)
 
-          assert_response(:redirect)
+          assert_response(:success)
           assert_equal("approved", @old_replacement.reload.status)
         end
 
@@ -296,7 +296,7 @@ module Posts
           post_auth(promote_post_replacement_path(@replacement), create(:janitor_user))
           last_post = Post.last
 
-          assert_redirected_to(post_path(last_post))
+          assert_response(:success)
           @replacement.reload
           @post.reload
 
@@ -307,7 +307,7 @@ module Posts
 
         context("access control") do
           asserts do
-            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).post { promote_post_replacement_path(@replacement) }.success(:redirect)
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).post { promote_post_replacement_path(@replacement) }
             access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).json.post { promote_post_replacement_path(@replacement) }
           end
         end
@@ -321,7 +321,7 @@ module Posts
           assert(@replacement.penalize_uploader_on_approve)
           put_auth(toggle_penalize_post_replacement_path(@replacement), @user)
 
-          assert_redirected_to(post_replacement_path(@replacement))
+          assert_response(:success)
           @replacement.reload
 
           assert_not(@replacement.penalize_uploader_on_approve)
@@ -331,7 +331,7 @@ module Posts
           setup { @replacement.approve!(create(:admin_user), penalize_current_uploader: true) }
 
           asserts do
-            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).put { toggle_penalize_post_replacement_path(@replacement) }.success(:redirect)
+            access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).put { toggle_penalize_post_replacement_path(@replacement) }
             access.levels([User::Levels::JANITOR, User::Levels::ADMIN, User::Levels::OWNER]).json.put { toggle_penalize_post_replacement_path(@replacement) }
           end
         end
@@ -441,14 +441,14 @@ module Posts
         should("work") do
           delete_auth(post_replacement_path(@replacement), @admin)
 
-          assert_redirected_to(post_path(@post))
+          assert_response(:success)
           assert_not(::PostReplacement.exists?(@replacement.id))
           assert_equal("expunged", @replacement.media_asset.reload.status)
         end
 
         context("access control") do
           asserts do
-            access.gte(User::Levels::ADMIN).delete { post_replacement_path(@replacement) }.success(:redirect)
+            access.gte(User::Levels::ADMIN).delete { post_replacement_path(@replacement) }
             access.gte(User::Levels::ADMIN).json.delete { post_replacement_path(@replacement) }.success(:no_content)
           end
         end

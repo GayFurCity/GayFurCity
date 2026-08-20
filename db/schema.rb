@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_19_170000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_19_200000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -198,6 +198,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_19_170000) do
     t.integer "ai_confidence_threshold", default: 50, null: false
     t.integer "alias_and_implication_forum_category", default: 1, null: false
     t.integer "alias_category_change_cutoff", default: 10000, null: false
+    t.integer "anonymous_hard_tag_limit", default: 40, null: false
     t.string "anonymous_user_name", default: "Anonymous", null: false
     t.string "app_description", default: "Your one-stop shop for gay furries.", null: false
     t.string "app_name", default: "GayFur City", null: false
@@ -323,7 +324,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_19_170000) do
     t.string "system_user_name", default: "System", null: false
     t.boolean "tag_ai_posts", default: true, null: false
     t.jsonb "tag_change_request_update_limit", default: {"15" => 500, "20" => 1000, "30" => 10000, "40" => 100000, "50" => -1}, null: false
-    t.integer "tag_query_limit", default: 40, null: false
+    t.jsonb "tag_query_limit", default: {"0" => 40}, null: false
     t.integer "tag_suggestion_limit", default: 15, null: false
     t.integer "tag_suggestion_limit_bypass", default: 15, null: false
     t.jsonb "tag_type_edit_implicit_limit", default: {"10" => 100, "15" => 1000}, null: false

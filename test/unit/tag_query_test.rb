@@ -42,4 +42,31 @@ class TagQueryTest < ActiveSupport::TestCase
       TagQuery.new("rating:s width:10 height:10 user:bob #{[*'aa'..'zz'].join(' ')}", @user)
     end
   end
+
+  context("anonymous_hard_tag_limit") do
+    should("reject an anonymous query over the limit before parsing it") do
+      Config.any_instance.stubs(:anonymous_hard_tag_limit).returns(2)
+      TagQuery.any_instance.expects(:parse_query).never
+
+      assert_raise(TagQuery::CountExceededError) do
+        TagQuery.new("a b c", User.anonymous)
+      end
+    end
+
+    should("not affect logged-in users") do
+      Config.any_instance.stubs(:anonymous_hard_tag_limit).returns(2)
+
+      assert_nothing_raised do
+        TagQuery.new("a b c", @user)
+      end
+    end
+
+    should("not reject an anonymous query at or under the limit") do
+      Config.any_instance.stubs(:anonymous_hard_tag_limit).returns(2)
+
+      assert_nothing_raised do
+        TagQuery.new("a b", User.anonymous)
+      end
+    end
+  end
 end

@@ -23,6 +23,23 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
 
           assert_response(:success)
         end
+
+        should("reject an anonymous search over the hard tag limit before it reaches TagQuery") do
+          Config.any_instance.stubs(:anonymous_hard_tag_limit).returns(2)
+          TagQuery.expects(:new).never
+
+          get(posts_path, params: { tags: "a b c" })
+
+          assert_response(:unprocessable_content)
+        end
+
+        should("not apply the anonymous hard tag limit to logged-in users") do
+          Config.any_instance.stubs(:anonymous_hard_tag_limit).returns(2)
+
+          get_auth(posts_path, @user, params: { tags: "a b c" })
+
+          assert_response(:success)
+        end
       end
 
       context("with an md5 param") do

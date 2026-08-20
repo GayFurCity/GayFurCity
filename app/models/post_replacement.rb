@@ -497,12 +497,12 @@ class PostReplacement < ApplicationRecord
     @promoted_id ||= begin
       id = nil
       if post.has_children?
-        id = post.children.where(md5: md5)&.first&.id
+        id = post.children.joins(:media_asset).find_by("upload_media_assets.md5": md5)&.id
       end
 
       # Fallback 1: md5 lookup
       if id.nil?
-        found_post = Post.find_by(md5: md5)
+        found_post = Post.joins(:media_asset).find_by("upload_media_assets.md5": md5)
         id = found_post&.id
       end
 

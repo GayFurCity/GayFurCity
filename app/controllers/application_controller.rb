@@ -10,6 +10,7 @@ class ApplicationController < ActionController::Base
   skip_forgery_protection(if: -> { SessionLoader.new(request).has_api_authentication? || request.options? })
   before_action(:reset_current_user)
   before_action(:set_current_user)
+  before_action(:enforce_anonymous_tag_limit)
   # Registered after set_current_user (so CurrentUser is resolved) but before everything else, so
   # it wraps the rest of the before_actions, the action itself, and rendering - the parts the
   # per-query timeouts (Postgres statement_timeout, the Elasticsearch client's request_timeout)
@@ -197,6 +198,16 @@ class ApplicationController < ActionController::Base
     CurrentUser.request = request
     SessionLoader.new(request).load
     session.send(:load!) unless session.send(:loaded?)
+  end
+
+  def enforce_anonymous_tag_limit
+    return unless CurrentUser.user.is_anonymous?
+    return if params[:tags].blank?
+
+    hard_limit = Config.instance.anonymous_hard_tag_limit
+    if params[:tags].to_s.split.size > hard_limit
+      raise(TagQuery::CountExceededError, "Your query exceeds the limit.")
+    end
   end
 
   # Uses Ruby's Timeout, which interrupts the running thread wherever it happens to be - unsafe in

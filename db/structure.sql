@@ -172,7 +172,9 @@ CREATE TABLE public.artists (
     other_names text[] DEFAULT '{}'::text[] NOT NULL,
     linked_user_id bigint,
     is_locked boolean DEFAULT false,
-    creator_ip_addr inet NOT NULL
+    creator_ip_addr inet NOT NULL,
+    updater_id bigint NOT NULL,
+    updater_ip_addr inet NOT NULL
 );
 
 
@@ -280,7 +282,9 @@ CREATE TABLE public.bans (
     expires_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    banner_ip_addr inet NOT NULL
+    banner_ip_addr inet NOT NULL,
+    updater_id bigint NOT NULL,
+    updater_ip_addr inet NOT NULL
 );
 
 
@@ -2884,7 +2888,8 @@ CREATE TABLE public.takedowns (
     del_post_ids text DEFAULT ''::text NOT NULL,
     post_count integer DEFAULT 0 NOT NULL,
     updater_id bigint,
-    updater_ip_addr inet
+    updater_ip_addr inet,
+    approver_ip_addr inet
 );
 
 
@@ -4931,6 +4936,13 @@ CREATE INDEX index_artists_on_other_names ON public.artists USING gin (other_nam
 
 
 --
+-- Name: index_artists_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_artists_on_updater_id ON public.artists USING btree (updater_id);
+
+
+--
 -- Name: index_avoid_posting_versions_on_avoid_posting_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4977,6 +4989,13 @@ CREATE INDEX index_bans_on_banner_id ON public.bans USING btree (banner_id);
 --
 
 CREATE INDEX index_bans_on_expires_at ON public.bans USING btree (expires_at);
+
+
+--
+-- Name: index_bans_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bans_on_updater_id ON public.bans USING btree (updater_id);
 
 
 --
@@ -7108,6 +7127,14 @@ ALTER TABLE ONLY public.tag_followers
 
 
 --
+-- Name: artists fk_rails_0bf7d416ae; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.artists
+    ADD CONSTRAINT fk_rails_0bf7d416ae FOREIGN KEY (updater_id) REFERENCES public.users(id);
+
+
+--
 -- Name: help_pages fk_rails_10de26473a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7737,6 +7764,14 @@ ALTER TABLE ONLY public.mascots
 
 ALTER TABLE ONLY public.post_approvals
     ADD CONSTRAINT fk_rails_74f76ef71e FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: bans fk_rails_782a051af3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bans
+    ADD CONSTRAINT fk_rails_782a051af3 FOREIGN KEY (updater_id) REFERENCES public.users(id);
 
 
 --
@@ -8410,6 +8445,7 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260820110115'),
 ('20260820010000'),
 ('20260820000000'),
 ('20260819200000'),

@@ -14,39 +14,26 @@ class Rule < ApplicationRecord
     self.order = (Rule.where(category: category).maximum(:order) || 0) + 1 if order.blank?
     self.anchor = name.parameterize if anchor.blank?
   end
-  after_create(:log_create)
-  after_update(:log_update)
   before_destroy(:set_quick_rules_destroyer, prepend: true)
-
-  after_destroy(:log_delete)
 
   def set_quick_rules_destroyer
     return if quick_rules.blank? || destroyer.blank?
     quick_rules.each { |quick_rule| quick_rule.destroyer = destroyer }
   end
 
-  module LogMethods
-    def log_create
-      ModAction.log!(creator, :rule_create, self, name: name, description: description, category_name: category.name)
+  modactions(:rule)
+    .add(:create, :creator, on: :create) { { name: name, description: description, category_name: category.name } }
+    .add(:update, :updater, on: :update) do
+      {
+        name:              name,
+        old_name:          name_before_last_save,
+        description:       description,
+        old_description:   description_before_last_save,
+        category_name:     category.name,
+        old_category_name: RuleCategory.find_by(id: category_id_before_last_save)&.name || "Unknown: #{category_id_before_last_save}",
+      }
     end
-
-    def log_update
-      return unless saved_change_to_name? || saved_change_to_description? || saved_change_to_category_id?
-      ModAction.log!(updater, :rule_update, self,
-                     name:              name,
-                     old_name:          name_before_last_save,
-                     description:       description,
-                     old_description:   description_before_last_save,
-                     category_name:     category.name,
-                     old_category_name: RuleCategory.find_by(id: category_id_before_last_save)&.name || "Unknown: #{category_id_before_last_save}")
-    end
-
-    def log_delete
-      ModAction.log!(destroyer, :rule_delete, self, name: name, description: description, category_name: category.name)
-    end
-  end
-
-  include(LogMethods)
+    .add(:delete, :destroyer, on: :destroy) { { name: name, description: description, category_name: category.name } }
 
   def self.log_reorder(changes, user)
     ModAction.log!(user, :rules_reorder, nil, total: changes)

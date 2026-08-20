@@ -7,7 +7,7 @@ class TakedownJob < ApplicationJob
   def perform(id, approver, del_reason)
     @takedown = Takedown.find(id)
     @takedown.update_with!(approver, approver: approver, status: @takedown.calculated_status)
-    ModAction.log!(approver, :takedown_process, @takedown)
+    @takedown.log_process
 
     user = User.system
     @takedown.actual_posts.find_each do |p|

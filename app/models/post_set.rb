@@ -23,14 +23,17 @@ class PostSet < ApplicationRecord
 
   before_save(:update_post_count)
   after_update(:send_maintainer_public_dmails)
-  after_update(:log_update)
   before_destroy(:send_maintainer_destroy_dmails)
-  after_destroy(:log_delete)
   after_save(:synchronize, if: :saved_change_to_post_ids?)
 
   attr_accessor(:skip_sync)
 
   scope(:owned_by, ->(user) { where(creator_id: u2id(user)) })
+
+  modactions(:set)
+    .add(:change_visibility, :updater, on: :update, unless: -> { is_owner?(updater) }, if: -> { saved_change_to_is_public? }) { { user_id: creator_id, is_public: is_public } }
+    .add(:update, :updater, on: :update, unless: -> { is_owner?(updater) }, if: -> { saved_change_to_watched_attributes? }) { { user_id: creator_id } }
+    .add(:delete, :destroyer, on: :destroy, unless: -> { is_owner?(destroyer) }) { { user_id: creator_id } }
 
   def self.name_to_id(name)
     if name =~ /\A\d+\z/
@@ -286,25 +289,6 @@ class PostSet < ApplicationRecord
     end
   end
 
-  module LogMethods
-    def log_update
-      return if is_owner?(updater)
-
-      if saved_change_to_is_public?
-        ModAction.log!(updater, :set_change_visibility, self, user_id: creator_id, is_public: is_public)
-      end
-
-      if saved_change_to_watched_attributes?
-        ModAction.log!(updater, :set_update, self, user_id: creator_id)
-      end
-    end
-
-    def log_delete
-      return if is_owner?(destroyer)
-      ModAction.log!(destroyer, :set_delete, self, user_id: creator_id)
-    end
-  end
-
   module SearchMethods
     def selected_first(current_set_id)
       return all if current_set_id.blank?
@@ -340,7 +324,6 @@ class PostSet < ApplicationRecord
   include(ValidationMethods)
   include(AccessMethods)
   include(PostMethods)
-  include(LogMethods)
   extend(SearchMethods)
 
   def self.available_includes

@@ -64,6 +64,10 @@ class ModAction < ApplicationRecord
       text: ->(mod, _user) { "Locked artist ##{mod.subject_id}" },
       json: %i[],
     },
+    artist_delete:                              {
+      text: ->(mod, _user) { "Deleted artist ##{mod.subject_id} (#{mod.name})" },
+      json: %i[name],
+    },
     artist_rename:                              {
       text: ->(mod, _user) { "Renamed artist ##{mod.subject_id} (\"#{mod.old_name}\":#{url.show_or_new_artists_path(name: mod.old_name)} -> \"#{mod.new_name}\":#{url.show_or_new_artists_path(name: mod.new_name)})" },
       json: %i[old_name new_name],

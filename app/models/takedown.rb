@@ -3,7 +3,7 @@
 class Takedown < ApplicationRecord
   belongs_to_user(:creator, ip: true, clones: :updater, optional: true)
   belongs_to_user(:updater, ip: true, optional: true)
-  belongs_to_user(:approver, optional: true)
+  belongs_to_user(:approver, ip: true, optional: true)
   resolvable(:destroyer)
   before_validation(:initialize_vericode, on: :create)
   before_validation(:normalize_post_ids)
@@ -19,7 +19,6 @@ class Takedown < ApplicationRecord
   validate(:validate_post_ids)
   after_validation(:normalize_deleted_post_ids)
   before_save(:update_post_count)
-  after_destroy(:log_delete)
 
   def initialize_vericode
     self.vericode ||= Takedown.create_vericode
@@ -247,11 +246,9 @@ class Takedown < ApplicationRecord
     end
   end
 
-  module LogMethods
-    def log_delete
-      ModAction.log!(destroyer, :takedown_delete, self)
-    end
-  end
+  modactions(:takedown)
+    .add(:delete, :destroyer, on: :destroy)
+    .add(:process, :approver)
 
   include(PostMethods)
   include(ValidationMethods)
@@ -259,7 +256,6 @@ class Takedown < ApplicationRecord
   include(ModifyPostMethods)
   include(ProcessMethods)
   include(AccessMethods)
-  include(LogMethods)
   extend(SearchMethods)
 
   def self.available_includes

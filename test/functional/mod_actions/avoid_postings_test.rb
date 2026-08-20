@@ -36,7 +36,7 @@ module ModActions
         )
       end
 
-      should("parse avoid_posting_destroy_with(@admin) correctly") do
+      should("parse avoid_posting_destroy correctly") do
         @avoid_posting.destroy_with(@admin)
 
         assert_matches(

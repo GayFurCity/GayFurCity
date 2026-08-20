@@ -16,11 +16,8 @@ class Mascot < ApplicationRecord
   validates(:file, presence: true, on: :create)
   validate(:file_is_not_duplicate, on: :update)
 
-  after_create(:log_create)
   after_create { self.file = nil }
   before_update(:update_file)
-  after_update(:log_update)
-  after_destroy(:log_delete)
   after_destroy { mascot_media_asset.destroy }
 
   def file_is_not_duplicate
@@ -73,23 +70,12 @@ class Mascot < ApplicationRecord
     q.order("lower(artist_name)")
   end
 
-  module LogMethods
-    def log_create
-      ModAction.log!(creator, :mascot_create, self)
-    end
-
-    def log_update
-      return if saved_changes.empty?
-      ModAction.log!(updater, :mascot_update, self)
-    end
-
-    def log_delete
-      ModAction.log!(destroyer, :mascot_delete, self)
-    end
-  end
+  modactions(:mascot)
+    .add(:create, :creator, on: :create)
+    .add(:update, :updater, on: :update)
+    .add(:delete, :destroyer, on: :destroy)
 
   include(FileMethods)
-  include(LogMethods)
 
   def apionly_file_url
     file_url(user: CurrentUser.user)

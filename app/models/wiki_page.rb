@@ -26,9 +26,7 @@ class WikiPage < ApplicationRecord
   before_validation(:normalize_parent, unless: :destroyed?)
   before_validation(:normalize_protection_level, unless: :destroyed?)
   before_validation(:ensure_internal_protected, unless: :destroyed?)
-  after_update(:log_update)
   before_destroy(:validate_not_used_as_help_page)
-  after_destroy(:log_delete)
   after_save(:create_version)
   normalizes(:body, with: ->(body) { body.gsub("\r\n", "\n") })
   validates(:title, uniqueness: { case_sensitive: false })
@@ -44,28 +42,15 @@ class WikiPage < ApplicationRecord
   validate(:validate_redirect)
   validate(:validate_not_restricted)
 
-  after_save(:log_save)
   after_save(:update_help_page, if: :saved_change_to_title?)
 
   attr_accessor(:edit_reason, :parent_name, :parent_anchor, :target_wiki_page_id, :target_wiki_page_title)
 
-  module LogMethods
-    def log_save
-      if saved_change_to_protection_level?
-        ModAction.log!(updater, protection_level.blank? ? :wiki_page_unprotect : :wiki_page_protect, self, wiki_page_title: title, protection_level: protection_level)
-      end
-    end
-
-    def log_update
-      if saved_change_to_title?
-        ModAction.log!(updater, :wiki_page_rename, self, old_title: title_before_last_save, wiki_page_title: title)
-      end
-    end
-
-    def log_delete
-      ModAction.log!(destroyer, :wiki_page_delete, self, wiki_page_title: title)
-    end
-  end
+  modactions(:wiki_page)
+    .add(:rename, :updater, on: :update, if: -> { saved_change_to_title? }) { { old_title: title_before_last_save, wiki_page_title: title } }
+    .add(:protect, :updater, on: :save, if: -> { saved_change_to_protection_level? && protection_level.present? }) { { wiki_page_title: title, protection_level: protection_level } }
+    .add(:unprotect, :updater, on: :save, if: -> { saved_change_to_protection_level? && protection_level.blank? }) { { wiki_page_title: title, protection_level: protection_level } }
+    .add(:delete, :destroyer, on: :destroy) { { wiki_page_title: title } }
 
   module SearchMethods
     def titled(title)
@@ -147,7 +132,6 @@ class WikiPage < ApplicationRecord
   end
 
   include(HelpPageMethods)
-  include(LogMethods)
   include(RestrictionMethods)
   include(MergeMethods)
   extend(SearchMethods)

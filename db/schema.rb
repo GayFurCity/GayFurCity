@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_20_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_20_110115) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -72,10 +72,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_20_010000) do
     t.string "name", null: false
     t.text "other_names", default: [], null: false, array: true
     t.datetime "updated_at", precision: nil, null: false
+    t.bigint "updater_id", null: false
+    t.inet "updater_ip_addr", null: false
     t.index ["linked_user_id"], name: "index_artists_on_linked_user_id"
     t.index ["name"], name: "index_artists_on_name", unique: true
     t.index ["name"], name: "index_artists_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["other_names"], name: "index_artists_on_other_names", using: :gin
+    t.index ["updater_id"], name: "index_artists_on_updater_id"
   end
 
   create_table "avoid_posting_versions", force: :cascade do |t|
@@ -113,9 +116,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_20_010000) do
     t.datetime "expires_at", precision: nil
     t.text "reason", null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.bigint "updater_id", null: false
+    t.inet "updater_ip_addr", null: false
     t.bigint "user_id", null: false
     t.index ["banner_id"], name: "index_bans_on_banner_id"
     t.index ["expires_at"], name: "index_bans_on_expires_at"
+    t.index ["updater_id"], name: "index_bans_on_updater_id"
     t.index ["user_id"], name: "index_bans_on_user_id"
   end
 
@@ -1384,6 +1390,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_20_010000) do
 
   create_table "takedowns", force: :cascade do |t|
     t.bigint "approver_id"
+    t.inet "approver_ip_addr"
     t.datetime "created_at", precision: nil, null: false
     t.bigint "creator_id"
     t.inet "creator_ip_addr", null: false
@@ -1714,6 +1721,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_20_010000) do
   add_foreign_key "artist_versions", "users", column: "updater_id"
   add_foreign_key "artists", "users", column: "creator_id"
   add_foreign_key "artists", "users", column: "linked_user_id"
+  add_foreign_key "artists", "users", column: "updater_id"
   add_foreign_key "avoid_posting_versions", "avoid_postings"
   add_foreign_key "avoid_posting_versions", "users", column: "updater_id"
   add_foreign_key "avoid_postings", "artists"
@@ -1721,6 +1729,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_20_010000) do
   add_foreign_key "avoid_postings", "users", column: "updater_id"
   add_foreign_key "bans", "users"
   add_foreign_key "bans", "users", column: "banner_id"
+  add_foreign_key "bans", "users", column: "updater_id"
   add_foreign_key "bulk_update_request_imports", "forum_topics"
   add_foreign_key "bulk_update_request_imports", "users", column: "creator_id"
   add_foreign_key "bulk_update_request_imports", "users", column: "updater_id"

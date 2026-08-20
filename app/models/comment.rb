@@ -2,10 +2,10 @@
 
 class Comment < ApplicationRecord
   RECENT_COUNT = 6
-  include(UserWarnable)
 
   simple_versioning
   mentionable
+  warnable
   belongs_to_user(:creator, ip: true, clones: :updater, counter_cache: "comment_count")
   belongs_to_user(:updater, ip: true)
   belongs_to_user(:warning_user, optional: true)
@@ -19,18 +19,14 @@ class Comment < ApplicationRecord
 
   before_create(:auto_report_spam)
   after_create(:update_last_commented_at_on_create)
-  after_update(if: ->(rec) { !rec.saved_change_to_is_hidden? && updater_id != rec.creator_id }) do |rec|
-    ModAction.log!(updater, :comment_update, rec, user_id: rec.creator_id)
-  end
   after_destroy(:update_last_commented_at_on_destroy)
-  after_destroy do |rec|
-    ModAction.log!(destroyer, :comment_delete, rec, user_id: rec.creator_id, post_id: rec.post_id)
-  end
   after_save(:update_last_commented_at_on_destroy, if: ->(rec) { rec.is_hidden? && rec.saved_change_to_is_hidden? })
-  after_save(if: ->(rec) { rec.saved_change_to_is_hidden? && updater_id != rec.creator_id }) do |rec|
-    action = rec.is_hidden? ? :comment_hide : :comment_unhide
-    ModAction.log!(updater, action, rec, user_id: rec.creator_id)
-  end
+
+  modactions(:comment)
+    .add(:update, :updater, on: :update, if: -> { updater_id != creator_id && !saved_change_to_is_hidden? }) { { user_id: creator_id } }
+    .add(:hide, :updater, on: :update, if: -> { updater_id != creator_id && saved_change_to_is_hidden? && is_hidden? }) { { user_id: creator_id } }
+    .add(:unhide, :updater, on: :update, if: -> { saved_change_to_is_hidden? && !is_hidden? }) { { user_id: creator_id } }
+    .add(:delete, :destroyer, on: :destroy) { { user_id: creator_id, post_id: post_id } }
 
   belongs_to(:post, counter_cache: :comment_count)
   has_many(:votes, class_name: "CommentVote", dependent: :destroy)
@@ -41,7 +37,6 @@ class Comment < ApplicationRecord
   scope(:deleted, -> { where(is_hidden: true) })
   scope(:not_deleted, -> { where(is_hidden: false) })
   scope(:stickied, -> { where(is_sticky: true) })
-  scope(:for_creator, ->(user) { where(creator_id: u2id(user)) })
 
   module SearchMethods
     def recent

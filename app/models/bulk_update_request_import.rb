@@ -8,9 +8,12 @@ class BulkUpdateRequestImport < ApplicationRecord
   enum(:status, %i[pending processing completed failed].index_with(&:to_s))
 
   validate(:validate_script, unless: -> { skip_script_validation.truthy? })
-  after_create(:log_create)
-  after_update(:log_update, unless: -> { skip_script_validation.truthy? })
   attr_accessor(:skip_script_validation)
+
+  modactions(:bulk_update_request_import)
+    .add(:create, :creator, on: :create)
+    .add(:update, :updater, on: :update, unless: -> { skip_script_validation.truthy? })
+    .add(:retry, :updater)
 
   module SearchMethods
     def query_dsl
@@ -25,22 +28,7 @@ class BulkUpdateRequestImport < ApplicationRecord
     end
   end
 
-  module LogMethods
-    def log_create
-      ModAction.log!(creator, :bulk_update_request_import_create, self)
-    end
-
-    def log_update
-      ModAction.log!(updater, :bulk_update_request_import_update, self)
-    end
-
-    def log_retry
-      ModAction.log!(updater, :bulk_update_request_import_retry, self)
-    end
-  end
-
   extend(SearchMethods)
-  include(LogMethods)
 
   def processor
     @processor ||= BulkUpdateRequestProcessor.new(script, forum_topic_id, creator: creator, ip_addr: creator_ip_addr)

@@ -72,6 +72,17 @@ module ModActions
           user_id: @user.id,
         )
       end
+
+      should("parse artist_delete correctly") do
+        @artist.destroy_with!(@admin)
+
+        assert_matches(
+          actions: %w[artist_delete],
+          text:    "Deleted artist ##{@artist.id} (#{@artist.name})",
+          subject: @artist,
+          name:    @artist.name,
+        )
+      end
     end
   end
 end

@@ -17,7 +17,6 @@ class Ticket < ApplicationRecord
   validate(:validate_report_type)
   enum(:status, %i[pending partial approved rejected].index_with(&:to_s))
   after_create(:autoban_accused_user)
-  after_update(:log_update)
   after_update(:create_dmail)
   validate(:validate_model_exists, on: :create)
   validate(:validate_creator_is_not_limited, on: :create)
@@ -30,6 +29,15 @@ class Ticket < ApplicationRecord
   scope(:unclaimed, -> { where(claimant_id: nil) })
 
   attr_accessor(:record_type, :send_update_dmail)
+
+  modactions(:ticket)
+    .add(:update, :updater, on: :update, if: :saved_change_to_watched_attributes?)
+    .add(:claim, :updater, on: :update, if: -> { saved_change_to_claimant_id? && claimant_id.present? }) { { user_id: claimant_id } }
+    .add(:unclaim, :updater, on: :update, if: -> { saved_change_to_claimant_id? && claimant_id.blank? })
+
+  def saved_change_to_watched_attributes?
+    saved_change_to_response? || saved_change_to_status?
+  end
 
   # Permissions Table
   #
@@ -258,16 +266,14 @@ class Ticket < ApplicationRecord
   module ClaimMethods
     def claim!(user)
       transaction do
-        ModAction.log!(user, :ticket_claim, self)
-        update(claimant: user, updater: user)
+        update!(claimant: user, updater: user)
         push_pubsub("claim")
       end
     end
 
     def unclaim!(user)
       transaction do
-        ModAction.log!(user, :ticket_unclaim, self)
-        update(claimant: nil, updater: user)
+        update!(claimant: nil, updater: user)
         push_pubsub("unclaim")
       end
     end
@@ -300,12 +306,6 @@ class Ticket < ApplicationRecord
         body:          msg,
         bypass_limits: true,
       )
-    end
-
-    def log_update
-      return unless saved_change_to_response? || saved_change_to_status?
-
-      ModAction.log!(updater, :ticket_update, self)
     end
   end
 

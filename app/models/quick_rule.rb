@@ -13,30 +13,10 @@ class QuickRule < ApplicationRecord
     self.order = (QuickRule.maximum(:order) || 0) + 1 if order.blank?
   end
 
-  after_create(:log_create)
-  after_update(:log_update)
-  after_destroy(:log_delete)
-
-  module LogMethods
-    def log_create
-      ModAction.log!(creator, :quick_rule_create, self, reason: reason, header: header)
-    end
-
-    def log_update
-      return unless saved_change_to_reason? || saved_change_to_header?
-      ModAction.log!(updater, :quick_rule_update, self,
-                     reason:     reason,
-                     old_reason: reason_before_last_save,
-                     header:     header,
-                     old_header: header_before_last_save)
-    end
-
-    def log_delete
-      ModAction.log!(destroyer, :quick_rule_delete, self, reason: reason, header: header)
-    end
-  end
-
-  include(LogMethods)
+  modactions(:quick_rule)
+    .add(:create, :creator, on: :create) { { reason: reason, header: header } }
+    .add(:update, :updater, on: :update, if: -> { saved_change_to_reason? || saved_change_to_header? }) { { reason: reason, old_reason: reason_before_last_save, header: header, old_header: header_before_last_save } }
+    .add(:delete, :destroyer, on: :destroy) { { reason: reason, header: header } }
 
   def self.log_reorder(total, user)
     ModAction.log!(user, :quick_rules_reorder, nil, total: total)

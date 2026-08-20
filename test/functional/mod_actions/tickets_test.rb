@@ -15,6 +15,7 @@ module ModActions
       end
 
       should("format ticket_claim correctly") do
+        @ticket.update_columns(response: "test")
         @ticket.claim!(@admin)
 
         assert_matches(
@@ -25,6 +26,7 @@ module ModActions
       end
 
       should("format ticket_unclaim correctly") do
+        @ticket.update_columns(response: "test")
         @ticket.update_columns(claimant_id: @admin.id)
         @ticket.unclaim!(@admin)
 

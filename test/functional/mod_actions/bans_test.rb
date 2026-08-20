@@ -85,10 +85,10 @@ module ModActions
             actions:        %w[ban_update],
             subject:        @ban,
             text:           "Updated ban for #{user(@user)}",
-            expires_at:     @ban.expires_at&.iso8601,
-            old_expires_at: @original.expires_at&.iso8601,
-            reason:         @ban.reason,
-            old_reason:     @original.reason,
+            expires_at:     nil,
+            old_expires_at: nil,
+            reason:         nil,
+            old_reason:     nil,
             user_id:        @user.id,
           )
         end
@@ -105,8 +105,8 @@ module ModActions
             TEXT
             expires_at:     nil,
             old_expires_at: @original.expires_at&.iso8601,
-            reason:         @original.reason,
-            old_reason:     @original.reason,
+            reason:         nil,
+            old_reason:     nil,
             user_id:        @user.id,
           )
         end
@@ -121,8 +121,8 @@ module ModActions
               Updated ban for #{user(@user)}
               Changed reason: [section=Old]#{@original.reason}[/section] [section=New]#{@ban.reason}[/section]
             TEXT
-            expires_at:     @ban.expires_at&.iso8601,
-            old_expires_at: @original.expires_at&.iso8601,
+            expires_at:     nil,
+            old_expires_at: nil,
             reason:         @ban.reason,
             old_reason:     @original.reason,
             user_id:        @user.id,

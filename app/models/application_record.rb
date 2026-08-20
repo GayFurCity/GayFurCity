@@ -19,6 +19,7 @@ class ApplicationRecord < ActiveRecord::Base
   include(::CurrentMethods)
   include(::HasDtextLinks)
   include(::HasMediaAsset)
+  include(::HasModActions)
   include(::MentionableMethods)
   include(::PrivilegeMethods)
   include(::Revertible)
@@ -28,6 +29,7 @@ class ApplicationRecord < ActiveRecord::Base
   include(::UserMethods)
   include(::SoftDeletable)
   include(::HasBitFlags)
+  include(::UserWarnable)
 
   def self.override_route_key(value)
     define_singleton_method(:model_name) do

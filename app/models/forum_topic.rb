@@ -23,8 +23,6 @@ class ForumTopic < ApplicationRecord
   accepts_nested_attributes_for(:original_post)
   after_update(:update_original_post, unless: :is_merging)
   before_destroy(:set_posts_destroyer, prepend: true)
-  after_destroy(:log_delete)
-  after_commit(:log_save, on: %i[create update], unless: :is_merging)
   after_update(if: :saved_change_to_title?) do
     Cache.delete("topic_name:#{id}")
   end
@@ -70,37 +68,25 @@ class ForumTopic < ApplicationRecord
     end
   end
 
-  module LogMethods
-    def log_save
-      specific = false
-      if saved_change_to_is_hidden?
-        specific = true
-        ModAction.log!(updater, is_hidden? ? :forum_topic_hide : :forum_topic_unhide, self, forum_topic_title: title, user_id: creator_id)
-      end
-
-      if saved_change_to_is_locked?
-        specific = true
-        ModAction.log!(updater, is_locked? ? :forum_topic_lock : :forum_topic_unlock, self, forum_topic_title: title, user_id: creator_id)
-      end
-
-      if saved_change_to_is_sticky?
-        specific = true
-        ModAction.log!(updater, is_sticky? ? :forum_topic_stick : :forum_topic_unstick, self, forum_topic_title: title, user_id: creator_id)
-      end
-
-      if saved_change_to_category_id? && !previously_new_record?
-        specific = true
-        ModAction.log!(updater, :forum_topic_move, self, forum_topic_title: title, user_id: creator_id, forum_category_id: category_id, forum_category_name: category.name, old_forum_category_id: category_id_before_last_save, old_forum_category_name: ForumCategory.find_by(id: category_id_before_last_save)&.name || "")
-      end
-
-      unless specific || previously_new_record? || updater.id == creator_id
-        ModAction.log!(updater, :forum_topic_update, self, forum_topic_title: title, user_id: creator_id)
-      end
+  modactions(:forum_topic)
+    .add(:hide, :updater, on: :update, unless: :is_merging, if: -> { creator_id != updater_id && saved_change_to_is_hidden? && is_hidden? }) { { forum_topic_title: title, user_id: creator_id } }
+    .add(:unhide, :updater, on: :save, unless: :is_merging, if: -> { saved_change_to_is_hidden? && !is_hidden? }) { { forum_topic_title: title, user_id: creator_id } }
+    .add(:lock, :updater, on: :save, unless: :is_merging, if: -> { saved_change_to_is_locked? && is_locked? }) { { forum_topic_title: title, user_id: creator_id } }
+    .add(:unlock, :updater, on: :save, unless: :is_merging, if: -> { saved_change_to_is_locked? && !is_locked? }) { { forum_topic_title: title, user_id: creator_id } }
+    .add(:stick, :updater, on: :save, unless: :is_merging, if: -> { saved_change_to_is_sticky? && is_sticky? }) { { forum_topic_title: title, user_id: creator_id } }
+    .add(:unstick, :updater, on: :save, unless: :is_merging, if: -> { saved_change_to_is_sticky? && !is_sticky? }) { { forum_topic_title: title, user_id: creator_id } }
+    .add(:move, :updater, on: :save, unless: :is_merging, if: -> { saved_change_to_category_id? && !previously_new_record? }) do
+      {
+        forum_topic_title: title, user_id: creator_id,
+        forum_category_id: category_id, forum_category_name: category.name,
+        old_forum_category_id: category_id_before_last_save, old_forum_category_name: ForumCategory.find_by(id: category_id_before_last_save)&.name || "",
+      }
     end
+    .add(:update, :updater, on: :update, unless: :is_merging, if: -> { updater_id != creator_id && saved_change_to_watched_attributes? }) { { forum_topic_title: title, user_id: creator_id } }
+    .add(:delete, :destroyer, on: :destroy) { { forum_topic_title: title, user_id: creator_id } }
 
-    def log_delete
-      ModAction.log!(destroyer, :forum_topic_delete, self, forum_topic_title: title, user_id: creator_id)
-    end
+  def saved_change_to_watched_attributes?
+    saved_change_to_title?
   end
 
   module SearchMethods
@@ -231,7 +217,6 @@ class ForumTopic < ApplicationRecord
     end
   end
 
-  include(LogMethods)
   include(CategoryMethods)
   include(VisitMethods)
   include(SubscriptionMethods)

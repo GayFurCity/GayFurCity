@@ -266,7 +266,7 @@ Naming/MethodParameterName:
     - io
     - ip
     - of
-    - on
+    - "on" # for some reason YAML interprets on/off as true/false
     - os
     - pp
     - to

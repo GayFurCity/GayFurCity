@@ -6,12 +6,9 @@ class Ban < ApplicationRecord
   before_validation(:initialize_permaban, on: %i[update create])
   before_create(:create_feedback)
   after_create(:update_user_on_create)
-  after_create(:log_create)
-  after_update(:log_update)
-  after_destroy(:log_delete)
   belongs_to_user(:user)
-  belongs_to_user(:banner, ip: true, clones: :updater, aliases: :creator) # TODO: convert to creator
-  resolvable(:updater) # TODO: store updater?
+  belongs_to_user(:banner, ip: true, clone: :updater, aliases: :creator) # TODO: convert to creator
+  belongs_to_user(:updater, ip: true)
   resolvable(:destroyer)
   validate(:user_is_inferior)
   validates(:reason, :duration, presence: true)
@@ -19,6 +16,15 @@ class Ban < ApplicationRecord
 
   scope(:unexpired, -> { where(expires_at: nil).or(where.gt(expires_at: Time.now)) })
   scope(:expired, -> { where.not(expires_at: nil).or(where.lte(expires_at: Time.now)) })
+
+  modactions(:ban)
+    .add(:create, :creator, on: :create) { { duration: duration, reason: reason, user_id: user_id } }
+    .add(:update, :updater, on: :update) do
+      { user_id: user_id }
+        .tap { |h| h.merge!({ expires_at: expires_at&.iso8601, old_expires_at: expires_at_before_last_save&.iso8601 }) if saved_change_to_expires_at? }
+        .tap { |h| h.merge!({ reason: reason, old_reason: reason_before_last_save }) if saved_change_to_reason? }
+    end
+    .add(:delete, :destroyer, on: :destroy) { { user_id: user_id } }
 
   def self.is_banned?(user)
     unexpired.for_user(user).exists?
@@ -129,30 +135,6 @@ class Ban < ApplicationRecord
     time = expires_at.nil? ? "permanently" : "for #{humanized_duration}"
     user.feedback.create!(category: "negative", body: "Banned #{time}: #{reason}", creator: banner)
   end
-
-  module LogMethods
-    def log_create
-      ModAction.log!(creator, :ban_create, self,
-                     duration: duration,
-                     reason:   reason,
-                     user_id:  user_id)
-    end
-
-    def log_update
-      ModAction.log!(updater, :ban_update, self,
-                     user_id:        user_id,
-                     expires_at:     expires_at&.iso8601,
-                     old_expires_at: expires_at_before_last_save&.iso8601,
-                     reason:         reason,
-                     old_reason:     reason_before_last_save)
-    end
-
-    def log_delete
-      ModAction.log!(destroyer, :ban_delete, self, user_id: user_id)
-    end
-  end
-
-  include(LogMethods)
 
   def self.available_includes
     %i[banner user]

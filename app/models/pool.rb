@@ -370,13 +370,8 @@ class Pool < ApplicationRecord
     end
   end
 
-  module LogMethods
-    def log_delete
-      ModAction.log!(destroyer, :pool_delete, self, pool_name: name, user_id: creator_id)
-    end
-  end
-
-  include(LogMethods)
+  modactions(:pool)
+    .add(:delete, :destroyer, on: :destroy) { { pool_name: name, user_id: creator_id } }
 
   def self.rewrite_wiki_links!(old_name, new_name)
     Pool.linked_to(old_name).each do |pool|

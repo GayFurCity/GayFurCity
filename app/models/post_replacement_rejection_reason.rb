@@ -6,32 +6,15 @@ class PostReplacementRejectionReason < ApplicationRecord
   resolvable(:destroyer)
   validates(:reason, presence: true, length: { maximum: 100 }, uniqueness: { case_sensitive: false })
   validates(:order, uniqueness: true, numericality: { only_numeric: true })
-  after_create(:log_create)
-  after_update(:log_update)
-  after_destroy(:log_delete)
 
   before_validation(on: :create) do
     self.order = (PostReplacementRejectionReason.maximum(:order) || 0) + 1 if order.blank?
   end
 
-  module LogMethods
-    def log_create
-      ModAction.log!(creator, :post_replacement_rejection_reason_create, self,
-                     reason: reason)
-    end
-
-    def log_update
-      ModAction.log!(updater, :post_replacement_rejection_reason_update, self,
-                     reason:     reason,
-                     old_reason: reason_before_last_save)
-    end
-
-    def log_delete
-      ModAction.log!(destroyer, :post_replacement_rejection_reason_delete, self,
-                     reason:  reason,
-                     user_id: creator_id)
-    end
-  end
+  modactions(:post_replacement_rejection_reason)
+    .add(:create, :creator, on: :create) { { reason: reason } }
+    .add(:update, :updater, on: :update) { { reason: reason, old_reason: reason_before_last_save } }
+    .add(:delete, :destroyer, on: :destroy) { { reason: reason, user_id: creator_id } }
 
   module SearchMethods
     def quick_access
@@ -39,7 +22,6 @@ class PostReplacementRejectionReason < ApplicationRecord
     end
   end
 
-  include(LogMethods)
   extend(SearchMethods)
 
   def self.log_reorder(changes, user)

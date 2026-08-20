@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
 class ForumPost < ApplicationRecord
-  include(UserWarnable)
-
   simple_versioning
   mentionable
+  warnable
   has_dtext_links(:body)
   belongs_to_user(:creator, ip: true, clones: :updater, counter_cache: "forum_post_count")
   belongs_to_user(:updater, ip: true)
@@ -25,10 +24,10 @@ class ForumPost < ApplicationRecord
   after_create(:update_topic_updated_at_on_create)
   # no counter cache since we're more than one association away
   after_create(-> { category.increment!(:post_count) })
-  after_create(:log_create)
-  after_update(:log_update)
   before_destroy(:validate_topic_is_unlocked_on_destroy)
   after_destroy(:update_topic_updated_at_on_destroy)
+  after_destroy(-> { category.decrement!(:post_count) })
+  after_save(:log_voting_change, if: :saved_change_to_allow_voting?, unless: :destroyed?)
   normalizes(:body, with: ->(body) { body.gsub("\r\n", "\n") })
   validates(:body, :creator_id, presence: true)
   validates(:body, length: { minimum: 1, maximum: -> { Config.instance.forum_post_max_size } })
@@ -39,13 +38,25 @@ class ForumPost < ApplicationRecord
   validate(:validate_category_allows_replies, on: :create)
   validate(:validate_creator_is_not_limited, on: :create)
   validate(:validate_not_aibur, if: :will_save_change_to_is_hidden?)
-  after_destroy(-> { category.decrement!(:post_count) })
-  after_destroy(:log_destroy)
-  after_save(:delete_topic_if_original_post)
+  after_save(:hide_topic_if_original_post)
 
   attr_accessor(:bypass_limits, :is_merging)
 
   scope(:votable, -> { where(allow_voting: true) })
+
+  modactions(:forum_post)
+    .add(:hide, :updater, on: :update, if: -> { updater_id != creator_id && saved_change_to_is_hidden? && is_hidden? }) { { forum_topic_id: topic_id, user_id: creator_id } }
+    .add(:unhide, :updater, on: :update, if: -> { saved_change_to_is_hidden? && !is_hidden? }) { { forum_topic_id: topic_id, user_id: creator_id } }
+    .add(:update, :updater, on: :update, if: -> { updater_id != creator_id && !saved_change_to_is_hidden? && !is_merging }) { { forum_topic_id: topic_id, user_id: creator_id } }
+    .add(:delete, :destroyer, on: :destroy) { { forum_topic_id: topic_id, user_id: creator_id } }
+
+  def log_voting_change
+    if allow_voting?
+      save_version("enabled_voting")
+    else
+      save_version("disabled_voting")
+    end
+  end
 
   module SearchMethods
     def not_visible(user)
@@ -87,38 +98,7 @@ class ForumPost < ApplicationRecord
     end
   end
 
-  module LogMethods
-    def log_create
-      log_voting_change if saved_change_to_allow_voting?
-    end
-
-    def log_update
-      log_voting_change if saved_change_to_allow_voting?
-
-      if saved_change_to_is_hidden?
-        ModAction.log!(updater, is_hidden? ? :forum_post_hide : :forum_post_unhide, self, forum_topic_id: topic_id, user_id: creator_id)
-      end
-
-      if !saved_change_to_is_hidden? && updater_id != creator_id && !is_merging
-        ModAction.log!(updater, :forum_post_update, self, forum_topic_id: topic_id, user_id: creator_id)
-      end
-    end
-
-    def log_destroy
-      ModAction.log!(destroyer, :forum_post_delete, self, forum_topic_id: topic_id, user_id: creator_id)
-    end
-
-    def log_voting_change
-      if allow_voting?
-        save_version("enabled_voting")
-      else
-        save_version("disabled_voting")
-      end
-    end
-  end
-
   extend(SearchMethods)
-  include(LogMethods)
 
   def has_voting?
     allow_voting?
@@ -271,7 +251,7 @@ class ForumPost < ApplicationRecord
     end
   end
 
-  def delete_topic_if_original_post
+  def hide_topic_if_original_post
     if is_hidden? && is_original_post?
       topic.update_attribute(:is_hidden, true)
     end

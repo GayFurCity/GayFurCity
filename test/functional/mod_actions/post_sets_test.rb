@@ -28,7 +28,7 @@ module ModActions
       end
 
       should("format set_delete correctly") do
-        @set.destroy_with(@admin)
+        @set.destroy_with!(@admin)
 
         assert_matches(
           actions: %w[set_delete],

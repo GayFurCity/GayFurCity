@@ -2,10 +2,7 @@
 
 class HelpPage < ApplicationRecord
   normalizes(:name, with: ->(name) { name.downcase.strip.tr(" ", "_") })
-  after_create(:log_create)
-  after_update(:log_update)
   after_destroy(:invalidate_cache)
-  after_destroy(:log_delete)
   after_save(:invalidate_cache)
   belongs_to(:wiki_page)
   delegate(:title, to: :wiki_page, prefix: true, allow_nil: true)
@@ -42,21 +39,10 @@ class HelpPage < ApplicationRecord
     Cache.fetch("help_index", expires_in: 12.hours) { HelpPage.all.sort_by(&:pretty_title) }
   end
 
-  module LogMethods
-    def log_create
-      ModAction.log!(creator, :help_create, self, name: name, wiki_page_title: wiki_page_title, wiki_page_id: wiki_page_id)
-    end
-
-    def log_update
-      ModAction.log!(updater, :help_update, self, name: name, wiki_page_title: wiki_page_title, wiki_page_id: wiki_page_id)
-    end
-
-    def log_delete
-      ModAction.log!(destroyer, :help_delete, self, name: name, wiki_page_title: wiki_page_title, wiki_page_id: wiki_page_id)
-    end
-  end
-
-  include(LogMethods)
+  modactions(:help)
+    .add(:create, :creator, on: :create) { { name: name, wiki_page_title: wiki_page_title, wiki_page_id: wiki_page_id } }
+    .add(:update, :updater, on: :update) { { name: name, wiki_page_title: wiki_page_title, wiki_page_id: wiki_page_id } }
+    .add(:delete, :destroyer, on: :destroy) { { name: name, wiki_page_title: wiki_page_title, wiki_page_id: wiki_page_id } }
 
   def self.available_includes
     %i[wiki_page]

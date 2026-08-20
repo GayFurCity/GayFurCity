@@ -5,9 +5,9 @@ class Artist < ApplicationRecord
 
   array_attribute(:other_names)
 
-  belongs_to_user(:creator, ip: true, clones: :updater)
+  belongs_to_user(:creator, ip: true, clone: :updater)
   belongs_to_user(:linked_user, optional: true)
-  resolvable(:updater)
+  belongs_to_user(:updater, ip: true)
   resolvable(:destroyer)
   revertible do |version|
     self.name = version.name
@@ -23,8 +23,6 @@ class Artist < ApplicationRecord
   validate(:user_not_limited)
   validates(:name, tag_name: true, uniqueness: true, if: :name_changed?)
   validates(:name, length: { maximum: 100 })
-  before_destroy(:log_destroy)
-  after_save(:log_changes)
   after_save(:create_version)
   after_save(:categorize_tag)
   after_save(:update_wiki)
@@ -42,31 +40,19 @@ class Artist < ApplicationRecord
   attribute(:notes, :string)
   delegate(:post_count, to: :tag)
 
+  modactions(:artist)
+    .add(:rename, :updater, on: :save, if: -> { saved_change_to_name? && !previously_new_record? }) { { new_name: name, old_name: name_before_last_save } }
+    .add(:lock, :updater, on: :save, if: -> { saved_change_to_is_locked? && is_locked? })
+    .add(:unlock, :updater, on: :save, if: -> { saved_change_to_is_locked? && !is_locked? })
+    .add(:user_link, :updater, on: :save, if: -> { saved_change_to_linked_user_id? && linked_user_id.present? }) { { user_id: linked_user_id } }
+    .add(:user_unlink, :updater, on: :save, if: -> { saved_change_to_linked_user_id? && linked_user_id.blank? }) { { user_id: linked_user_id_before_last_save } }
+    .add(:delete, :destroyer, on: :before_destroy) { { name: name } }
+
   # FIXME: This is a hack on top of the hack below for setting url_string to ensure name is set first for validations
   def assign_attributes(new_attributes)
     assign_first = new_attributes.extract!(:name)
     super(assign_first) unless assign_first.empty?
     super
-  end
-
-  def log_changes
-    if saved_change_to_name? && !previously_new_record?
-      ModAction.log!(updater, :artist_rename, self, new_name: name, old_name: name_before_last_save)
-    end
-    if saved_change_to_is_locked?
-      ModAction.log!(updater, is_locked? ? :artist_lock : :artist_unlock, self)
-    end
-    if saved_change_to_linked_user_id?
-      if linked_user_id.present?
-        ModAction.log!(updater, :artist_user_link, self, user_id: linked_user_id)
-      else
-        ModAction.log!(updater, :artist_user_unlink, self, user_id: linked_user_id_before_last_save)
-      end
-    end
-  end
-
-  def log_destroy
-    ModAction.log!(destroyer, :artist_delete, self, artist_id: id, artist_name: name)
   end
 
   module UrlMethods

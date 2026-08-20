@@ -11,9 +11,9 @@ class UserFeedback < ApplicationRecord
   validates(:body, length: { minimum: 1, maximum: -> { Config.instance.user_feedback_max_size } })
   validate(:creator_is_moderator, on: :create)
   validate(:user_is_not_creator)
-  after_create(:log_create)
-  after_update(:log_update)
-  after_destroy(:log_destroy)
+  after_destroy(:create_staff_note_on_destroy)
+  after_destroy(:send_notifications)
+  after_save(:send_notifications)
   enum(:category, %w[positive negative neutral].index_with(&:to_s))
 
   attr_accessor(:send_update_notification)
@@ -21,32 +21,34 @@ class UserFeedback < ApplicationRecord
   scope(:active, -> { where(is_deleted: false) })
   scope(:deleted, -> { where(is_deleted: true) })
 
-  module LogMethods
-    def log_create
-      ModAction.log!(creator, :user_feedback_create, self, user_id: user_id, reason: body, type: category)
-      user.notifications.create!(category: "feedback_create", data: { user_id: updater_id, record_id: id, record_type: category })
+  modactions(:user_feedback)
+    .add(:create, :creator, on: :create) { { user_id: user_id, reason: body, type: category } }
+    .add(:delete, :updater, on: :update, if: -> { saved_change_to_is_deleted? && is_deleted? }) { { user_id: user_id, reason: body, type: category, record_id: id } }
+    .add(:undelete, :updater, on: :update, if: -> { saved_change_to_is_deleted? && !is_deleted? }) { { user_id: user_id, reason: body, type: category, record_id: id } }
+    .add(:update, :updater, on: :update, unless: -> { saved_change_to_is_deleted? }) do
+      { user_id: user_id, reason: body, old_reason: body_before_last_save, type: category, old_type: category_before_last_save, record_id: id }
     end
+    .add(:destroy, :destroyer, on: :destroy) { { user_id: user_id, reason: body, type: category, record_id: id } }
 
-    def log_update
-      details = { user_id: user_id, reason: body, old_reason: body_before_last_save, type: category, old_type: category_before_last_save, record_id: id }
+  def create_staff_note_on_destroy
+    deletion_user = "\"#{destroyer_name}\":/users/#{destroyer_id}"
+    creator_user = "\"#{creator_name}\":/users/#{creator_id}"
+    StaffNote.create(body: "#{deletion_user} destroyed #{category} feedback, created #{created_at.to_date} by #{creator_user}: #{body}", user_id: user_id, creator: User.system)
+  end
+
+  def send_notifications
+    if previously_new_record?
+      user.notifications.create!(category: "feedback_create", data: { user_id: updater_id, record_id: id, record_type: category })
+    elsif destroyed?
+      user.notifications.create!(category: "feedback_destroy", data: { user_id: destroyer_id, record_id: id, record_type: category })
+    else
       if saved_change_to_is_deleted?
-        action = is_deleted? ? :user_feedback_delete : :user_feedback_undelete
-        ModAction.log!(updater, action, self, **details)
-        user.notifications.create!(category: action[5..], data: { user_id: updater_id, record_id: id, record_type: category })
-        return unless saved_change_to_category? || saved_change_to_body?
+        user.notifications.create!(category: is_deleted? ? :feedback_delete : :feedback_undelete, data: { user_id: updater_id, record_id: id, record_type: category })
       end
-      ModAction.log!(updater, :user_feedback_update, self, **details)
+
       if send_update_notification.to_s.truthy? && saved_change_to_body?
         user.notifications.create!(category: "feedback_update", data: { user_id: updater_id, record_id: id, record_type: category })
       end
-    end
-
-    def log_destroy
-      ModAction.log!(destroyer, :user_feedback_destroy, self, user_id: user_id, reason: body, type: category, record_id: id)
-      deletion_user = "\"#{destroyer_name}\":/users/#{destroyer_id}"
-      creator_user = "\"#{creator_name}\":/users/#{creator_id}"
-      StaffNote.create(body: "#{deletion_user} destroyed #{category} feedback, created #{created_at.to_date} by #{creator_user}: #{body}", user_id: user_id, creator: User.system)
-      user.notifications.create!(category: "feedback_destroy", data: { user_id: destroyer_id, record_id: id, record_type: category })
     end
   end
 
@@ -76,7 +78,6 @@ class UserFeedback < ApplicationRecord
     end
   end
 
-  include(LogMethods)
   extend(SearchMethods)
 
   def user_name

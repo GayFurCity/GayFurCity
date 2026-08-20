@@ -45,33 +45,16 @@ class ForumCategory < ApplicationRecord
     end
   end
 
-  module LogMethods
-    def log_create
-      ModAction.log!(creator, :forum_category_create, self,
-                     forum_category_name: name,
-                     can_view:            can_view,
-                     can_create:          can_create)
+  modactions(:forum_category)
+    .add(:create, :creator, on: :create) { { forum_category_name: name, can_view: can_view, can_create: can_create } }
+    .add(:update, :updater, on: :update) do
+      {
+        forum_category_name: name, old_forum_category_name: name_before_last_save,
+        can_view: can_view, old_can_view: can_view_before_last_save,
+        can_create: can_create, old_can_create: can_create_before_last_save,
+      }
     end
-
-    def log_update
-      ModAction.log!(updater, :forum_category_update, self,
-                     forum_category_name:     name,
-                     old_forum_category_name: name_before_last_save,
-                     can_view:                can_view,
-                     old_can_view:            can_view_before_last_save,
-                     can_create:              can_create,
-                     old_can_create:          can_create_before_last_save)
-    end
-
-    def log_delete
-      ModAction.log!(destroyer, :forum_category_delete, self,
-                     forum_category_name: name,
-                     can_view:            can_view,
-                     can_create:          can_create)
-    end
-  end
-
-  include(LogMethods)
+    .add(:delete, :destroyer, on: :destroy) { { forum_category_name: name, can_view: can_view, can_create: can_create } }
 
   def self.log_reorder(total, user)
     ModAction.log!(user, :forum_categories_reorder, nil, total: total)

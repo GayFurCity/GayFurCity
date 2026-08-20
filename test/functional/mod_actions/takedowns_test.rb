@@ -24,7 +24,7 @@ module ModActions
         )
       end
 
-      should("format takedown-delete") do
+      should("format takedown_delete") do
         @takedown.destroy_with(@admin)
 
         assert_matches(

@@ -2,8 +2,8 @@
 | Filename | line # | FIXME |
 |:------|:------:|:------|
 | [app/controllers/artists_controller.rb](app/controllers/artists_controller.rb#L63) | 63 | This is a hack on top of a hack to ensure all of the other attributes are set before url_string to ensure there are no race conditions |
-| [app/models/artist.rb](app/models/artist.rb#L45) | 45 | This is a hack on top of the hack below for setting url_string to ensure name is set first for validations |
-| [app/models/artist.rb](app/models/artist.rb#L230) | 230 | This is a hack. Setting an association directly immediately updates without regard for the parents validity. |
+| [app/models/artist.rb](app/models/artist.rb#L51) | 51 | This is a hack on top of the hack below for setting url_string to ensure name is set first for validations |
+| [app/models/artist.rb](app/models/artist.rb#L216) | 216 | This is a hack. Setting an association directly immediately updates without regard for the parents validity. |
 | [app/models/tag_relationship.rb](app/models/tag_relationship.rb#L109) | 109 | Rails assigns different join aliases for joins(:antecedent_tag) and joins(:antecedent_tag, :consquent_tag) |
 | [app/models/user_vote.rb](app/models/user_vote.rb#L62) | 62 | the logic around this is a mess, and I'm frankly amazed it works |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L2372) | 2372 | This test fails randomly at different assertions |
@@ -14,14 +14,14 @@
 | [app/controllers/takedowns_controller.rb](app/controllers/takedowns_controller.rb#L41) | 41 | this *should* be changed eventually to use the update method & be strictly validated |
 | [app/controllers/uploads_controller.rb](app/controllers/uploads_controller.rb#L12) | 12 | this route has many performance issues and needs to be revised |
 | [app/logical/favorite_manager.rb](app/logical/favorite_manager.rb#L53) | 53 | Much better and more intelligent logic can exist for this |
-| [app/models/forum_topic.rb](app/models/forum_topic.rb#L172) | 172 | revisit muting, it may need to be further optimized or removed due to performance issues |
+| [app/models/forum_topic.rb](app/models/forum_topic.rb#L158) | 158 | revisit muting, it may need to be further optimized or removed due to performance issues |
 | [app/models/post_event.rb](app/models/post_event.rb#L99) | 99 | We need access control/blocks for associations |
 | [app/models/post_flag.rb](app/models/post_flag.rb#L52) | 52 | We need access control/blocks for associations |
-| [app/models/post_set.rb](app/models/post_set.rb#L122) | 122 | convert to user throttle |
+| [app/models/post_set.rb](app/models/post_set.rb#L125) | 125 | convert to user throttle |
 | [app/models/tag_alias.rb](app/models/tag_alias.rb#L140) | 140 | This causes every empty line except for the very first one will get stripped. At the end of the day, it's not a huge deal. |
 | [app/models/tag_alias.rb](app/models/tag_alias.rb#L167) | 167 | Race condition with indexing jobs here. |
 | [app/models/tag_implication.rb](app/models/tag_implication.rb#L207) | 207 | Race condition with indexing jobs here. |
-| [app/models/ticket.rb](app/models/ticket.rb#L170) | 170 | We need access control/blocks for associations |
+| [app/models/ticket.rb](app/models/ticket.rb#L178) | 178 | We need access control/blocks for associations |
 | [app/models/user_vote.rb](app/models/user_vote.rb#L61) | 61 | this join is used for both sides despite only being needed for the id side |
 | [app/controllers/forums/topics_controller.rb](app/controllers/forums/topics_controller.rb#L20) | 20 | revisit muting, it may need to be further optimized or removed due to performance issues |
 | [app/logical/vote_manager/posts.rb](app/logical/vote_manager/posts.rb#L90) | 90 | this can likely be optimized to just update post ids |

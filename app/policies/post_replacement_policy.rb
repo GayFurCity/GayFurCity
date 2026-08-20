@@ -27,6 +27,10 @@ class PostReplacementPolicy < ApplicationPolicy
     approver?
   end
 
+  def transfer?
+    approver? && (record.pending? || record.rejected?)
+  end
+
   def destroy?
     user.is_admin?
   end

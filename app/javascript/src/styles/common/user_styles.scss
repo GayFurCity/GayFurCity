@@ -34,3 +34,11 @@ $levels: (
 .ip-addr.is-banned {
   text-decoration: line-through;
 }
+
+svg.chexagon {
+  height: 1em;
+  width: 1em;
+  vertical-align: sub;
+  color: themed("color-tag-artist");
+  .check { color: themed("color-text"); }
+}

@@ -610,7 +610,12 @@ CREATE TABLE public.config (
     elasticsearch_query_timeout jsonb DEFAULT '{"0": 3000, "15": 6000, "19": 9000}'::jsonb NOT NULL,
     elasticsearch_request_timeout jsonb DEFAULT '{"0": 5, "15": 10, "19": 15}'::jsonb NOT NULL,
     request_cycle_timeout jsonb DEFAULT '{"0": 10000, "15": 20000, "19": 30000}'::jsonb NOT NULL,
-    db_exports_enabled boolean DEFAULT false NOT NULL
+    db_exports_enabled boolean DEFAULT false NOT NULL,
+    blacklisted_preview_url character varying DEFAULT '/images/blacklisted-preview.png'::character varying NOT NULL,
+    deleted_preview_url character varying DEFAULT '/images/deleted-preview.png'::character varying NOT NULL,
+    download_preview_url character varying DEFAULT '/images/download-preview.png'::character varying NOT NULL,
+    missing_preview_url character varying DEFAULT '/images/missing-preview.png'::character varying NOT NULL,
+    placeholder_preview_url character varying DEFAULT '/images/placeholder-preview.png'::character varying NOT NULL
 );
 
 
@@ -2095,7 +2100,8 @@ CREATE TABLE public.post_replacements (
     rejector_id bigint,
     rejection_reason character varying DEFAULT ''::character varying NOT NULL,
     previous_details jsonb,
-    post_replacement_media_asset_id bigint
+    post_replacement_media_asset_id bigint,
+    sequence_number integer NOT NULL
 );
 
 
@@ -6009,6 +6015,13 @@ CREATE INDEX index_post_replacements_on_post_id ON public.post_replacements USIN
 
 
 --
+-- Name: index_post_replacements_on_post_id_and_sequence_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_post_replacements_on_post_id_and_sequence_number ON public.post_replacements USING btree (post_id, sequence_number);
+
+
+--
 -- Name: index_post_replacements_on_post_id_and_status; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8274,6 +8287,9 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260819170000'),
+('20260819160100'),
+('20260819160000'),
 ('20260818151000'),
 ('20260818150000'),
 ('20260818140000'),

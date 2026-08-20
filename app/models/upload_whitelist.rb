@@ -58,6 +58,10 @@ class UploadWhitelist < ApplicationRecord
   end
 
   def self.is_whitelisted?(url, user)
+    if url.userinfo.present?
+      return [false, "URLs with embedded credentials are not allowed"]
+    end
+
     entries = Cache.fetch("upload_whitelist", expires_in: 6.hours) do
       all
     end

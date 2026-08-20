@@ -66,7 +66,7 @@ class TicketPolicy < ApplicationPolicy
     q = super
     return q if user.is_moderator?
     qq = q.for_creator(user)
-    qq = qq.or(q.for_model(Post)) if user.is_janitor?
+    qq = qq.or(q.for_model([Post, PostReplacement])) if user.is_janitor?
     qq
   end
 end

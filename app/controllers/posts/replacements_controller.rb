@@ -2,7 +2,7 @@
 
 module Posts
   class ReplacementsController < ApplicationController
-    before_action(:ensure_uploads_enabled, only: %i[new create])
+    before_action(:ensure_replacements_enabled, only: %i[new create])
     respond_to(:html, :json)
 
     content_security_policy(only: %i[new]) do |p|
@@ -15,6 +15,9 @@ module Posts
       @post_replacements = authorize(PostReplacement).html_includes(request, :post, :creator)
                                                      .search_current(search_params(PostReplacement))
                                                      .paginate(params[:page], limit: params[:limit])
+      # The timeline (shared rail + version dots) only reads correctly for a single
+      # post's version history; a mixed list would jumble unrelated posts together.
+      @timeline = single_post_search?
 
       respond_with(@post_replacements)
     end
@@ -51,16 +54,27 @@ module Posts
 
     def approve
       @post_replacement = authorize(PostReplacement.find(params[:id]))
-      @post_replacement.approve!(CurrentUser.user, penalize_current_uploader: params[:penalize_current_uploader])
+      @post_replacement.approve!(CurrentUser.user, penalize_current_uploader: params[:penalize_current_uploader], force_missing_backup: params[:force_missing_backup])
 
-      respond_with(@post_replacement, location: post_path(@post_replacement.post))
+      if @post_replacement.errors.any?
+        render(plain: "Replacement approval failed: #{@post_replacement.errors.full_messages.join('; ')}", status: :bad_request)
+        return
+      end
+
+      respond_with(@post_replacement) do |format|
+        format.html { render(partial: "card", locals: { post_replacement: @post_replacement, timeline: card_timeline? }) }
+        format.json
+      end
     end
 
     def toggle_penalize
       @post_replacement = authorize(PostReplacement.find(params[:id]))
       @post_replacement.toggle_penalize!(CurrentUser.user)
 
-      respond_with(@post_replacement)
+      respond_with(@post_replacement) do |format|
+        format.html { render(partial: "card", locals: { post_replacement: @post_replacement, timeline: card_timeline? }) }
+        format.json
+      end
     end
 
     def reject
@@ -69,7 +83,10 @@ module Posts
         @post_replacement.reject!(CurrentUser.user, params.dig(:post_replacement, :reason).presence || params[:reason].presence || "")
       end
 
-      respond_with(@post_replacement, location: post_path(@post_replacement.post))
+      respond_with(@post_replacement) do |format|
+        format.html { render(partial: "card", locals: { post_replacement: @post_replacement, timeline: card_timeline? }) }
+        format.json
+      end
     end
 
     def reject_with_reason
@@ -77,26 +94,70 @@ module Posts
       respond_with(@post_replacement)
     end
 
+    def transfer
+      @post_replacement = authorize(PostReplacement.find(params[:id]))
+      @post_replacement.transfer(Post.find(params[:new_post_id]), CurrentUser.user, force_missing_backup: params[:force_missing_backup])
+
+      if @post_replacement.errors.any?
+        message = @post_replacement.errors.full_messages.join("; ")
+        respond_to do |format|
+          format.html { render(plain: message, status: :precondition_failed) }
+          format.json { render(json: { success: false, message: message }, status: :precondition_failed) }
+        end
+        return
+      end
+
+      respond_with(@post_replacement) do |format|
+        format.html { render(partial: "card", locals: { post_replacement: @post_replacement, timeline: card_timeline? }) }
+        format.json
+      end
+    end
+
     def destroy
       @post_replacement = authorize(PostReplacement.find(params[:id]))
       @post_replacement.destroy_with_current(:destroyer)
 
-      respond_with(@post_replacement, location: post_path(@post_replacement.post))
+      respond_with(@post_replacement) do |format|
+        format.html { head(:ok) }
+        format.json
+      end
     end
 
     def promote
       @post_replacement = authorize(PostReplacement.find(params[:id]))
       @upload = @post_replacement.promote!(CurrentUser.user)
-      if @post_replacement.errors.any?
-        respond_with(@post_replacement)
-      elsif @upload.errors.any?
-        respond_with(@upload)
-      else
-        respond_with(@upload.post)
+
+      object_to_respond = if @post_replacement.errors.any?
+                            @post_replacement
+                          else
+                            @upload.errors.any? ? @upload : @upload.post
+                          end
+
+      respond_with(object_to_respond) do |format|
+        format.html do
+          if @post_replacement.errors.any? || @upload.errors.any?
+            head(:unprocessable_content)
+          else
+            render(partial: "card", locals: { post_replacement: @post_replacement, timeline: card_timeline? })
+          end
+        end
+        format.json
       end
     end
 
     private
+
+    # Timeline mode only makes sense scoped to one post's version history, i.e. when
+    # search[post_id] holds a single id (the search supports a comma-separated list).
+    def single_post_search?
+      search_params(PostReplacement)[:post_id].to_s.match?(/\A\d+\z/)
+    end
+
+    # AJAX card re-renders carry the timeline context of the page they'll be swapped
+    # into, so the fragment matches its neighbours (dot + rail, or a plain card).
+    def card_timeline?
+      ActiveModel::Type::Boolean.new.cast(params[:timeline])
+    end
 
     def check_allow_create
       return if CurrentUser.can_replace?
@@ -104,8 +165,8 @@ module Posts
       raise(User::PrivilegeError, "You cannot create replacements")
     end
 
-    def ensure_uploads_enabled
-      access_denied if Security::Lockdown.uploads_disabled? || CurrentUser.user.level < Security::Lockdown.uploads_min_level
+    def ensure_replacements_enabled
+      access_denied if Security::Lockdown.uploads_disabled? || Security::Lockdown.post_replacements_disabled? || CurrentUser.user.level < Security::Lockdown.uploads_min_level
     end
   end
 end

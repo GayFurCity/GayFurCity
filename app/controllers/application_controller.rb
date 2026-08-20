@@ -69,6 +69,8 @@ class ApplicationController < ActionController::Base
     CurrentUser.user ||= User.anonymous
 
     case exception
+    when PostReplacement::MissingSourceFileError
+      render_expected_error(409, exception)
     when PostReplacement::ProcessingError
       render_expected_error(400, exception)
     when APIThrottled
@@ -146,7 +148,7 @@ class ApplicationController < ActionController::Base
   def render_expected_error(status, message, format: request.format.symbol)
     format = :html unless format.in?(%i[html json atom])
     @message = message
-    render("static/error", status: status, formats: format)
+    render("static/error", status: status, formats: format, layout: !request.xhr?)
   end
 
   def render_error_page(status, exception, message: exception.message, format: request.format.symbol)
@@ -163,7 +165,7 @@ class ApplicationController < ActionController::Base
     GayFurCity::Logger.log(@exception, expected: @expected)
     log = ExceptionLog.add!(exception, user_id: CurrentUser.user.id, request: request) unless @expected
     @log_code = log&.code
-    render("static/error", status: status, formats: format)
+    render("static/error", status: status, formats: format, layout: !request.xhr?)
   end
 
   def access_denied(exception = nil)

@@ -35,7 +35,6 @@ module GayFurCity
     config(:protected_path_prefix) { "deleted/" }
     config(:replacement_path_prefix) { "replacements/" }
     config(:mascot_path_prefix) { "mascots/" }
-    config(:deleted_preview_url) { "/images/delete-preview.png" }
 
     config(:protected_file_secret, required: true)
     config(:replacement_file_secret, required: true)

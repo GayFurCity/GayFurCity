@@ -209,6 +209,11 @@ module DynamicConfig
     add_number_field(:ai_confidence_threshold, hint: "The minimum required threshold to flag/tag ai generated content")
     add_boolean_field(:db_exports_enabled, hint: "Whether the database exports page is enabled.")
     add_text_field(:default_blacklist, large: true, input_options: { size: "40x10" })
+    add_text_field(:blacklisted_preview_url, hint: "Shown in place of a post's thumbnail when it's blacklisted. Not currently live-editable - only the file at this path is used (see blacklists.scss)")
+    add_text_field(:deleted_preview_url, hint: "Shown in place of a post's thumbnail when it's deleted and the viewer can't see deleted posts")
+    add_text_field(:download_preview_url, hint: "Shown in place of a thumbnail for a download-only file with no viewable preview")
+    add_text_field(:missing_preview_url, hint: "Shown in place of a post replacement's thumbnail when it's a metadata-only backup with no real file (see PostReplacement#metadata_only?)")
+    add_text_field(:placeholder_preview_url, hint: "Shown in place of a user avatar thumbnail while the real one hasn't loaded yet")
   end
 
   category("Timeouts") do

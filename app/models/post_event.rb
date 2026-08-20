@@ -38,6 +38,7 @@ class PostEvent < ApplicationRecord
     relisted:                31,
     in_progress_finished:    32,
     in_progress_forced:      33,
+    replacement_transferred: 34,
   })
 
   MOD_ONLY_SEARCH_ACTIONS = [
@@ -57,7 +58,7 @@ class PostEvent < ApplicationRecord
     note_count
     post_appeal_id
     post_flag_id
-    post_replacement_id old_md5 new_md5 md5 storage_id
+    post_replacement_id old_md5 new_md5 md5 storage_id old_post new_post
     min_edit_level
   ].freeze
 
@@ -187,6 +188,10 @@ class PostEvent < ApplicationRecord
         return %i[post_replacement_id] unless CurrentUser.user.is_admin?
         %i[post_replacement_id md5 storage_id]
       end,
+    },
+    replacement_transferred:       {
+      text: ->(log) { "\"replacement ##{log.post_replacement_id}\":#{url.post_replacements_path(search: { id: log.post_replacement_id })} (post ##{log.old_post} -> post ##{log.new_post})" },
+      json: %i[post_replacement_id old_post new_post],
     },
     expunged:                BLANK,
     comment_disabled:        BLANK,

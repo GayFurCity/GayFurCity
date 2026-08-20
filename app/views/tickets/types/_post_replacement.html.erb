@@ -1,0 +1,12 @@
+<tr>
+  <td><span class="title">Reported Replacement</span></td>
+  <td>
+    <% if @ticket.model.present? %>
+      <div class="replacement-embedded">
+        <%= render(partial: "posts/replacements/card", locals: { post_replacement: @ticket.model, expanded: true, actions: false }) %>
+      </div>
+    <% else %>
+      <span class="text-error">Replacement has been destroyed</span>
+    <% end %>
+  </td>
+</tr>

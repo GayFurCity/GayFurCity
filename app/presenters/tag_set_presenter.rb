@@ -143,7 +143,7 @@ class TagSetPresenter < ApplicationPresenter
     end
 
     parts << tag_link(tag, name.tr("_", " "))
-    parts << h.tag.i(title: "Uploaded by the artist", class: "highlight fa-regular fa-circle-check") if highlight
+    parts << h.svg_icon(:chexagon, class: "highlight chexagon", title: "Uploaded by the artist") if highlight
 
     if count >= 10_000
       post_count = "#{count / 1_000}k"

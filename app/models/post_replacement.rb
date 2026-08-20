@@ -2,9 +2,20 @@
 
 class PostReplacement < ApplicationRecord
   class ProcessingError < StandardError; end
+  # Raised instead of silently backing up from bare metadata - approving/transferring onto a post
+  # whose file is already gone is destructive enough (no real backup possible) that it needs an
+  # admin to explicitly opt in via force:, not just whoever happens to be approving.
+  class MissingSourceFileError < ProcessingError; end
 
   TAGS_TO_REMOVE_AFTER_ACCEPT = %w[better_version_at_source].freeze
   HIGHLIGHTED_TAGS = %w[better_version_at_source avoid_posting conditional_dnp].freeze
+  # Reason stamped on a backup created from the post's real file (see create_backup_replacement) -
+  # reserved (see reason_is_not_reserved) so it can't be spoofed by something a user typed.
+  ORIGINAL_FILE_REASON = "Original File"
+  # Reason stamped on a backup created with no real file to copy (see create_backup_replacement)
+  # - reserved so it reliably marks that state (see #metadata_only?) instead of colliding with
+  # something a user typed.
+  METADATA_ONLY_REASON = "Original Metadata (file missing)"
   has_media_asset(:post_replacement_media_asset)
 
   belongs_to(:post)
@@ -21,9 +32,11 @@ class PostReplacement < ApplicationRecord
   validate(:set_file_name, on: :create, if: :is_direct?)
   validate(:direct_url_is_whitelisted, on: :create)
   validates(:reason, length: { minimum: 5, maximum: 150 }, presence: true, on: :create)
+  validate(:reason_is_not_reserved, on: :create)
   validates(:rejection_reason, length: { maximum: 150 }, if: :rejected?)
   validate(:validate_media_asset_status, on: :create)
 
+  before_create(:fill_sequence_number)
   after_create(-> { post.update_index })
   before_destroy(:log_destroy)
   after_destroy(-> { post.update_index })
@@ -63,6 +76,25 @@ class PostReplacement < ApplicationRecord
       return false
     end
     true
+  end
+
+  def reason_is_not_reserved
+    return if original?
+    normalized = reason.to_s.strip.squeeze(" ")
+    if normalized.casecmp(ORIGINAL_FILE_REASON) == 0 || normalized.casecmp(METADATA_ONLY_REASON) == 0
+      errors.add(:base, "You cannot use '#{normalized}' as a reason.")
+    end
+  end
+
+  def self.calculate_sequence_number(post_id)
+    1 + where(post_id: post_id).maximum(:sequence_number).to_i
+  end
+
+  # The original backup is numbered 0 by its status marker; every other replacement gets
+  # 1..N in creation order. Assigned once here and never touched again, including by
+  # later status changes (e.g. "Reset To" re-approving the original backup in place).
+  def fill_sequence_number
+    self.sequence_number = original? ? 0 : self.class.calculate_sequence_number(post_id)
   end
 
   module PostMethods
@@ -152,13 +184,50 @@ class PostReplacement < ApplicationRecord
       Upload.create(new_upload_params(replace: replace))
     end
 
-    def create_backup_replacement
+    # If the post's current file is already missing from storage, there's nothing to actually
+    # back up. Rather than silently faking a backup from bare metadata (md5, dimensions, etc. -
+    # none of which require reading the file itself), that's gated behind force: so it only
+    # happens when an admin explicitly opts in (see approve!/transfer) - otherwise it raises
+    # MissingSourceFileError so the caller can offer that choice instead of failing outright.
+    def create_backup_replacement(force: false)
+      source_asset = post.media_asset
+      file_exists = source_asset.storage_manager.exists?(source_asset.file_path)
+      if !file_exists && !force
+        raise(MissingSourceFileError, "The post's original file is missing from storage - an admin must force this before it can be backed up.")
+      end
+
       backup = nil
       begin
-        post.media_asset.open_file do |file|
-          backup = post.replacements.new(checksum: post.md5, creator: post.uploader.resolvable(post.uploader_ip_addr), status: "original", file_name: "#{post.md5}.#{post.file_ext}", source: post.source, reason: "Original File", is_backup: true)
+        if file_exists
+          source_asset.open_file do |file|
+            backup = post.replacements.new(checksum: post.md5, creator: post.uploader.resolvable(post.uploader_ip_addr), status: "original", file_name: "#{post.md5}.#{post.file_ext}", source: post.source, reason: ORIGINAL_FILE_REASON, is_backup: true)
+            backup.media_asset.backup_post_id = post.id
+            backup.media_asset.append_all!(file, save: false)
+            backup.save!
+          end
+        else
+          backup = post.replacements.new(checksum: post.md5, creator: post.uploader.resolvable(post.uploader_ip_addr), status: "original",
+                                         file_name: "#{post.md5}.#{post.file_ext}", source: post.source,
+                                         reason: METADATA_ONLY_REASON, is_backup: true)
           backup.media_asset.backup_post_id = post.id
-          backup.media_asset.append_all!(file, save: false)
+          # skip_files stops the after_create variant-generation callback from trying (and failing) to
+          # open a file that doesn't exist - it only affects this one save, not future loads of the record.
+          backup.media_asset.skip_files = true
+          backup.media_asset.assign_attributes(
+            md5:              source_asset.md5,
+            file_ext:         source_asset.file_ext,
+            file_size:        source_asset.file_size,
+            image_width:      source_asset.image_width,
+            image_height:     source_asset.image_height,
+            duration:         source_asset.duration,
+            framecount:       source_asset.framecount,
+            pixel_hash:       source_asset.pixel_hash,
+            is_animated_png:  source_asset.is_animated_png,
+            is_animated_gif:  source_asset.is_animated_gif,
+            is_animated_webp: source_asset.is_animated_webp,
+            status:           "active",
+            status_message:   "metadata only (file missing)",
+          )
           backup.save!
         end
       rescue Exception => e
@@ -169,17 +238,21 @@ class PostReplacement < ApplicationRecord
       backup
     end
 
-    def approve!(approver, penalize_current_uploader:)
+    def approve!(approver, penalize_current_uploader:, force_missing_backup: false)
       unless %w[pending original rejected].include?(status)
         errors.add(:status, "must be pending, original, or rejected to approve")
         return
       end
+      if metadata_only?
+        errors.add(:status, "cannot be reset to - it's a metadata-only backup with no real file")
+        return
+      end
       errors.add(:post, "is deleted") if post.is_deleted?
       transaction do
-        create_backup_replacement if post.replacements.original.none?
+        create_backup_replacement(force: force_missing_backup.to_s.truthy? && approver.is_admin?) if post.replacements.original.none?
 
         post.replacements.approved.find_each do |replacement|
-          replacement.update_column(:status, replacement.sequence == 0 ? "original" : "rejected")
+          replacement.update_column(:status, replacement.sequence_number == 0 ? "original" : "rejected")
         end
 
         PostReplacement::TAGS_TO_REMOVE_AFTER_ACCEPT.each do |tag|
@@ -299,6 +372,56 @@ class PostReplacement < ApplicationRecord
       creator.notify_for_upload(self, :replacement_reject) if creator_id != user.id
       post.update_index
     end
+
+    # Moves this replacement to another post, preserving its status (a rejected replacement
+    # stays rejected). Only pending/rejected replacements move; the destination must be a
+    # different, non-deleted post that doesn't already hold this file. uploader_on_approve
+    # isn't touched here - approve! always recomputes it from post.uploader at approval time,
+    # so it naturally resolves against the destination post once post_id is reassigned.
+    def transfer(new_post, user, force_missing_backup: false)
+      unless pending? || rejected?
+        errors.add(:status, "must be pending or rejected to transfer")
+        return
+      end
+      if new_post.nil? || new_post.id == post_id
+        errors.add(:post, "must be a different post")
+        return
+      end
+      if new_post.is_deleted?
+        errors.add(:post, "is deleted")
+        return
+      end
+      if new_post.md5 == md5
+        errors.add(:md5, "identical to the destination post's current file")
+        return
+      end
+      if new_post.replacements.joins(:post_replacement_media_asset).exists?(post_replacement_media_assets: { md5: md5 })
+        errors.add(:md5, "duplicate of existing replacement on post ##{new_post.id}")
+        return
+      end
+
+      source_post = post
+
+      transaction do
+        # No-op if the destination already has one.
+        if new_post.replacements.original.none?
+          PostReplacement.new(post: new_post).create_backup_replacement(force: force_missing_backup.to_s.truthy? && user.is_admin?)
+        end
+
+        update_columns(post_id: new_post.id, sequence_number: self.class.calculate_sequence_number(new_post.id))
+        reload # so `post` resolves to the destination for the caller (e.g. the redirect target)
+
+        PostEvent.add!(new_post.id, user, :replacement_transferred, post_replacement_id: id, old_post: source_post.id, new_post: new_post.id)
+        PostEvent.add!(source_post.id, user, :replacement_transferred, post_replacement_id: id, old_post: source_post.id, new_post: new_post.id)
+      end
+
+      source_post.update_index
+      new_post.update_index
+    rescue ActiveRecord::RecordNotUnique
+      errors.add(:base, "Another replacement was transferred to that post at the same time; please retry") if errors.none?
+    rescue ProcessingError => e
+      errors.add(:base, "Failed to create backup on the destination post: #{e.message}") if errors.none?
+    end
   end
 
   module PromotionMethods
@@ -343,6 +466,63 @@ class PostReplacement < ApplicationRecord
 
   def original_file_visible_to?(user)
     user.is_janitor?
+  end
+
+  def is_current?
+    md5 == post.md5
+  end
+
+  # True for a backup created with no real file to copy (see create_backup_replacement) - reason
+  # is reserved (see reason_is_not_reserved) so this can't be spoofed by a manually-typed reason.
+  def metadata_only?
+    original? && reason == METADATA_ONLY_REASON
+  end
+
+  def uploader_linked_artists
+    @uploader_linked_artists ||= post.artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == creator_id }
+  end
+
+  # Used by Ticket#can_create_for? (via MODELS[:create][:default]) to gate reporting a
+  # specific replacement: staff and the submitter can always report/view it, everyone else
+  # only if it isn't rejected and the underlying post is visible to them.
+  def visible?(user)
+    return false unless post.visible?(user)
+    return true if user.is_staff? || user.id == creator_id
+    !rejected?
+  end
+
+  def promoted_id
+    return nil unless promoted?
+
+    @promoted_id ||= begin
+      id = nil
+      if post.has_children?
+        id = post.children.where(md5: md5)&.first&.id
+      end
+
+      # Fallback 1: md5 lookup
+      if id.nil?
+        found_post = Post.find_by(md5: md5)
+        id = found_post&.id
+      end
+
+      # Fallback 2: Backup lookup
+      if id.nil?
+        backup = PostReplacement.original.joins(:post_replacement_media_asset).find_by(post_replacement_media_assets: { md5: md5 })
+        id = backup&.post_id
+      end
+
+      # Fallback 3: PostEvent lookup
+      if id.nil?
+        event = PostEvent.where(action: :replacement_promoted)
+                         .where("extra_data->>'source_post_id' = ?", post_id.to_s)
+                         .order(created_at: :desc)
+                         .first
+        id = event&.post_id
+      end
+
+      id
+    end
   end
 
   def upload_as_pending?
@@ -405,10 +585,6 @@ class PostReplacement < ApplicationRecord
     else
       previous_details.transform_keys(&:to_sym)
     end
-  end
-
-  def sequence
-    post.replacement_ids.reverse.index(id)
   end
 
   def self.available_includes

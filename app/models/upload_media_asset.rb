@@ -84,12 +84,21 @@ class UploadMediaAsset < MediaAssetWithVariants
       file_ext == "webm" ? "mp4" : "webm"
     end
 
+    # "crop" always stays in #variants (below) so lookups/URLs for posts that already have one
+    # keep working even after cropping is disabled - only *new* generation should skip it. Used
+    # to keep freshly-(re)generated variant lists from claiming a crop exists when it wasn't
+    # actually made this round.
+    def generatable_variants(list)
+      return list if Config.instance.enable_image_cropping?
+      list.reject { |variant| variant.type == :crop }
+    end
+
     def regenerate_variants
       UploadMediaAssetVariantsJob.perform_later(id)
     end
 
     def regenerate_variants!(file = self.file)
-      variants = self.variants.without(original)
+      variants = generatable_variants(self.variants.without(original))
       if file
         variants.each { |variant| variant.store!(file) }
       else
@@ -101,6 +110,14 @@ class UploadMediaAsset < MediaAssetWithVariants
       true
     end
 
+    # Overrides the base MediaAssetWithVariants version to exclude "crop" when it's disabled -
+    # see #generatable_variants.
+    def update_variants_data
+      variants = generatable_variants(self.variants.without(original))
+      self.variants_data = variants.map(&:cached_hash)
+      self.generated_variants = variants.map(&:type).uniq
+    end
+
     def generate_variants_after_finalize
       # intentional no-op, handled above
     end
@@ -110,7 +127,7 @@ class UploadMediaAsset < MediaAssetWithVariants
     end
 
     def regenerate_image_variants!(file = self.file)
-      variants = image_variants.without(original)
+      variants = generatable_variants(image_variants.without(original))
 
       if file
         variants.each { |variant| variant.store!(file) }
@@ -124,7 +141,7 @@ class UploadMediaAsset < MediaAssetWithVariants
 
     def regenerate_image_variants_and_data!(file = self.file)
       regenerate_image_variants!(file)
-      update_variants_partial_data(image_variants.without(original))
+      update_variants_partial_data(generatable_variants(image_variants.without(original)))
     end
 
     def regenerate_video_variants
@@ -132,7 +149,7 @@ class UploadMediaAsset < MediaAssetWithVariants
     end
 
     def regenerate_video_variants!(file = self.file)
-      variants = video_variants.without(original)
+      variants = generatable_variants(video_variants.without(original))
 
       if file
         variants.each { |variant| variant.store!(file) }
@@ -199,7 +216,10 @@ class UploadMediaAsset < MediaAssetWithVariants
     end
 
     def crop_video(original_file, &)
-      VideoResizer.crop(original_file.path, width, height, frame: post&.thumbnail_frame).tap(&).close!
+      # nil when cropping is disabled (Config#enable_image_cropping?) - skip storing rather than
+      # blow up on a nil file. #generatable_variants keeps this from being attempted normally,
+      # this is a fallback for anything calling store! on a crop variant directly.
+      VideoResizer.crop(original_file.path, width, height, frame: post&.thumbnail_frame)&.tap(&)&.close!
     end
 
     def convert_image(original_file, &)
@@ -208,7 +228,8 @@ class UploadMediaAsset < MediaAssetWithVariants
     end
 
     def crop_image(original_file, &)
-      ImageResizer.crop(original_file, width, height, 90).tap(&).close!
+      # See crop_video above.
+      ImageResizer.crop(original_file, width, height, 90)&.tap(&)&.close!
     end
   end
 

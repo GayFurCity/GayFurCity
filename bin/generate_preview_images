@@ -1,0 +1,57 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Generates the placeholder preview images under public/images/ - the "gradient white-to-gray
+# background, thin gray border, bold black centered text" thumbnails shown in place of a real
+# image (deleted post, blacklisted tag, download-only file, missing replacement backup, generic
+# placeholder). Requires ImageMagick's `convert`.
+#
+# The font is loaded from public/fonts/ by path rather than by name (e.g. "Liberation-Sans-Bold")
+# so this doesn't depend on fontconfig/system fonts being installed - the app's own containers
+# don't have any general-purpose fonts available, only this vendored one.
+#
+# Run this whenever one of these needs regenerating, or add a new one to IMAGES below - it's
+# idempotent, just re-run it.
+#
+#   bin/generate_preview_images
+
+require("fileutils")
+
+IMAGES_DIR = File.expand_path("../public/images", __dir__)
+SIZE = 150
+BORDER_COLOR = "rgb(123,123,123)"
+GRADIENT = "white-#dedede"
+FONT = File.expand_path("../public/fonts/LiberationSans-Bold.ttf", __dir__)
+# IMv7 renamed `convert` to `magick` (with a deprecation warning if you still use the old name);
+# our containers have IMv7, but not every dev host does - use whichever is actually installed.
+IM_COMMAND = ENV["PATH"].split(File::PATH_SEPARATOR).any? { |dir| File.executable?(File.join(dir, "magick")) } ? "magick" : "convert"
+
+IMAGES = {
+  "deleted-preview.png"     => "Deleted",
+  "download-preview.png"    => "Download",
+  "missing-preview.png"     => "Missing",
+  "blacklisted-preview.png" => "Blacklisted",
+  "placeholder-preview.png" => "Placeholder",
+}.freeze
+
+def generate!(filename, text)
+  path = File.join(IMAGES_DIR, filename)
+  # smaller text for multi-line labels so they still fit within the border
+  pointsize = text.include?("\n") ? 16 : 20
+
+  command = [
+    IM_COMMAND,
+    "-size", "#{SIZE - 2}x#{SIZE - 2}", "gradient:#{GRADIENT}",
+    "-colorspace", "sRGB", "-depth", "8",
+    "-bordercolor", BORDER_COLOR, "-border", "1",
+    "-gravity", "center", "-font", FONT, "-pointsize", pointsize.to_s, "-fill", "black",
+    "-annotate", "+0+0", text,
+    "-define", "png:color-type=6", "-depth", "8",
+    path,
+  ]
+  system(*command, exception: true)
+  puts("Generated #{filename}")
+end
+
+FileUtils.mkdir_p(IMAGES_DIR)
+IMAGES.each { |filename, text| generate!(filename, text) }

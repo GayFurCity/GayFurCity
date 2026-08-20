@@ -51,20 +51,21 @@ class Ticket < ApplicationRecord
 
   # All procs are executed in context
   MODELS = {
-    types:        %w[Artist Comment Dmail ForumPost Pool Post PostSet Tag User WikiPage],
+    types:        %w[Artist Comment Dmail ForumPost Pool Post PostReplacement PostSet Tag User WikiPage],
     # If the ticket can be viewed
     view:         {
-      Artist    => ->(user) { user.is_janitor? || user.is?(creator_id) },
-      Comment   => ->(user) { user.is_moderator? || user.is?(creator_id) },
-      Dmail     => ->(user) { user.is_moderator? || user.is?(creator_id) },
-      ForumPost => ->(user) { user.is_moderator? || user.is?(creator_id) },
-      Pool      => ->(user) { user.is_janitor?  || user.is?(creator_id) },
-      Post      => ->(user) { user.is_janitor?  || user.is?(creator_id) },
-      PostSet   => ->(user) { user.is_moderator? || user.is?(creator_id) },
-      Tag       => ->(user) { user.is_janitor? || user.is?(creator_id) },
-      User      => ->(user) { user.is_moderator? || user.is?(creator_id) || (user.is_janitor? && (report_type == "commendation" || creator.is_janitor?)) },
-      WikiPage  => ->(user) { user.is_janitor? || user.is?(creator_id) },
-      :default  => ->(user) { user.is_moderator? || user.is?(creator_id) },
+      Artist          => ->(user) { user.is_janitor? || user.is?(creator_id) },
+      Comment         => ->(user) { user.is_moderator? || user.is?(creator_id) },
+      Dmail           => ->(user) { user.is_moderator? || user.is?(creator_id) },
+      ForumPost       => ->(user) { user.is_moderator? || user.is?(creator_id) },
+      Pool            => ->(user) { user.is_janitor?  || user.is?(creator_id) },
+      Post            => ->(user) { user.is_janitor?  || user.is?(creator_id) },
+      PostReplacement => ->(user) { user.is_janitor?  || user.is?(creator_id) },
+      PostSet         => ->(user) { user.is_moderator? || user.is?(creator_id) },
+      Tag             => ->(user) { user.is_janitor? || user.is?(creator_id) },
+      User            => ->(user) { user.is_moderator? || user.is?(creator_id) || (user.is_janitor? && (report_type == "commendation" || creator.is_janitor?)) },
+      WikiPage        => ->(user) { user.is_janitor? || user.is?(creator_id) },
+      :default        => ->(user) { user.is_moderator? || user.is?(creator_id) },
     },
     # If the ticket's reporter can be seen
     see_reporter: {
@@ -77,22 +78,24 @@ class Ticket < ApplicationRecord
     },
     # The target name sent to the bot
     target:       {
-      Artist   => -> { model&.name },
-      Dmail    => -> { model&.from&.name },
-      Pool     => -> { model&.name },
-      Post     => -> { model&.uploader&.name },
-      PostSet  => -> { model&.name },
-      Tag      => -> { model&.name },
-      User     => -> { model&.name },
-      WikiPage => -> { model&.title },
-      :default => -> {},
+      Artist          => -> { model&.name },
+      Dmail           => -> { model&.from&.name },
+      Pool            => -> { model&.name },
+      Post            => -> { model&.uploader&.name },
+      PostReplacement => -> { model&.creator&.name },
+      PostSet         => -> { model&.name },
+      Tag             => -> { model&.name },
+      User            => -> { model&.name },
+      WikiPage        => -> { model&.title },
+      :default        => -> {},
     },
     accused:      {
-      Comment   => -> { model.creator_id },
-      Dmail     => -> { model.from_id },
-      ForumPost => -> { model.creator_id },
-      User      => -> { model_id },
-      :default  => -> {},
+      Comment         => -> { model.creator_id },
+      Dmail           => -> { model.from_id },
+      ForumPost       => -> { model.creator_id },
+      PostReplacement => -> { model.creator_id },
+      User            => -> { model_id },
+      :default        => -> {},
     },
   }.freeze
 

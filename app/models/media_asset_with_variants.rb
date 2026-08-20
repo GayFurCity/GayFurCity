@@ -90,7 +90,7 @@ class MediaAssetWithVariants < MediaAsset
 
     def update_variants_partial_data(variants)
       data = (variants.map(&:cached_hash).map { |v| v.transform_keys(&:to_s) } + variants_data).compact_blank
-      names = variants.pluck("type").uniq
+      names = variants.map(&:type).uniq
       self.variants_data = data
       self.generated_variants = names
     end

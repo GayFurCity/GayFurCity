@@ -332,6 +332,7 @@ Rails.application.routes.draw do
           get(:reject_with_reason)
           post(:promote)
           put(:toggle_penalize)
+          put(:transfer)
         end
         collection do
           resources(:rejection_reasons, controller: "posts/replacements/rejection_reasons", as: "post_replacement_rejection_reasons", only: %i[index new create edit update destroy]) do

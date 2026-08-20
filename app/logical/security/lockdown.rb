@@ -16,7 +16,7 @@ module Security
       end
     end
 
-    BOOLEAN_TYPES = %w[uploads pools post_sets comments forums aiburs favorites votes discord].freeze
+    BOOLEAN_TYPES = %w[uploads post_replacements pools post_sets comments forums aiburs favorites votes discord].freeze
     BOOLEAN_TYPES.each { |t| add_boolean("#{t}_disabled") }
 
     # Uploader level override

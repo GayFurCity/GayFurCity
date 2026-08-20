@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_18_151000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_19_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -207,6 +207,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_151000) do
     t.text "artist_exclusion_tags", default: "avoid_posting, conditional_dnp, epilepsy_warning, sound_warning", null: false
     t.string "avoid_posting_notice_wiki_page", default: "internal:avoid_posting_notice", null: false
     t.string "ban_notice_wiki_page", default: "internal:ban_notice", null: false
+    t.string "blacklisted_preview_url", default: "/images/blacklisted-preview.png", null: false
     t.integer "blacklisted_tags_max_size", default: 150000, null: false
     t.jsonb "bur_entry_limit", default: {"10" => 50, "40" => -1}, null: false
     t.integer "bur_nuke", default: 40, null: false
@@ -225,6 +226,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_151000) do
     t.string "default_blacklist", default: "", null: false
     t.integer "default_forum_category", default: 1, null: false
     t.string "default_user_timezone", default: "Central Time (US & Canada)"
+    t.string "deleted_preview_url", default: "/images/deleted-preview.png", null: false
     t.integer "disapproval_message_max_size", default: 250, null: false
     t.string "discord_notice_wiki_page", default: "internal:discord_notice", null: false
     t.integer "dmail_day_limit", default: 60, null: false
@@ -235,6 +237,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_151000) do
     t.integer "dmail_minute_limit", default: 2, null: false
     t.integer "dmail_minute_limit_bypass", default: 20, null: false
     t.integer "dmail_restricted_day_limit", default: 5, null: false
+    t.string "download_preview_url", default: "/images/download-preview.png", null: false
     t.jsonb "elasticsearch_query_timeout", default: {"0" => 3000, "15" => 6000, "19" => 9000}, null: false
     t.jsonb "elasticsearch_request_timeout", default: {"0" => 5, "15" => 10, "19" => 15}, null: false
     t.boolean "enable_autotagging", default: true, null: false
@@ -269,11 +272,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_151000) do
     t.integer "max_tags_per_post", default: 2000, null: false
     t.integer "max_upload_per_request", default: 75, null: false
     t.integer "max_video_duration", default: 1800, null: false
+    t.string "missing_preview_url", default: "/images/missing-preview.png", null: false
     t.integer "news_update_max_size", default: 50000, null: false
     t.integer "note_edit_limit", default: 50, null: false
     t.integer "note_edit_limit_bypass", default: 15, null: false
     t.integer "note_max_size", default: 1000, null: false
     t.integer "pending_uploads_limit", default: 3, null: false
+    t.string "placeholder_preview_url", default: "/images/placeholder-preview.png", null: false
     t.integer "pool_category_change_cutoff", default: 30, null: false
     t.integer "pool_category_change_cutoff_bypass", default: 20, null: false
     t.integer "pool_category_change_limit", default: 30, null: false
@@ -1021,11 +1026,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_151000) do
     t.string "reason", null: false
     t.string "rejection_reason", default: "", null: false
     t.bigint "rejector_id"
+    t.integer "sequence_number", null: false
     t.string "source", default: "", null: false
     t.string "status", default: "uploading", null: false
     t.datetime "updated_at", null: false
     t.bigint "uploader_id_on_approve"
     t.index ["creator_id"], name: "index_post_replacements_on_creator_id"
+    t.index ["post_id", "sequence_number"], name: "index_post_replacements_on_post_id_and_sequence_number", unique: true
     t.index ["post_id", "status"], name: "index_post_replacements_on_post_id_and_status"
     t.index ["post_id"], name: "index_post_replacements_on_post_id"
     t.index ["post_replacement_media_asset_id"], name: "index_post_replacements_on_post_replacement_media_asset_id"

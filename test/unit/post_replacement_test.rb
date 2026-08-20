@@ -101,6 +101,16 @@ class PostReplacementTest < ActiveSupport::TestCase
         @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
       end
     end
+
+    should("not allow the reserved reasons to be typed manually") do
+      @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user, reason: PostReplacement::ORIGINAL_FILE_REASON))
+
+      assert_includes(@replacement.errors.full_messages, "You cannot use '#{PostReplacement::ORIGINAL_FILE_REASON}' as a reason.")
+
+      @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user, reason: PostReplacement::METADATA_ONLY_REASON))
+
+      assert_includes(@replacement.errors.full_messages, "You cannot use '#{PostReplacement::METADATA_ONLY_REASON}' as a reason.")
+    end
   end
 
   context("Reject:") do
@@ -164,10 +174,81 @@ class PostReplacementTest < ActiveSupport::TestCase
       end
     end
 
-    should("fail if post cannot be backed up") do
-      @post.media_asset.md5 = "123" # Breaks file path, should force backup to fail.
-      assert_raise(PostReplacement::ProcessingError) do
+    should("fail with a MissingSourceFileError if the post's file is missing and not forced") do
+      File.delete(@post.media_asset.file_path)
+      assert_raise(PostReplacement::MissingSourceFileError) do
         @replacement.approve!(@user, penalize_current_uploader: true)
+      end
+    end
+
+    should("still fail if force_missing_backup is set by a non-admin approver") do
+      File.delete(@post.media_asset.file_path)
+      assert_raise(PostReplacement::MissingSourceFileError) do
+        @replacement.approve!(@user, penalize_current_uploader: true, force_missing_backup: true)
+      end
+    end
+
+    should("fail if forced by an admin but the post's own metadata is also invalid") do
+      admin = create(:admin_user, created_at: 2.weeks.ago)
+      @post.media_asset.update_column(:image_width, 0) # copied into the backup's metadata, fails the backup's own validation
+      File.delete(@post.media_asset.file_path)
+      assert_raise(PostReplacement::ProcessingError) do
+        @replacement.approve!(admin, penalize_current_uploader: true, force_missing_backup: true)
+      end
+    end
+
+    should("create a noted backup when forced by an admin, instead of failing outright") do
+      admin = create(:admin_user, created_at: 2.weeks.ago)
+      old_md5 = @post.md5
+      File.delete(@post.media_asset.file_path)
+
+      assert_nothing_raised do
+        @replacement.approve!(admin, penalize_current_uploader: true, force_missing_backup: true)
+      end
+      backup = @post.replacements.original.sole
+
+      assert_equal(old_md5, backup.md5)
+      assert_equal(PostReplacement::METADATA_ONLY_REASON, backup.reason)
+      assert_predicate(backup, :metadata_only?)
+      assert_equal("active", backup.media_asset.status)
+      assert_match(/missing/i, backup.media_asset.status_message)
+    end
+
+    should("not allow resetting to a metadata-only backup") do
+      admin = create(:admin_user, created_at: 2.weeks.ago)
+      File.delete(@post.media_asset.file_path)
+      @replacement.approve!(admin, penalize_current_uploader: true, force_missing_backup: true)
+      backup = @post.replacements.original.sole
+
+      presenter = PostReplacementPresenter.new(replacement: backup, user: admin)
+
+      assert_not(presenter.show_reset_to?)
+
+      backup.approve!(admin, penalize_current_uploader: false)
+
+      assert_includes(backup.errors.full_messages, "Status cannot be reset to - it's a metadata-only backup with no real file")
+    end
+
+    should("not crash generating variants if image cropping is disabled, and not claim a crop was made") do
+      Config.any_instance.stubs(:enable_image_cropping?).returns(false)
+      assert_nothing_raised do
+        @replacement.approve!(@user, penalize_current_uploader: true)
+      end
+      @post.reload
+
+      assert_not(@post.has_crop?)
+    end
+
+    should("still find an existing crop variant after cropping is later disabled") do
+      @replacement.approve!(@user, penalize_current_uploader: true)
+      @post.reload
+
+      assert_predicate(@post, :has_crop?, "sanity check: post should have a crop variant from approving with cropping enabled")
+
+      Config.any_instance.stubs(:enable_image_cropping?).returns(false)
+
+      assert_nothing_raised do
+        @post.crop_file_url(@user)
       end
     end
 

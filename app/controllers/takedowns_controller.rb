@@ -38,13 +38,10 @@ class TakedownsController < ApplicationController
 
   def update
     authorize(@takedown)
-    # TODO: this *should* be changed eventually to use the update method & be strictly validated
-    @takedown.notes = params[:takedown][:notes]
-    @takedown.reason_hidden = params[:takedown][:reason_hidden]
     @takedown.apply_posts(params[:takedown_posts])
-    @takedown.updater = CurrentUser.user
-    @takedown.save
-    if @takedown.valid?
+    update_params = permitted_attributes(@takedown).slice(:notes, :reason_hidden, :status)
+
+    if @takedown.update_with_current(:updater, update_params)
       flash[:notice] = "Takedown request updated"
       if params[:process_takedown].to_s.truthy?
         @takedown.process!(CurrentUser.user, params[:delete_reason])

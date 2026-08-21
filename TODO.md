@@ -9,7 +9,6 @@
 ### TODOs
 | Filename | line # | TODO |
 |:------|:------:|:------|
-| [app/controllers/takedowns_controller.rb](app/controllers/takedowns_controller.rb#L41) | 41 | this *should* be changed eventually to use the update method & be strictly validated |
 | [app/controllers/uploads_controller.rb](app/controllers/uploads_controller.rb#L12) | 12 | this route has many performance issues and needs to be revised |
 | [app/logical/favorite_manager.rb](app/logical/favorite_manager.rb#L53) | 53 | Much better and more intelligent logic can exist for this |
 | [app/models/forum_topic.rb](app/models/forum_topic.rb#L158) | 158 | revisit muting, it may need to be further optimized or removed due to performance issues |
@@ -36,7 +35,3 @@
 |:------|:------:|:------|
 | [app/models/post.rb](app/models/post.rb#L1644) | 1644 | This must happen *after* the `is_deleted` flag is set to true (issue #3419). |
 | [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L3) | 3 | Testing modules should not have a say in if we can or cannot use assert_equal with nil |
-
-### HACKs
-| Filename | line # | HACK |
-|:------|:------:|:------|

@@ -75,5 +75,26 @@ class TakedownsControllerTest < ActionDispatch::IntegrationTest
       assert_equal(takedown_post.id.to_s, takedown.post_ids)
       assert_operator(takedown.vericode.length, :>, 8)
     end
+
+    should("allow updating reviewer fields") do
+      owner = create(:owner_user)
+      post1 = create(:post)
+      post2 = create(:post)
+      takedown = create(:takedown, post_ids: "#{post1.id} #{post2.id}", del_post_ids: post1.id.to_s)
+
+      put_auth(takedown_path(takedown), owner, params: {
+        takedown:       { notes: "reviewed", reason_hidden: "1", status: "inactive" },
+        takedown_posts: { post1.id.to_s => "0", post2.id.to_s => "1" },
+      })
+
+      assert_redirected_to(takedown_path(takedown))
+      takedown.reload
+
+      assert_equal("reviewed", takedown.notes)
+      assert_predicate(takedown, :reason_hidden?)
+      assert_equal("inactive", takedown.status)
+      assert_equal(post2.id.to_s, takedown.del_post_ids)
+      assert_equal(owner, takedown.updater)
+    end
   end
 end

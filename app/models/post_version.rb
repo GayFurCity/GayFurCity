@@ -106,13 +106,12 @@ class PostVersion < ApplicationRecord
   end
 
   def previous
-    # HACK: If this is the first version we can avoid a lookup because we know there are no previous versions.
+    # The first version cannot have a previous record, so skip the lookup.
     return nil if version <= 1
 
     return @previous if defined?(@previous)
 
-    # HACK: if all the post versions for this post have already been preloaded,
-    # we can use that to avoid a SQL query.
+    # Use the loaded association when possible to avoid a query while rendering version lists.
     if association(:post).loaded? && post&.association(:versions)&.loaded?
       @previous = post.versions.sort_by(&:version).rfind { |v| v.version < version }
     else

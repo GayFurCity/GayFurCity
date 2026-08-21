@@ -44,6 +44,4 @@
 ### HACKs
 | Filename | line # | HACK |
 |:------|:------:|:------|
-| [app/models/post_version.rb](app/models/post_version.rb#L109) | 109 | If this is the first version we can avoid a lookup because we know there are no previous versions. |
-| [app/models/post_version.rb](app/models/post_version.rb#L114) | 114 | if all the post versions for this post have already been preloaded, |
 | [config/initializers/concurrency.rb](config/initializers/concurrency.rb#L3) | 3 | to configure the thread pool used by promises (Concurrent::Promise) in the concurrent-ruby gem. |

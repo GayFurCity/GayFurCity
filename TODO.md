@@ -4,7 +4,6 @@
 | [app/controllers/artists_controller.rb](app/controllers/artists_controller.rb#L63) | 63 | This is a hack on top of a hack to ensure all of the other attributes are set before url_string to ensure there are no race conditions |
 | [app/models/artist.rb](app/models/artist.rb#L51) | 51 | This is a hack on top of the hack below for setting url_string to ensure name is set first for validations |
 | [app/models/artist.rb](app/models/artist.rb#L216) | 216 | This is a hack. Setting an association directly immediately updates without regard for the parents validity. |
-| [app/models/tag_relationship.rb](app/models/tag_relationship.rb#L109) | 109 | Rails assigns different join aliases for joins(:antecedent_tag) and joins(:antecedent_tag, :consquent_tag) |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L2372) | 2372 | This test fails randomly at different assertions |
 
 ### TODOs

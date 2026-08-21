@@ -106,9 +106,8 @@ class TagRelationship < ApplicationRecord
       order(case_order(:status, [nil, "queued", "processing", "pending", "active", "deleted", "retired"]), "#{table_name}.id": :desc)
     end
 
-    # FIXME: Rails assigns different join aliases for joins(:antecedent_tag) and joins(:antecedent_tag, :consquent_tag)
-    # This makes it impossible to use when ordering, at least from what I can tell.
-    # There must be a different solution for this.
+    # Use stable join aliases for filters and ordering that reference tag columns directly.
+    # Rails chooses different aliases depending on the combination of joined associations.
     def join_antecedent
       join_as(:antecedent_tag, "antecedent_tag", Arel::Nodes::OuterJoin)
     end

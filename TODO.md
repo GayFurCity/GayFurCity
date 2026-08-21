@@ -22,7 +22,6 @@
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L12) | 12 | Lock off these extra items? |
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L28) | 28 | Fix tag array with forced -status:deleted |
 | [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L5) | 5 | look into refactoring out minitest? |
-| [test/unit/post_test.rb](test/unit/post_test.rb#L1782) | 1782 | Needs to reload relationship to obtain non cached value |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L2236) | 2236 | These don't quite make sense, what should hide deleted posts and what shouldn't? |
 | [config/config.rb](config/config.rb#L208) | 208 | appealed posts should be visible, but this makes it far too easy to get the contents of deleted posts at a moments notice |
 

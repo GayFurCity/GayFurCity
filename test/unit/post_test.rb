@@ -1705,7 +1705,6 @@ class PostTest < ActiveSupport::TestCase
         assert_equal(2, @post.fav_count)
       end
 
-      # TODO: Needs to reload relationship to obtain non cached value
       should("increment the user's favorite_count") do
         assert_difference("@user.reload.favorite_count", 1) do
           FavoriteManager.add!(user: @user, post: @post)

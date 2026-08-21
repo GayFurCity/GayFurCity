@@ -97,7 +97,10 @@ jobs:
           retention-days: 1
 
   merge:
-    if: github.repository_owner == 'gayfurcity'
+    # explicit always() + needs.build.result check, same as the build job above - a plain `if:`
+    # here would implicitly AND in success(), which is poisoned by a skipped `checks` job further
+    # up the chain (e.g. workflow_dispatch with skip_checks) even though build itself succeeded.
+    if: always() && github.repository_owner == 'gayfurcity' && needs.build.result == 'success'
     runs-on: ubuntu-latest
     needs: [build]
     steps:

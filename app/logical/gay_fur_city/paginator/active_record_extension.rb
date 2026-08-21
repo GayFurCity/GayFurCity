@@ -48,7 +48,7 @@ module GayFurCity
         end
       end
 
-      # XXX Hack: in sequential pagination we fetch one more record than we need
+      # In sequential pagination we fetch one more record than we need
       # so that we can tell when we're on the first or last page. Here we override
       # a rails internal method to discard that extra record. See #2044, #3642.
       #

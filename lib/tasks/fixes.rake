@@ -45,4 +45,14 @@ namespace(:fixes) do
 
     Rake::Task["db:_dump"].invoke
   end
+
+  desc("Record all of the current migrations as having been applied")
+  task(load: :environment) do
+    list = FixTracker.all_fixes.map { FixTracker.key_for(it) }
+    existing = ActiveRecord::Base.connection.select_all("SELECT id, index FROM fixes ORDER BY id, index").rows
+    list.reject! { |id, index| existing.any? { |e| e[0] == id && e[1] == index } }
+    values = list.map { |id, index| "(#{id}, #{index.nil? ? 'NULL' : index})" }.join(", ")
+    ActiveRecord::Base.connection.execute("INSERT INTO fixes (id, index) VALUES #{values}")
+    puts("Loaded #{list.length} #{'fix'.pluralize(list.length)}")
+  end
 end

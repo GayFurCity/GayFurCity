@@ -666,19 +666,10 @@ section#image-extra-controls {
     position: relative;
   }
 
-  div#image-add-buttons > a,
-  div#image-note-buttons > a,
-  div#image-full-screen-button > a {
-    margin-right: 0.2srem;
-    &:last-child { margin-right: 0; }
-
-    &:nth-child(1) {
-      margin-right: 0.1rem;
-    }
-
-    &:nth-child(2) {
-      left: 0.1rem;
-    }
+  div#image-add-buttons,
+  div#image-note-buttons {
+    display: flex;
+    gap: 0.5rem;
   }
 
   div#image-download-button > a {

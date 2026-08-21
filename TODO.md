@@ -26,7 +26,6 @@
 | [app/logical/vote_manager/posts.rb](app/logical/vote_manager/posts.rb#L90) | 90 | this can likely be optimized to just update post ids |
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L12) | 12 | Lock off these extra items? |
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L28) | 28 | Fix tag array with forced -status:deleted |
-| [app/views/posts/show.html.erb](app/views/posts/show.html.erb#L113) | 113 | find some way to remove the whitespace that's being inserted here, then return the margin to 0.5 |
 | [app/javascript/src/styles/common/_standard_elements.scss](app/javascript/src/styles/common/_standard_elements.scss#L29) | 29 | What if button is on a light background |
 | [app/javascript/src/styles/common/page_header.scss](app/javascript/src/styles/common/page_header.scss#L196) | 196 |  |
 | [test/test_helpers/common.rb](test/test_helpers/common.rb#L37) | 37 | refactor callsites |

@@ -110,7 +110,6 @@
         <%= link_to("Full Screen", @post.file_url(CurrentUser.user), class: "button btn-warn") %>
       </div>
       <div id="image-add-buttons">
-        <%# TODO: find some way to remove the whitespace that's being inserted here, then return the margin to 0.5 %>
         <%= link_to_if(policy(PostSet).add_posts?, "+ Set", "#", id: "set", class: "button btn-neutral") { "" } %>
         <%= link_to_if(policy(@post).add_to_pool?, "+ Pool", "#", id: "pool", class: "button btn-neutral") { "" } %>
       </div>

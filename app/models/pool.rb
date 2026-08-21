@@ -305,7 +305,6 @@ class Pool < ApplicationRecord
     post_id == post_ids.last
   end
 
-  # XXX finds wrong post when the pool contains multiple copies of the same post (#2042).
   def previous_post_id(post_id)
     return nil if first_post?(post_id) || !contains?(post_id)
 

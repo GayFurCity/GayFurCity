@@ -38,7 +38,6 @@
 ### XXXs
 | Filename | line # | XXX |
 |:------|:------:|:------|
-| [app/models/pool.rb](app/models/pool.rb#L308) | 308 | finds wrong post when the pool contains multiple copies of the same post (#2042). |
 | [app/models/post.rb](app/models/post.rb#L1644) | 1644 | This must happen *after* the `is_deleted` flag is set to true (issue #3419). |
 | [app/logical/gay_fur_city/paginator/active_record_extension.rb](app/logical/gay_fur_city/paginator/active_record_extension.rb#L51) | 51 | Hack: in sequential pagination we fetch one more record than we need |
 | [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L3) | 3 | Testing modules should not have a say in if we can or cannot use assert_equal with nil |

@@ -116,3 +116,6 @@ gem("yiffspace-auth", "~> 0.0.3")
 # XXX: Added to silence "loaded from standard library" warnings
 gem("benchmark", "~> 0.5.0")
 gem("fiddle", "~> 1.1")
+
+gem("webrick", "~> 1.9")
+gem("rackup", "~> 2.3")

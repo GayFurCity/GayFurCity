@@ -44,4 +44,3 @@
 ### HACKs
 | Filename | line # | HACK |
 |:------|:------:|:------|
-| [config/initializers/concurrency.rb](config/initializers/concurrency.rb#L3) | 3 | to configure the thread pool used by promises (Concurrent::Promise) in the concurrent-ruby gem. |

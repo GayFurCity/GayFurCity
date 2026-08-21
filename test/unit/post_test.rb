@@ -585,12 +585,6 @@ class PostTest < ActiveSupport::TestCase
           @post.update(tag_string: "aaa bbb ccc ddd tagme")
         end
 
-        # TODO: This was moved to be a controller concern to fix issues with internal post updates
-        # should "not allow you to remove tags" do
-        #   @post.update(:tag_string => "aaa")
-        #   assert_equal(["You must have an account at least 1 week old to remove tags"], @post.errors.full_messages)
-        # end
-
         should("allow you to remove request tags") do
           @post.update_with(@user, tag_string: "aaa bbb ccc ddd")
           @post.reload
@@ -777,74 +771,6 @@ class PostTest < ActiveSupport::TestCase
           end
         end
       end
-
-      # TODO: Invalid tags are now reported as warnings, and don't trigger these.
-      # context "tagged with a valid tag" do
-      #   subject { @post }
-      #
-      #   should allow_value("touhou 100%").for(:tag_string)
-      #   should allow_value("touhou FOO").for(:tag_string)
-      #   should allow_value("touhou -foo").for(:tag_string)
-      #   should allow_value("touhou pool:foo").for(:tag_string)
-      #   should allow_value("touhou -pool:foo").for(:tag_string)
-      #   should allow_value("touhou newpool:foo").for(:tag_string)
-      #   should allow_value("touhou fav:self").for(:tag_string)
-      #   should allow_value("touhou -fav:self").for(:tag_string)
-      #   should allow_value("touhou upvote:self").for(:tag_string)
-      #   should allow_value("touhou downvote:self").for(:tag_string)
-      #   should allow_value("touhou parent:1").for(:tag_string)
-      #   should allow_value("touhou child:1").for(:tag_string)
-      #   should allow_value("touhou source:foo").for(:tag_string)
-      #   should allow_value("touhou rating:z").for(:tag_string)
-      #   should allow_value("touhou locked:rating").for(:tag_string)
-      #   should allow_value("touhou -locked:rating").for(:tag_string)
-      #
-      #   # \u3000 = ideographic space, \u00A0 = no-break space
-      #   should allow_value("touhou\u3000foo").for(:tag_string)
-      #   should allow_value("touhou\u00A0foo").for(:tag_string)
-      # end
-
-      # TODO: These are now warnings and don't trigger these.
-      # context "tagged with an invalid tag" do
-      #   subject { @post }
-      #
-      #   context "that doesn't already exist" do
-      #     should_not allow_value("touhou user:evazion").for(:tag_string)
-      #     should_not allow_value("touhou *~foo").for(:tag_string)
-      #     should_not allow_value("touhou *-foo").for(:tag_string)
-      #     should_not allow_value("touhou ,-foo").for(:tag_string)
-      #
-      #     should_not allow_value("touhou ___").for(:tag_string)
-      #     should_not allow_value("touhou ~foo").for(:tag_string)
-      #     should_not allow_value("touhou _foo").for(:tag_string)
-      #     should_not allow_value("touhou foo_").for(:tag_string)
-      #     should_not allow_value("touhou foo__bar").for(:tag_string)
-      #     should_not allow_value("touhou foo*bar").for(:tag_string)
-      #     should_not allow_value("touhou foo,bar").for(:tag_string)
-      #     should_not allow_value("touhou foo\abar").for(:tag_string)
-      #     should_not allow_value("touhou café").for(:tag_string)
-      #     should_not allow_value("touhou 東方").for(:tag_string)
-      #   end
-      #
-      #   context "that already exists" do
-      #     setup do
-      #       %W(___ ~foo _foo foo_ foo__bar foo*bar foo,bar foo\abar café 東方).each do |tag|
-      #         build(:tag, name: tag).save(validate: false)
-      #       end
-      #     end
-      #
-      #     should allow_value("touhou ___").for(:tag_string)
-      #     should allow_value("touhou ~foo").for(:tag_string)
-      #     should allow_value("touhou _foo").for(:tag_string)
-      #     should allow_value("touhou foo_").for(:tag_string)
-      #     should allow_value("touhou foo__bar").for(:tag_string)
-      #     should allow_value("touhou foo*bar").for(:tag_string)
-      #     should allow_value("touhou foo,bar").for(:tag_string)
-      #     should allow_value("touhou foo\abar").for(:tag_string)
-      #     should allow_value("touhou café").for(:tag_string)
-      #     should allow_value("touhou 東方").for(:tag_string)
-      #   end
-      # end
 
       context("tagged with a metatag") do
         context("for typing a tag") do
@@ -2665,120 +2591,6 @@ class PostTest < ActiveSupport::TestCase
       end
     end
   end
-
-  # TODO: These are pretty messed up, both structurally, and expectation wise.
-  # New codebase uses fewer cached items, and the keys are different because of -status:deleted default
-  # Most of these need major refactoring.
-  # context "Counting:" do
-  #   context "Creating a post" do
-  #     setup do
-  #       create(:tag_alias, antecedent_name: "alias", consequent_name: "aaa")
-  #       create(:post, tag_string: "aaa", score: 42)
-  #     end
-  #
-  #     context "a single metatag" do
-  #       should "return the correct cached count" do
-  #         build(:tag, name: "score:42", post_count: -100).save(validate: false)
-  #         Post.set_count_in_cache("score:42", 100)
-  #
-  #         assert_equal(100, Post.fast_count("score:42"))
-  #       end
-  #
-  #       should "return the correct cached count for a pool:<id> search" do
-  #         build(:tag, name: "pool:1234", post_count: -100).save(validate: false)
-  #         Post.set_count_in_cache("pool:1234", 100)
-  #
-  #         assert_equal(100, Post.fast_count("pool:1234"))
-  #       end
-  #     end
-  #
-  #     context "a multi-tag search" do
-  #       should "return the cached count, if it exists" do
-  #         Post.set_count_in_cache("aaa score:42", 100)
-  #         assert_equal(100, Post.fast_count("aaa score:42"))
-  #       end
-  #
-  #       should "return the true count, if not cached" do
-  #         assert_equal(1, Post.fast_count("aaa score:42"))
-  #       end
-  #
-  #       should "set the expiration time" do
-  #         Cache.expects(:put).with(Post.count_cache_key("aaa score:42"), 1, 180)
-  #         Post.fast_count("aaa score:42")
-  #       end
-  #     end
-  #
-  #     context "a blank search" do
-  #       should "should execute a search" do
-  #         Cache.delete(Post.count_cache_key(''))
-  #         Post.expects(:fast_count_search).with("", kind_of(Hash)).once.returns(1)
-  #         assert_equal(1, Post.fast_count(""))
-  #       end
-  #
-  #       should "set the value in cache" do
-  #         Post.expects(:set_count_in_cache).with("", kind_of(Integer)).once
-  #         Post.fast_count("")
-  #       end
-  #
-  #       context "with a primed cache" do
-  #         setup do
-  #           Cache.write(Post.count_cache_key(''), "100")
-  #         end
-  #
-  #         should "fetch the value from the cache" do
-  #           assert_equal(100, Post.fast_count(""))
-  #         end
-  #       end
-  #
-  #       should "translate an alias" do
-  #         assert_equal(1, Post.fast_count("alias"))
-  #       end
-  #
-  #       should "return 0 for a nonexisting tag" do
-  #         assert_equal(0, Post.fast_count("bbb"))
-  #       end
-  #
-  #       context "in safe mode" do
-  #         setup do
-  #           CurrentUser.stubs(:safe_mode?).returns(true)
-  #           create(:post, rating: "s")
-  #         end
-  #
-  #         should "work for a blank search" do
-  #           assert_equal(1, Post.fast_count(""))
-  #         end
-  #
-  #         should "work for a nil search" do
-  #           assert_equal(1, Post.fast_count(nil))
-  #         end
-  #
-  #         should "not fail for a two tag search by a member" do
-  #           post1 = create(:post, tag_string: "aaa bbb rating:s")
-  #           post2 = create(:post, tag_string: "aaa bbb rating:e")
-  #
-  #           GayFurCity.config.expects(:is_unlimited_tag).with("rating:s").once.returns(true)
-  #           GayFurCity.config.expects(:is_unlimited_tag).with(anything).twice.returns(false)
-  #           assert_equal(1, Post.fast_count("aaa bbb"))
-  #         end
-  #
-  #         should "set the value in cache" do
-  #           Post.expects(:set_count_in_cache).with("rating:s", kind_of(Integer)).once
-  #           Post.fast_count("")
-  #         end
-  #
-  #         context "with a primed cache" do
-  #           setup do
-  #             Cache.write(Post.count_cache_key('rating:s'), "100")
-  #           end
-  #
-  #           should "fetch the value from the cache" do
-  #             assert_equal(100, Post.fast_count(""))
-  #           end
-  #         end
-  #       end
-  #     end
-  #   end
-  # end
 
   context("Reverting: ") do
     context("a post that is rating locked") do

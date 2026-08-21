@@ -1,47 +1,44 @@
 <h1>Post Replacement Rejection Reasons</h1>
 
-<%# TODO: convert to new table syntax %>
-<table class="striped" id="post-replacement-rejection-reasons-table">
-  <thead>
-  <tr>
-    <th>Creator</th>
-    <th>Date</th>
-    <th>Reason</th>
-    <% if policy(PostReplacementRejectionReason).all?(:update?, :destroy?, :reorder?) %>
-      <th></th>
-    <% end %>
-  </tr>
-  </thead>
-
-  <tbody>
-  <% last_order = 0 %>
-  <% @reasons.each do |reason| %>
-    <%# the latter should never happen, but if it did, this loop would tear down the site %>
-    <% if (last_order + 1) != reason.order && last_order != reason.order %>
-      <% while (last_order + 1) != reason.order %>
-        <%= render(partial: "spacing") %>
-        <% last_order += 1 %>
+<% rows = [] %>
+<% last_order = 0 %>
+<% @reasons.each do |reason| %>
+  <%# the latter should never happen, but if it did, this loop would tear down the site %>
+  <% if (last_order + 1) != reason.order && last_order != reason.order %>
+    <% while (last_order + 1) != reason.order %>
+      <% rows << TableBuilder::Row.new do %>
+        <%= tag.td %>
+        <%= tag.td %>
+        <%= tag.td("(spacing)") %>
+        <%= tag.td(link_to("Remove", "#", class: "remove-spacing-link", style: "display: none;")) %>
       <% end %>
+      <% last_order += 1 %>
     <% end %>
-    <% last_order = reason.order %>
-    <tr id="post-replacement-rejection-reason-<%= reason.id %>" data-id="<%= reason.id %>">
-      <td><%= link_to_user(reason.creator) %></td>
-      <td><%= compact_time(reason.updated_at) %></td>
-      <td><%= reason.reason %></td>
-      <% if policy(reason).all?(:update?, :destroy?, :reorder?) %>
-        <td>
-          <%= link_to("Edit", edit_post_replacement_rejection_reason_path(reason)) %> |
-          <%= link_to("Delete", post_replacement_rejection_reason_path(reason), method: :delete, data: { confirm: "Are you sure you want to delete this reason?" }) %>
-          <span class="add-spacing-link" style="display: none;">
-            | Add Spacing: <%= link_to("Above", "#", class: "add-spacing-above-link") %>/<%= link_to("Below", "#", class: "add-spacing-below-link") %>
-          </span>
-        </td>
-      <% end %>
-    </tr>
   <% end %>
-  </tbody>
-</table>
+  <% last_order = reason.order %>
+  <% rows << reason %>
+<% end %>
 
+<%= table_for(rows, id: "post-replacement-rejection-reasons-table") do |t| %>
+  <% t.column("Creator") do |reason| %>
+    <%= link_to_user(reason.creator) %>
+  <% end %>
+  <% t.column("Date") do |reason| %>
+    <%= compact_time(reason.updated_at) %>
+  <% end %>
+  <% t.column("Reason") do |reason| %>
+    <%= reason.reason %>
+  <% end %>
+  <% if policy(PostReplacementRejectionReason).all?(:update?, :destroy?, :reorder?) %>
+    <% t.column do |reason| %>
+      <%= link_to("Edit", edit_post_replacement_rejection_reason_path(reason)) %> |
+      <%= link_to("Delete", post_replacement_rejection_reason_path(reason), method: :delete, data: { confirm: "Are you sure you want to delete this reason?" }) %>
+      <span class="add-spacing-link" style="display: none;">
+        | Add Spacing: <%= link_to("Above", "#", class: "add-spacing-above-link") %>/<%= link_to("Below", "#", class: "add-spacing-below-link") %>
+      </span>
+    <% end %>
+  <% end %>
+<% end %>
 
 <%= render(partial: "secondary_links") %>
 

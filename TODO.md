@@ -27,10 +27,8 @@
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L12) | 12 | Lock off these extra items? |
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L28) | 28 | Fix tag array with forced -status:deleted |
 | [app/views/posts/show.html.erb](app/views/posts/show.html.erb#L113) | 113 | find some way to remove the whitespace that's being inserted here, then return the margin to 0.5 |
-| [app/views/posts/deletion_reasons/index.html.erb](app/views/posts/deletion_reasons/index.html.erb#L3) | 3 | convert to new table syntax |
 | [app/javascript/src/styles/common/_standard_elements.scss](app/javascript/src/styles/common/_standard_elements.scss#L29) | 29 | What if button is on a light background |
 | [app/javascript/src/styles/common/page_header.scss](app/javascript/src/styles/common/page_header.scss#L196) | 196 |  |
-| [app/views/posts/replacements/rejection_reasons/index.html.erb](app/views/posts/replacements/rejection_reasons/index.html.erb#L3) | 3 | convert to new table syntax |
 | [test/test_helpers/common.rb](test/test_helpers/common.rb#L37) | 37 | refactor callsites |
 | [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L5) | 5 | look into refactoring out minitest? |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L588) | 588 | This was moved to be a controller concern to fix issues with internal post updates |

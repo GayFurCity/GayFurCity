@@ -14,11 +14,17 @@
 
   <tbody>
     <% table.items.each_with_index do |item, i| %>
-      <%=          # noinspection RubyArgCount
-          tag.tr(**table.all_row_attributes(item, i)) do %>
-        <% table.columns.each_with_index do |column, j| %>
-          <%= tag.td(**column.body_attributes) do %>
-            <%= column.value(item, i, j) %>
+      <% if item.respond_to?(:custom?) && item.custom? %>
+        <%= tag.tr(**table.all_row_attributes(item, i)) do %>
+          <%= item.value(i) %>
+        <% end %>
+      <% else %>
+        <%=          # noinspection RubyArgCount
+            tag.tr(**table.all_row_attributes(item, i)) do %>
+          <% table.columns.each_with_index do |column, j| %>
+            <%= tag.td(**column.body_attributes) do %>
+              <%= column.value(item, i, j) %>
+            <% end %>
           <% end %>
         <% end %>
       <% end %>

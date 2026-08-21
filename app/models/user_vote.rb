@@ -58,11 +58,22 @@ class UserVote < ApplicationRecord
         .field(:score)
         .custom(:timeframe, ->(q, v) { q.where.gteq(updated_at: v.to_i.days.ago) })
         .custom(:duplicates_only, method(:duplicates_only_query).to_proc)
-        # TODO: this join is used for both sides despite only being needed for the id side
-        # FIXME: the logic around this is a mess, and I'm frankly amazed it works
-        .user(:"#{model_type}_creator", ["#{model.table_name}.#{model_creator_column}_id", { model_type => model_creator_column }]) { |q| q.joins(model_type) }
+        .field(:"#{model_type}_creator_id", :"#{model.table_name}.#{model_creator_column}_id") { |q| q.joins(model_type) }
+        .custom(:"#{model_type}_creator_name", method(:model_creator_name_query).to_proc)
         .association(:user)
         .association(model_type)
+    end
+
+    def model_creator_name_query(q, value)
+      return q if value.blank?
+
+      user_table = User.arel_table.alias("#{model_type}_creator_users")
+      model_table = model.arel_table
+      join = model_table.join(user_table)
+                        .on(user_table[:id].eq(model_table[:"#{model_creator_column}_id"]))
+                        .join_sources
+
+      q.joins(model_type).joins(join).where(user_table[:name].eq(value))
     end
 
     def duplicates_only_query(q, value, user, params)

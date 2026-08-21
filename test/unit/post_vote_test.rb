@@ -49,4 +49,43 @@ class PostVoteTest < ActiveSupport::TestCase
       assert_equal(0, @post.up_score)
     end
   end
+
+  context("Searching user votes") do
+    setup do
+      @admin = create(:admin_user)
+      @creator = create(:user)
+      @other_creator = create(:user)
+      @voter = create(:user)
+    end
+
+    should("find post votes by post creator") do
+      post = create(:post, uploader: @creator)
+      other_post = create(:post, uploader: @other_creator)
+      vote = create(:post_vote, post: post, user: @voter)
+      create(:post_vote, post: other_post)
+
+      assert_equal([vote], PostVote.search({ post_creator_id: @creator.id }, @admin).to_a)
+      assert_equal([vote], PostVote.search({ post_creator_name: @creator.name }, @admin).to_a)
+    end
+
+    should("find comment votes by comment creator") do
+      comment = create(:comment, creator: @creator)
+      other_comment = create(:comment, creator: @other_creator)
+      vote = create(:comment_vote, comment: comment, user: @voter)
+      create(:comment_vote, comment: other_comment)
+
+      assert_equal([vote], CommentVote.search({ comment_creator_id: @creator.id }, @admin).to_a)
+      assert_equal([vote], CommentVote.search({ comment_creator_name: @creator.name }, @admin).to_a)
+    end
+
+    should("find forum post votes by forum post creator") do
+      forum_post = create(:forum_post, creator: @creator)
+      other_forum_post = create(:forum_post, creator: @other_creator)
+      vote = create(:forum_post_vote, forum_post: forum_post, user: @voter)
+      create(:forum_post_vote, forum_post: other_forum_post)
+
+      assert_equal([vote], ForumPostVote.search({ forum_post_creator_id: @creator.id }, @admin).to_a)
+      assert_equal([vote], ForumPostVote.search({ forum_post_creator_name: @creator.name }, @admin).to_a)
+    end
+  end
 end

@@ -5,7 +5,6 @@
 | [app/models/artist.rb](app/models/artist.rb#L51) | 51 | This is a hack on top of the hack below for setting url_string to ensure name is set first for validations |
 | [app/models/artist.rb](app/models/artist.rb#L216) | 216 | This is a hack. Setting an association directly immediately updates without regard for the parents validity. |
 | [app/models/tag_relationship.rb](app/models/tag_relationship.rb#L109) | 109 | Rails assigns different join aliases for joins(:antecedent_tag) and joins(:antecedent_tag, :consquent_tag) |
-| [app/models/user_vote.rb](app/models/user_vote.rb#L62) | 62 | the logic around this is a mess, and I'm frankly amazed it works |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L2372) | 2372 | This test fails randomly at different assertions |
 
 ### TODOs
@@ -20,7 +19,6 @@
 | [app/models/tag_alias.rb](app/models/tag_alias.rb#L167) | 167 | Race condition with indexing jobs here. |
 | [app/models/tag_implication.rb](app/models/tag_implication.rb#L207) | 207 | Race condition with indexing jobs here. |
 | [app/models/ticket.rb](app/models/ticket.rb#L178) | 178 | We need access control/blocks for associations |
-| [app/models/user_vote.rb](app/models/user_vote.rb#L61) | 61 | this join is used for both sides despite only being needed for the id side |
 | [app/controllers/forums/topics_controller.rb](app/controllers/forums/topics_controller.rb#L20) | 20 | revisit muting, it may need to be further optimized or removed due to performance issues |
 | [app/logical/vote_manager/posts.rb](app/logical/vote_manager/posts.rb#L90) | 90 | this can likely be optimized to just update post ids |
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L12) | 12 | Lock off these extra items? |

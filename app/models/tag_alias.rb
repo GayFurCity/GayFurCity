@@ -87,7 +87,7 @@ class TagAlias < TagRelationship
     query.gsub!(/(^| )(-)?(#{TagCategory.mapping.keys.sort_by { |x| -x.size }.join('|')}):(\S)/i, '\1\2\4')
     # Remove tag types (comma syntax)
     query.gsub!(/, (-)?(#{TagCategory.mapping.keys.sort_by { |x| -x.size }.join('|')}):(\S)/i, ', \1\3')
-    lines = query.downcase.split("\n")
+    lines = query.downcase.split("\n", -1)
     processed = []
     lookup = []
 
@@ -137,8 +137,16 @@ class TagAlias < TagRelationship
       output_line.uniq.join(" ")
     end
 
-    # TODO: This causes every empty line except for the very first one will get stripped. At the end of the day, it's not a huge deal.
-    output.uniq.join("\n")
+    seen_lines = {}
+    output.select do |line|
+      if line.empty?
+        true
+      elsif seen_lines.key?(line)
+        false
+      else
+        seen_lines[line] = true
+      end
+    end.join("\n")
   end
 
   def process_undo!(user = User.system, update_topic: true)

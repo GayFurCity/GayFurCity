@@ -17,7 +17,6 @@
 | [app/models/forum_topic.rb](app/models/forum_topic.rb#L158) | 158 | revisit muting, it may need to be further optimized or removed due to performance issues |
 | [app/models/post_event.rb](app/models/post_event.rb#L99) | 99 | We need access control/blocks for associations |
 | [app/models/post_flag.rb](app/models/post_flag.rb#L52) | 52 | We need access control/blocks for associations |
-| [app/models/tag_alias.rb](app/models/tag_alias.rb#L140) | 140 | This causes every empty line except for the very first one will get stripped. At the end of the day, it's not a huge deal. |
 | [app/models/tag_alias.rb](app/models/tag_alias.rb#L167) | 167 | Race condition with indexing jobs here. |
 | [app/models/tag_implication.rb](app/models/tag_implication.rb#L207) | 207 | Race condition with indexing jobs here. |
 | [app/models/ticket.rb](app/models/ticket.rb#L178) | 178 | We need access control/blocks for associations |

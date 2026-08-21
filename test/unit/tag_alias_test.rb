@@ -139,6 +139,14 @@ class TagAliasTest < ActiveSupport::TestCase
       assert_equal(["bbb"], TagAlias.to_aliased(%w[aaa aaa]))
     end
 
+    should("preserve empty lines when normalizing a tag query") do
+      create(:tag, name: "aaa")
+      create(:tag, name: "bbb")
+      create(:tag_alias, antecedent_name: "aaa", consequent_name: "bbb")
+
+      assert_equal("bbb\n\nccc\n\n", TagAlias.to_aliased_query(String.new("aaa\n\naaa\nccc\n\n")))
+    end
+
     should("update any affected posts when saved") do
       post1 = create(:post, tag_string: "aaa bbb eee")
       post2 = create(:post, tag_string: "ccc ddd eee")

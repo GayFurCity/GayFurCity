@@ -33,10 +33,5 @@ module TestHelpers
       end
       Config.any_instance.stubs(option).returns(value)
     end
-
-    # TODO: refactor callsites
-    def stub_config_get_user(option, value)
-      stub_dynamic_config(option, value)
-    end
   end
 end

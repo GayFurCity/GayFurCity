@@ -161,9 +161,7 @@ div.comment-form div.comment-avatar {
     color: var(--color-foreground);
     font-size: 100px;
     font-weight: 700;
-
-    // hack to center the text
-    padding-bottom: 7px;
+    line-height: 1;
     box-sizing: border-box;
   }
 
@@ -509,7 +507,6 @@ div.new-comment button[name="cancel"] {
           width: 50px;
           height: 50px;
           font-size: 40px;
-          padding-bottom: 1px;
         }
 
         span.comment-rank {

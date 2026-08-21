@@ -7,6 +7,7 @@
   $button-font-size: st-value(100);
   $button-background: themed("color-section-lighten-5");
   $button-background-hover: themed("color-section-lighten-10");
+  $button-border: themed("color-section");
   $button-text-color: themed("color-text");
 
   $button-stealth-color: themed("color-link");
@@ -26,7 +27,7 @@
   box-sizing: border-box;
   justify-content: center;
 
-  // TODO What if button is on a light background
+  border: 1px solid $button-border;
   background: $button-background;
   color: $button-text-color;
   &:hover, &:active { background: $button-background-hover; }
@@ -61,6 +62,7 @@
 
   &.stealth {
     background: none;
+    border-color: transparent;
     padding: math.div(st-value(100), 2) 0;
 
     svg { background: $button-background; }

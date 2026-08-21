@@ -26,9 +26,6 @@
 | [app/logical/vote_manager/posts.rb](app/logical/vote_manager/posts.rb#L90) | 90 | this can likely be optimized to just update post ids |
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L12) | 12 | Lock off these extra items? |
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L28) | 28 | Fix tag array with forced -status:deleted |
-| [app/javascript/src/styles/common/_standard_elements.scss](app/javascript/src/styles/common/_standard_elements.scss#L29) | 29 | What if button is on a light background |
-| [app/javascript/src/styles/common/page_header.scss](app/javascript/src/styles/common/page_header.scss#L196) | 196 |  |
-| [test/test_helpers/common.rb](test/test_helpers/common.rb#L37) | 37 | refactor callsites |
 | [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L5) | 5 | look into refactoring out minitest? |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L588) | 588 | This was moved to be a controller concern to fix issues with internal post updates |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L781) | 781 | Invalid tags are now reported as warnings, and don't trigger these. |
@@ -51,5 +48,4 @@
 |:------|:------:|:------|
 | [app/models/post_version.rb](app/models/post_version.rb#L109) | 109 | If this is the first version we can avoid a lookup because we know there are no previous versions. |
 | [app/models/post_version.rb](app/models/post_version.rb#L114) | 114 | if all the post versions for this post have already been preloaded, |
-| [app/javascript/src/styles/specific/comments.scss](app/javascript/src/styles/specific/comments.scss#L165) | 165 | to center the text |
 | [config/initializers/concurrency.rb](config/initializers/concurrency.rb#L3) | 3 | to configure the thread pool used by promises (Concurrent::Promise) in the concurrent-ruby gem. |

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_20_110115) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_21_014427) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -110,16 +110,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_20_110115) do
   end
 
   create_table "bans", force: :cascade do |t|
-    t.bigint "banner_id", null: false
-    t.inet "banner_ip_addr", null: false
     t.datetime "created_at", precision: nil, null: false
+    t.bigint "creator_id", null: false
+    t.inet "creator_ip_addr", null: false
     t.datetime "expires_at", precision: nil
     t.text "reason", null: false
     t.datetime "updated_at", precision: nil, null: false
     t.bigint "updater_id", null: false
     t.inet "updater_ip_addr", null: false
     t.bigint "user_id", null: false
-    t.index ["banner_id"], name: "index_bans_on_banner_id"
+    t.index ["creator_id"], name: "index_bans_on_creator_id"
     t.index ["expires_at"], name: "index_bans_on_expires_at"
     t.index ["updater_id"], name: "index_bans_on_updater_id"
     t.index ["user_id"], name: "index_bans_on_user_id"
@@ -1728,7 +1728,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_20_110115) do
   add_foreign_key "avoid_postings", "users", column: "creator_id"
   add_foreign_key "avoid_postings", "users", column: "updater_id"
   add_foreign_key "bans", "users"
-  add_foreign_key "bans", "users", column: "banner_id"
+  add_foreign_key "bans", "users", column: "creator_id"
   add_foreign_key "bans", "users", column: "updater_id"
   add_foreign_key "bulk_update_request_imports", "forum_topics"
   add_foreign_key "bulk_update_request_imports", "users", column: "creator_id"

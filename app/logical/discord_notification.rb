@@ -22,7 +22,7 @@ class DiscordNotification
     when Artist
       embeds << { color: GREEN, title: "Artist Created", description: "Name: #{record.name}", url: r.artist_url(record), author: a(record.creator) }
     when Ban
-      embeds << { color: RED, title: "Ban Created", description: "User: #{u(record.user)}", url: r.ban_url(record), author: a(record.banner) }
+      embeds << { color: RED, title: "Ban Created", description: "User: #{u(record.user)}", url: r.ban_url(record), author: a(record.creator) }
     when BulkUpdateRequest
       embeds << { color: GREEN, title: "Bulk Update Request Created", url: r.bulk_update_request_url(record), author: a(record.creator) }
     when Comment
@@ -147,7 +147,7 @@ class DiscordNotification
     when Artist
       embeds << { color: RED, title: "Artist Deleted", description: "Name: #{record.name}", url: r.artist_url(record), author: a(record.creator) }
     when Ban
-      embeds << { color: GREEN, title: "Ban Deleted", description: "User: #{u(record.user)}", url: r.ban_url(record), author: a(record.banner) }
+      embeds << { color: GREEN, title: "Ban Deleted", description: "User: #{u(record.user)}", url: r.ban_url(record), author: a(record.creator) }
     when Comment
       embeds << { color: RED, title: "Comment Deleted", url: r.comment_url(record), author: a(record.creator) }
     when CommentVote
@@ -193,7 +193,7 @@ class DiscordNotification
       end
       embeds << { color: YELLOW, title: "Artist Updated", description: "Name: #{record.name}", url: r.artist_url(record), author: a(record.updater) }
     when Ban
-      embeds << { color: YELLOW, title: "Ban Updated", description: "User: #{u(record.user)}", url: r.ban_url(record), author: a(record.banner) }
+      embeds << { color: YELLOW, title: "Ban Updated", description: "User: #{u(record.user)}", url: r.ban_url(record), author: a(record.creator) }
     when BulkUpdateRequest
       embeds << { color: YELLOW, title: "Bulk Update Request Updated", url: r.bulk_update_request_url(record), author: a(record.updater) }
     when Comment

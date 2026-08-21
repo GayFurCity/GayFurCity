@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory(:ban) do |_f|
-    banner(factory: %i[admin_user])
+    creator(factory: %i[admin_user])
     user
     sequence(:reason) { |n| "ban_reason_#{n}" }
     duration { 60 }

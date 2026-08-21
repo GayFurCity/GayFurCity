@@ -7,9 +7,9 @@
     <%= link_to_user(ban.user) %>
     <%= link_to("»", bans_path(search: search_params(ban).merge(user_name: ban.user.name))) %>
   <% end %>
-  <% t.column("Banner") do |ban| %>
-    <%= link_to_user(ban.banner) %>
-    <%= link_to("»", bans_path(search: search_params(ban).merge(banner_name: ban.banner.name))) %>
+  <% t.column("Creator") do |ban| %>
+    <%= link_to_user(ban.creator) %>
+    <%= link_to("»", bans_path(search: search_params(ban).merge(creator_name: ban.creator.name))) %>
   <% end %>
   <% t.column("Banned") do |ban| %>
     <%= time_ago_in_words_tagged(ban.created_at) %>

@@ -453,7 +453,7 @@ components:
         - id
         - user_id
         - reason
-        - banner_id
+        - creator_id
         - expires_at
         - created_at
         - updated_at
@@ -464,7 +464,7 @@ components:
           type: number
         reason:
           type: string
-        banner_id:
+        creator_id:
           type: number
         expires_at:
           type: ["string", "null"]
@@ -4682,14 +4682,14 @@ paths:
               - id_asc
               - id_desc
               - expires_at_desc
-        - name: search[banner_id]
+        - name: search[creator_id]
           in: query
-          description: The ID of the banner.
+          description: The ID of the creator.
           schema:
             type: string
-        - name: search[banner_name]
+        - name: search[creator_name]
           in: query
-          description: The name of banner.
+          description: The name of creator.
           schema:
             type: string
         - name: search[user_id]
@@ -7246,11 +7246,11 @@ paths:
               - id_asc
               - id_desc
         - in: query
-          name: search[banner_id]
+          name: search[creator_id]
           schema:
             type: number
         - in: query
-          name: search[banner_name]
+          name: search[creator_name]
           schema:
             type: string
         - in: query

@@ -3,6 +3,20 @@
 module GayFurCity
   class Config < YiffSpace::ConfigBuilder
     self.env_name = "GAYFURCITY"
+
+    # `bin/rails generate`/`destroy` boot the full application, which means every `required: true`
+    # config below is read during initialization - but generators don't need real infrastructure
+    # (redis, elasticsearch, secrets, ...), and requiring it makes them impossible to run outside
+    # of the container. Silently fall back to nil for those commands instead of raising, this way
+    # required configuration is still enforced everywhere else (servers, jobs, console, rake tasks).
+    def generator_invocation?
+      defined?(ORIGINAL_ARGV) && %w[generate g destroy d].include?(ORIGINAL_ARGV.first)
+    end
+
+    def required!(name)
+      raise(NotImplementedError, "Config option #{name} is not set") unless generator_invocation?
+    end
+
     config(:version) { GitHelper.instance.origin.short_commit }
 
     config(:config_id) { "default" }
@@ -36,10 +50,10 @@ module GayFurCity
     config(:replacement_path_prefix) { "replacements/" }
     config(:mascot_path_prefix) { "mascots/" }
 
-    config(:protected_file_secret, required: true)
-    config(:replacement_file_secret, required: true)
-    config(:remember_key, required: true)
-    config(:email_key, required: true)
+    config(:protected_file_secret, required: true) { required!(:protected_file_secret) }
+    config(:replacement_file_secret, required: true) { required!(:replacement_file_secret) }
+    config(:remember_key, required: true) { required!(:remember_key) }
+    config(:email_key, required: true) { required!(:email_key) }
     config(:discord_secret) { nil }
     config(:report_key) { nil }
     config(:rakismet_key) { nil }
@@ -62,8 +76,8 @@ module GayFurCity
     config(:recommender_server) { nil }
     config(:iqdb_server) { nil }
     config(:autocompleted_server) { nil }
-    config(:elasticsearch_host, required: true)
-    config(:redis_url, required: true)
+    config(:elasticsearch_host, required: true) { required!(:elasticsearch_host) }
+    config(:redis_url, required: true) { required!(:redis_url) }
     config(:clickhouse_url) { nil }
     subconfig(:reports) do
       config(:enabled, :boolean) { present?(:reports_server, :reports_server_internal) }

@@ -7,7 +7,7 @@ class Ban < ApplicationRecord
   before_create(:create_feedback)
   after_create(:update_user_on_create)
   belongs_to_user(:user)
-  belongs_to_user(:banner, ip: true, clone: :updater, aliases: :creator) # TODO: convert to creator
+  belongs_to_user(:creator, ip: true, clone: :updater)
   belongs_to_user(:updater, ip: true)
   resolvable(:destroyer)
   validate(:user_is_inferior)
@@ -38,8 +38,8 @@ class Ban < ApplicationRecord
     def query_dsl
       super
         .field(:reason_matches, :reason)
-        .field(:ip_addr, :banner_ip_addr)
-        .association(:banner)
+        .field(:ip_addr, :creator_ip_addr)
+        .association(:creator)
         .association(:user)
     end
 
@@ -65,12 +65,12 @@ class Ban < ApplicationRecord
       if user.is_admin?
         errors.add(:base, "You can never ban an admin.")
         false
-      elsif user.is_moderator? && banner.is_admin?
+      elsif user.is_moderator? && creator.is_admin?
         true
       elsif user.is_moderator?
         errors.add(:base, "Only admins can ban moderators.")
         false
-      elsif banner.is_admin? || banner.is_moderator? # rubocop:disable Lint/DuplicateBranch
+      elsif creator.is_admin? || creator.is_moderator? # rubocop:disable Lint/DuplicateBranch
         true
       else
         errors.add(:base, "No one else can ban.")
@@ -80,7 +80,7 @@ class Ban < ApplicationRecord
   end
 
   def update_user_on_create
-    user.ban!(banner)
+    user.ban!(creator)
   end
 
   def user_name
@@ -133,10 +133,10 @@ class Ban < ApplicationRecord
 
   def create_feedback
     time = expires_at.nil? ? "permanently" : "for #{humanized_duration}"
-    user.feedback.create!(category: "negative", body: "Banned #{time}: #{reason}", creator: banner)
+    user.feedback.create!(category: "negative", body: "Banned #{time}: #{reason}", creator: creator)
   end
 
   def self.available_includes
-    %i[banner user]
+    %i[creator user]
   end
 end

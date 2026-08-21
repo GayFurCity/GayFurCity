@@ -5,7 +5,7 @@ class BansController < ApplicationController
   respond_to(:json, only: %i[index show])
 
   def index
-    @bans = authorize(Ban).html_includes(request, :user, :banner)
+    @bans = authorize(Ban).html_includes(request, :user, :creator)
                           .search_current(search_params(Ban))
                           .paginate(params[:page], limit: params[:limit])
     respond_with(@bans)
@@ -59,7 +59,7 @@ class BansController < ApplicationController
     else
       @notice = view_context.safe_wiki(Config.instance.ban_notice_wiki_page).body
                             .gsub("%BAN_REASON%", @ban.reason)
-                            .gsub("%BAN_USER%", view_context.link_to_user(@ban.banner))
+                            .gsub("%BAN_USER%", view_context.link_to_user(@ban.creator))
     end
   end
 end

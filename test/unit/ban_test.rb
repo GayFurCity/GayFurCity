@@ -11,7 +11,7 @@ class BanTest < ActiveSupport::TestCase
 
       should("set the is_banned flag on the user") do
         user = create(:user)
-        ban = build(:ban, user: user, banner: @banner)
+        ban = build(:ban, user: user, creator: @banner)
         ban.save
         user.reload
 
@@ -20,7 +20,7 @@ class BanTest < ActiveSupport::TestCase
 
       should("not be valid against another admin") do
         user = create(:admin_user)
-        ban = build(:ban, user: user, banner: @banner)
+        ban = build(:ban, user: user, creator: @banner)
         ban.save
 
         assert_predicate(ban.errors, :any?)
@@ -28,17 +28,17 @@ class BanTest < ActiveSupport::TestCase
 
       should("be valid against anyone who is not an admin") do
         user = create(:moderator_user)
-        ban = create(:ban, user: user, banner: @banner)
+        ban = create(:ban, user: user, creator: @banner)
 
         assert_empty(ban.errors)
 
         user = create(:trusted_user)
-        ban = create(:ban, user: user, banner: @banner)
+        ban = create(:ban, user: user, creator: @banner)
 
         assert_empty(ban.errors)
 
         user = create(:user)
-        ban = create(:ban, user: user, banner: @banner)
+        ban = create(:ban, user: user, creator: @banner)
 
         assert_empty(ban.errors)
       end
@@ -51,13 +51,13 @@ class BanTest < ActiveSupport::TestCase
 
       should("not be valid against an admin or moderator") do
         user = create(:admin_user)
-        ban = build(:ban, user: user, banner: @banner)
+        ban = build(:ban, user: user, creator: @banner)
         ban.save
 
         assert_predicate(ban.errors, :any?)
 
         user = create(:moderator_user)
-        ban = build(:ban, user: user, banner: @banner)
+        ban = build(:ban, user: user, creator: @banner)
         ban.save
 
         assert_predicate(ban.errors, :any?)
@@ -65,12 +65,12 @@ class BanTest < ActiveSupport::TestCase
 
       should("be valid against anyone who is not an admin or a moderator") do
         user = create(:trusted_user)
-        ban = create(:ban, user: user, banner: @banner)
+        ban = create(:ban, user: user, creator: @banner)
 
         assert_empty(ban.errors)
 
         user = create(:user)
-        ban = create(:ban, user: user, banner: @banner)
+        ban = create(:ban, user: user, creator: @banner)
 
         assert_empty(ban.errors)
       end
@@ -79,7 +79,7 @@ class BanTest < ActiveSupport::TestCase
     should("initialize the expiration date") do
       user = create(:user)
       admin = create(:admin_user)
-      ban = create(:ban, user: user, banner: admin)
+      ban = create(:ban, user: user, creator: admin)
 
       assert_not_nil(ban.expires_at)
     end
@@ -89,7 +89,7 @@ class BanTest < ActiveSupport::TestCase
       admin = create(:admin_user)
 
       assert_empty(user.feedback)
-      create(:ban, user: user, banner: admin)
+      create(:ban, user: user, creator: admin)
 
       assert_not(user.feedback.empty?)
       assert_equal("negative", user.feedback.last.category)
@@ -102,7 +102,7 @@ class BanTest < ActiveSupport::TestCase
       ban = create(:ban, user: user)
       params = {
         user_name:   user.name,
-        banner_name: ban.banner.name,
+        creator_name: ban.creator.name,
         reason:      ban.reason,
         expired:     false,
         order:       :id_desc,
@@ -122,7 +122,7 @@ class BanTest < ActiveSupport::TestCase
 
       context("when only expired bans exist") do
         setup do
-          @ban = create(:ban, user: @user, banner: @admin, duration: 1)
+          @ban = create(:ban, user: @user, creator: @admin, duration: 1)
         end
 
         should("not return expired bans") do
@@ -134,7 +134,7 @@ class BanTest < ActiveSupport::TestCase
 
       context("when active bans still exist") do
         setup do
-          @ban = create(:ban, user: @user, banner: @admin, duration: 1)
+          @ban = create(:ban, user: @user, creator: @admin, duration: 1)
         end
 
         should("return active bans") do

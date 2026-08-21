@@ -278,11 +278,11 @@ CREATE TABLE public.bans (
     id bigint NOT NULL,
     user_id bigint NOT NULL,
     reason text NOT NULL,
-    banner_id bigint NOT NULL,
+    creator_id bigint NOT NULL,
     expires_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    banner_ip_addr inet NOT NULL,
+    creator_ip_addr inet NOT NULL,
     updater_id bigint NOT NULL,
     updater_ip_addr inet NOT NULL
 );
@@ -4978,10 +4978,10 @@ CREATE INDEX index_avoid_postings_on_updater_id ON public.avoid_postings USING b
 
 
 --
--- Name: index_bans_on_banner_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_bans_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_bans_on_banner_id ON public.bans USING btree (banner_id);
+CREATE INDEX index_bans_on_creator_id ON public.bans USING btree (creator_id);
 
 
 --
@@ -7251,7 +7251,7 @@ ALTER TABLE ONLY public.rule_categories
 --
 
 ALTER TABLE ONLY public.bans
-    ADD CONSTRAINT fk_rails_2234692cb1 FOREIGN KEY (banner_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_2234692cb1 FOREIGN KEY (creator_id) REFERENCES public.users(id);
 
 
 --
@@ -8445,6 +8445,7 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260821014427'),
 ('20260820110115'),
 ('20260820010000'),
 ('20260820000000'),

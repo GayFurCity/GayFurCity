@@ -7,7 +7,7 @@ class BansControllerTest < ActionDispatch::IntegrationTest
     setup do
       @mod = create(:moderator_user)
       @user = create(:user)
-      @ban = create(:ban, user: @user, banner: @mod)
+      @ban = create(:ban, user: @user, creator: @mod)
     end
 
     context("new action") do
@@ -79,15 +79,15 @@ class BansControllerTest < ActionDispatch::IntegrationTest
           @creator = create(:moderator_user)
           @banner = create(:user)
           @admin = create(:admin_user)
-          @ban = create(:ban, user: @user, banner: @creator, banner_ip_addr: "127.0.0.2", reason: "foo", is_permaban: true)
+          @ban = create(:ban, user: @user, creator: @creator, creator_ip_addr: "127.0.0.2", reason: "foo", is_permaban: true)
         end
 
         asserts do
           search(:expired, "false").records { [@ban] }
           search(:reason_matches, "foo").records { [@ban] }
           search(:ip_addr, "127.0.0.2").records { [@ban] }.user { @admin }
-          search(:banner_id).value { @creator.id }.records { [@ban] }
-          search(:banner_name).value { @creator.name }.records { [@ban] }
+          search(:creator_id).value { @creator.id }.records { [@ban] }
+          search(:creator_name).value { @creator.name }.records { [@ban] }
           search(:user_id).value { @user.id }.records { [@ban] }
           search(:user_name).value { @user.name }.records { [@ban] }
           search.shared.records { [@ban] }
@@ -144,8 +144,8 @@ class BansControllerTest < ActionDispatch::IntegrationTest
 
       context("access control") do
         asserts do
-          access.gte(User::Levels::MODERATOR).delete { ban_path(create(:ban, user: @user, banner: @mod)) }.success(:redirect)
-          # access.gte([]).json.delete { ban_path(create(:ban, user: @user, banner: @mod)) }.success(:no_content)
+          access.gte(User::Levels::MODERATOR).delete { ban_path(create(:ban, user: @user, creator: @mod)) }.success(:redirect)
+          # access.gte([]).json.delete { ban_path(create(:ban, user: @user, creator: @mod)) }.success(:no_content)
         end
       end
     end

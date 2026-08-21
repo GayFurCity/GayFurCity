@@ -15,13 +15,28 @@ module TestHelpers
       GayFurCity::Config.any_instance.stubs(name).returns(value)
     end
 
-    # Stubs the raw column instead of Config.get_user itself: Config.stubs(:get_user).with(option,
-    # user) replaces get_user for every call, so any other invocation (e.g. User#statement_timeout's
-    # Config.get_user(:postgres_query_timeout, user), which runs on every authenticated request via
-    # SessionLoader) raises "unexpected invocation". Making the column return a non-Hash value makes
-    # get_user's own logic short-circuit and hand back that value regardless of user.
-    def stub_config_get_user(option, value)
+    def stub_dynamic_config(option, value, user: nil)
+      if user.present?
+        original = Config.method(:get_user)
+        Config.define_singleton_method(:get_user) do |actual_option, actual_user, *args, **kwargs|
+          if actual_option == option && actual_user == user
+            value
+          else
+            original.call(actual_option, actual_user, *args, **kwargs)
+          end
+        end
+
+        teardown do
+          Config.define_singleton_method(:get_user, original)
+        end
+        return
+      end
       Config.any_instance.stubs(option).returns(value)
+    end
+
+    # TODO: refactor callsites
+    def stub_config_get_user(option, value)
+      stub_dynamic_config(option, value)
     end
   end
 end

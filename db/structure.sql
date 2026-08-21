@@ -658,7 +658,10 @@ CREATE TABLE public.config (
     missing_preview_url character varying DEFAULT '/images/missing-preview.png'::character varying NOT NULL,
     placeholder_preview_url character varying DEFAULT '/images/placeholder-preview.png'::character varying NOT NULL,
     tag_query_limit jsonb DEFAULT '{"0": 40}'::jsonb NOT NULL,
-    anonymous_hard_tag_limit integer DEFAULT 40 NOT NULL
+    anonymous_hard_tag_limit integer DEFAULT 40 NOT NULL,
+    post_set_create_limit integer DEFAULT 6 NOT NULL,
+    post_set_create_limit_bypass integer DEFAULT 20 NOT NULL,
+    post_set_limit jsonb DEFAULT '{"4": 5, "10": 75, "15": 150, "40": -1}'::jsonb NOT NULL
 );
 
 
@@ -8445,6 +8448,7 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260821015609'),
 ('20260821014427'),
 ('20260820110115'),
 ('20260820010000'),

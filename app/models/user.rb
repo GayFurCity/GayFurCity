@@ -828,6 +828,7 @@ class User < ApplicationRecord
     create_user_throttle(:post_flag, :post_flag_limit, PostFlag, :for_creator, :created_at, 3.days)
     create_user_throttle(:ticket, :ticket_limit, Ticket, :for_creator, :created_at, 3.days)
     create_user_throttle(:forum_vote, :forum_vote_limit, ForumPostVote, :for_user, :created_at, 3.days)
+    create_user_throttle(:post_set_create, :post_set_create_limit, PostSet, :for_creator, :created_at, nil)
     create_user_throttle_detailed(:pool_post_edit, -> { Config.instance.pool_post_edit_limit - PoolVersion.for_updater(id).where.gt(updated_at: 1.hour.ago).group(:pool_id).count(:pool_id).length },
                                   :general_bypass_throttle?, 3.days, Levels::MEMBER..)
     create_user_throttle_detailed(:suggest_tag, -> { Config.instance.tag_suggestion_limit - (TagAlias.for_creator(id).where.gt(created_at: 1.hour.ago).count + TagImplication.for_creator(id).where.gt(created_at: 1.hour.ago).count + BulkUpdateRequest.for_creator(id).where.gt(created_at: 1.hour.ago).count) },

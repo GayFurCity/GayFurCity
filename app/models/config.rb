@@ -2,12 +2,12 @@
 
 class Config < ApplicationRecord
   self.table_name = "config"
-  validate(:singleton_instance, on: :create)
+  validate(:validate_singleton_instance, on: :create)
   before_update(:log_update)
   after_update(-> { Config.delete_cache })
   resolvable(:updater)
 
-  def singleton_instance
+  def validate_singleton_instance
     errors.add(:base, "Only one config record per instance is allowed") if Config.exists?(id: Config.config_id)
   end
 

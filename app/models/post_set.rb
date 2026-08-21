@@ -18,7 +18,7 @@ class PostSet < ApplicationRecord
   validates(:description, length: { maximum: -> { Config.instance.pool_description_max_size } })
   validate(:validate_number_of_posts)
   validate(:can_make_public, if: :is_public_changed?)
-  validate(:set_per_hour_limit, on: :create)
+  validate(:user_not_limited, on: :create)
   validate(:can_create_new_set_limit, on: :create)
 
   before_save(:update_post_count)
@@ -115,21 +115,21 @@ class PostSet < ApplicationRecord
     end
 
     def can_create_new_set_limit
-      if PostSet.where(creator_id: creator_id).count >= 75
-        errors.add(:base, "You can only create 75 sets.")
-        return false
-      end
+      limit = Config.get_with_bypass(:post_set_limit, creator)
+      if PostSet.where(creator_id: creator_id).count >= limit
+         errors.add(:base, "You can only create #{limit} sets.")
+         return false
+       end
       true
     end
 
-    # TODO: convert to user throttle
-    def set_per_hour_limit
-      if PostSet.for_creator(creator_id).where.gt(created_at: 1.hour.ago).count > 6 && !creator.is_janitor?
-        errors.add(:base, "You have already created 6 sets in the last hour.")
+    def user_not_limited
+      allowed = creator.can_post_set_create_with_reason
+      if allowed != true
+        errors.add(:base, "User #{User.throttle_reason(allowed)}.")
         false
-      else
-        true
       end
+      true
     end
 
     def validate_number_of_posts

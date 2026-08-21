@@ -4,7 +4,7 @@ require("test_helper")
 require_relative("helper")
 
 module ModActions
-  class PostSetsest < ActiveSupport::TestCase
+  class PostSetsTest < ActiveSupport::TestCase
     include(Helper)
     include(Rails.application.routes.url_helpers)
 

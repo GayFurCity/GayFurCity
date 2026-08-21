@@ -22,7 +22,7 @@ class PostSetPolicy < ApplicationPolicy
 
   def maintainers?
     return unbanned? unless record.is_a?(PostSet)
-    view_access?(record)
+    unbanned? && view_access?(record)
   end
 
   def post_list?
@@ -41,7 +41,7 @@ class PostSetPolicy < ApplicationPolicy
   end
 
   def for_select?
-    true
+    unbanned?
   end
 
   def add_posts?
@@ -71,11 +71,11 @@ class PostSetPolicy < ApplicationPolicy
   private
 
   def settings_edit_access?(set)
-    set.can_edit_settings?(user)
+    unbanned? && set.can_edit_settings?(user)
   end
 
   def post_edit_access?(set)
-    set.can_edit_posts?(user)
+    unbanned? && set.can_edit_posts?(user)
   end
 
   def view_access?(set)

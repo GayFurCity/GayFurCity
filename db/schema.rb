@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_21_014427) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_21_015609) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -329,6 +329,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_21_014427) do
     t.integer "post_replacement_per_post_limit", default: 5, null: false
     t.integer "post_replacement_per_post_limit_bypass", default: 20, null: false
     t.integer "post_sample_size", default: 300, null: false
+    t.integer "post_set_create_limit", default: 6, null: false
+    t.integer "post_set_create_limit_bypass", default: 20, null: false
+    t.jsonb "post_set_limit", default: {"4" => 5, "10" => 75, "15" => 150, "40" => -1}, null: false
     t.integer "post_vote_limit", default: 1000, null: false
     t.integer "post_vote_limit_bypass", default: 15, null: false
     t.jsonb "postgres_query_timeout", default: {"0" => 3000, "15" => 6000, "19" => 9000}, null: false

@@ -117,9 +117,9 @@ class PostSet < ApplicationRecord
     def can_create_new_set_limit
       limit = Config.get_with_bypass(:post_set_limit, creator)
       if PostSet.where(creator_id: creator_id).count >= limit
-         errors.add(:base, "You can only create #{limit} sets.")
-         return false
-       end
+        errors.add(:base, "You can only create #{limit} sets.")
+        return false
+      end
       true
     end
 

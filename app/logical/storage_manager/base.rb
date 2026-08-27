@@ -172,12 +172,15 @@ module StorageManager
     end
 
     def with_metrics(method)
+      return yield unless Metrics.enabled?
+
       result = nil
-      Yabeda.storage.public_send(method).increment({ class: self.class.name })
-      Yabeda.storage.public_send("#{method}_runtime").measure({ class: self.class.name }) do
+      tags = { class: self.class.name }
+      Yabeda.storage.public_send(method).increment(tags)
+      Yabeda.storage.public_send("#{method}_runtime").measure(tags) do
         result = yield
       rescue StandardError
-        Yabeda.storage.public_send("#{method}_failures").increment({ class: self.class.name })
+        Yabeda.storage.public_send("#{method}_failures").increment(tags)
         raise
       end
       result

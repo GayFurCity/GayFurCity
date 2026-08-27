@@ -27,14 +27,18 @@ class ApplicationJob < ActiveJob::Base
   end
 
   around_perform do |job, block|
+    metrics = Metrics.enabled?
     tags = { job_class: job.class.name }
-    Yabeda.jobs.executions.increment(tags)
-    Yabeda.jobs.runtime.measure(tags) do
+    Yabeda.jobs.executions.increment(tags) if metrics
+
+    perform = -> do
       block.call
     rescue StandardError => e
-      Yabeda.jobs.failures.increment(tags)
+      Yabeda.jobs.failures.increment(tags) if metrics
       GayFurCity::Logger.log(e, source: "Job: #{job.class.name}")
       raise
     end
+
+    metrics ? Yabeda.jobs.runtime.measure(tags, &perform) : perform.call
   end
 end

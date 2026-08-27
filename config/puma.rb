@@ -35,11 +35,17 @@ plugin(:tmp_restart)
 # In other environments, only set the PID file if requested.
 pidfile(ENV["PIDFILE"]) if ENV["PIDFILE"]
 
-# Exposes puma's own stats (thread pool usage, backlog, etc.) to Yabeda.
-activate_control_app
-plugin(:yabeda)
+require_relative("../app/logical/metrics")
 
-# Serves /metrics on its own internal port instead of the public app port, so
-# it isn't reachable through the same reverse-proxied domains as the app.
-plugin(:yabeda_prometheus)
-prometheus_exporter_url(ENV.fetch("PROMETHEUS_EXPORTER_URL", "tcp://0.0.0.0:9394/metrics"))
+# Skips loading the exporter entirely when nothing is going to scrape it (i.e. the metrics
+# sidecar containers aren't running either) - see app/logical/metrics.rb for the enablement rules.
+if Metrics.enabled?
+  # Exposes puma's own stats (thread pool usage, backlog, etc.) to Yabeda.
+  activate_control_app
+  plugin(:yabeda)
+
+  # Serves /metrics on its own internal port instead of the public app port, so
+  # it isn't reachable through the same reverse-proxied domains as the app.
+  plugin(:yabeda_prometheus)
+  prometheus_exporter_url(ENV.fetch("PROMETHEUS_EXPORTER_URL", "tcp://0.0.0.0:9394/metrics"))
+end

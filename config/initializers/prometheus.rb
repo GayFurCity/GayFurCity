@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require_relative("../../app/logical/metrics")
+return unless Metrics.enabled?
+
 require_relative("../../app/logical/cache")
 require_relative("../../lib/prometheus/client/data_stores/redis")
 

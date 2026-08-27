@@ -22,14 +22,4 @@
     <level>warning</level>
     <console>true</console>
   </logger>
-  <prometheus>
-    <port>9363</port>
-    <endpoint>/metrics</endpoint>
-    <metrics>true</metrics>
-    <asynchronous_metrics>true</asynchronous_metrics>
-    <events>true</events>
-    <errors>true</errors>
-    <histograms>true</histograms>
-    <dimensional_metrics>true</dimensional_metrics>
-  </prometheus>
 </clickhouse>

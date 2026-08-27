@@ -55,18 +55,18 @@ class UsersController < ApplicationController
 
   def create
     raise(User::PrivilegeError, "Already signed in") unless CurrentUser.user.is_anonymous?
-    raise(User::PrivilegeError, "Signups are disabled") unless Config.instance.enable_signups?
+    raise(User::PrivilegeError, "Signups are disabled") unless AdminConfig.instance.enable_signups?
     User.transaction do
       @user = User.new(permitted_attributes(User).merge({ last_ip_addr: request.remote_ip }))
       @user.validate_email_format = true
-      @user.email_verified = false if Config.instance.enable_email_verification?
+      @user.email_verified = false if AdminConfig.instance.enable_email_verification?
       if !GayFurCity.config.recaptcha.enabled? || verify_recaptcha(model: @user)
         @user.save
         if @user.errors.empty?
           session[:user_id] = @user.id
           session[:ph] = @user.password_token
           PendingAccountLink.finalize!(session, @user, request: request, category: :linked_account_signup)
-          if Config.instance.enable_email_verification?
+          if AdminConfig.instance.enable_email_verification?
             Users::EmailConfirmationMailer.confirmation(@user).deliver_now
           end
           UserEvent.create_from_request!(@user, :user_creation, request)

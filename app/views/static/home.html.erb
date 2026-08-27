@@ -5,7 +5,7 @@
 <div id="main">
   <div id="searchbox" class="mascotbox">
     <div id="static-index">
-      <h1 style="font-size: 4em;"><%= link_to(Config.instance.app_name, "/") %></h1>
+      <h1 style="font-size: 4em;"><%= link_to(AdminConfig.instance.app_name, "/") %></h1>
       <div id="links">
         <% if CurrentUser.user.is_anonymous? %>
           <%= link_to("Login/Signup", new_session_path, title: "Login or sign up") %>
@@ -58,9 +58,9 @@
 
 <% content_for(:html_header) do %>
   <meta name="enable-autocomplete" content="<%= CurrentUser.user.enable_autocomplete %>">
-  <%= tag.meta(name: "description", content: Config.instance.app_description) %>
-  <%= tag.meta(property: "og:site", content: Config.instance.app_name) %>
-  <%= tag.meta(property: "og:title", content: Config.instance.app_name) %>
+  <%= tag.meta(name: "description", content: AdminConfig.instance.app_description) %>
+  <%= tag.meta(property: "og:site", content: AdminConfig.instance.app_name) %>
+  <%= tag.meta(property: "og:title", content: AdminConfig.instance.app_name) %>
   <%= tag.meta(property: "og:url", content: root_url(host: GayFurCity.config.hostname, protocol: "https")) %>
   <%= tag.meta(name: "canonical", content: root_url(host: GayFurCity.config.hostname, protocol: "https")) %>
 
@@ -71,7 +71,7 @@
 
   <%# Twitter properties %>
   <meta name="twitter:card" content="summary">
-  <%= tag.meta(name: "twitter:title", content: Config.instance.app_name) %>
-  <%= tag.meta(name: "twitter:description", content: Config.instance.app_description) %>
+  <%= tag.meta(name: "twitter:title", content: AdminConfig.instance.app_name) %>
+  <%= tag.meta(name: "twitter:description", content: AdminConfig.instance.app_description) %>
   <meta property="twitter:image" content="<%= GayFurCity.config.hostname %>/main-icon.png">
 <% end %>

@@ -70,7 +70,7 @@ class TagRelationshipRequest
       original_post_attributes: {
         body: "Reason: #{reason}",
       },
-      category_id:              Config.instance.alias_and_implication_forum_category,
+      category_id:              AdminConfig.instance.alias_and_implication_forum_category,
     )
   end
 

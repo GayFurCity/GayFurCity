@@ -27,7 +27,7 @@ class StaticController < ApplicationController
   end
 
   def avoid_posting
-    @page = view_context.safe_wiki(Config.instance.avoid_posting_notice_wiki_page)
+    @page = view_context.safe_wiki(AdminConfig.instance.avoid_posting_notice_wiki_page)
   end
 
   def not_found
@@ -83,7 +83,7 @@ class StaticController < ApplicationController
 
       redirect_to(GayFurCity.config.discord_site + user_hash, allow_other_host: true)
     else
-      @page = view_context.safe_wiki(Config.instance.discord_notice_wiki_page)
+      @page = view_context.safe_wiki(AdminConfig.instance.discord_notice_wiki_page)
     end
   end
 

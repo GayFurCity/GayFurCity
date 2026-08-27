@@ -347,7 +347,7 @@ class ArtistTest < ActiveSupport::TestCase
         assert_equal("https://gayfur.city", @artist.url_string)
 
         GayFurCity.config.stubs(:disable_throttles).returns(false)
-        Config.any_instance.stubs(:artist_edit_limit).returns(0)
+        AdminConfig.any_instance.stubs(:artist_edit_limit).returns(0)
 
         assert_no_difference("ArtistVersion.count") do
           @artist.update_with(@user, url_string: "")

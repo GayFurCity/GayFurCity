@@ -112,7 +112,7 @@
       </div>
       <table>
         <tr>
-          <td><%= f.input(:response, as: :dtext, limit: Config.instance.dmail_max_size) %></td>
+          <td><%= f.input(:response, as: :dtext, limit: AdminConfig.instance.dmail_max_size) %></td>
         </tr>
       </table>
       <%= tag.input(name: "force_claim", type: "hidden", value: params[:force_claim]) %>

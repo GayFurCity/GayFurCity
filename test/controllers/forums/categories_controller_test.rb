@@ -8,7 +8,7 @@ module Forums
       setup do
         @user = create(:user)
         @admin = create(:admin_user)
-        @category = ForumCategory.find_by(id: Config.instance.alias_and_implication_forum_category) || create(:forum_category)
+        @category = ForumCategory.find_by(id: AdminConfig.instance.alias_and_implication_forum_category) || create(:forum_category)
         @category2 = create(:forum_category, can_view: User::Levels::ADMIN, can_create: User::Levels::ADMIN)
       end
 

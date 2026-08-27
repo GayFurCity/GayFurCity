@@ -50,15 +50,15 @@ class UploadSettings
   end
 
   def max_file_size
-    Config.instance.max_file_size * 1.megabyte
+    AdminConfig.instance.max_file_size * 1.megabyte
   end
 
   def max_file_size_map
-    Config.instance.max_file_sizes.transform_values { |v| v * 1.megabyte }
+    AdminConfig.instance.max_file_sizes.transform_values { |v| v * 1.megabyte }
   end
 
   def max_file_size_per_request
-    Config.instance.max_upload_per_request * 1.megabyte
+    AdminConfig.instance.max_upload_per_request * 1.megabyte
   end
 
   def serializable_hash(*)

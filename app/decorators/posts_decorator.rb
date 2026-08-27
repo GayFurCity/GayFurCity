@@ -28,13 +28,13 @@ class PostsDecorator < ApplicationDecorator
   end
 
   def cropped_url(options, user: CurrentUser.user)
-    cropped_url = if Config.instance.enable_image_cropping? && options[:show_cropped] && post.has_crop? && !user.disable_cropped_thumbnails?
+    cropped_url = if AdminConfig.instance.enable_image_cropping? && options[:show_cropped] && post.has_crop? && !user.disable_cropped_thumbnails?
                     post.crop_file_url(user)
                   else
                     post.preview_file_url(user)
                   end
 
-    cropped_url = Config.instance.deleted_preview_url if post.deleteblocked?(user)
+    cropped_url = AdminConfig.instance.deleted_preview_url if post.deleteblocked?(user)
     cropped_url
   end
 
@@ -82,7 +82,7 @@ class PostsDecorator < ApplicationDecorator
     end
     tooltip += "\n\n#{post.tag_string}"
 
-    cropped_url = if Config.instance.enable_image_cropping? && options[:show_cropped] && post.has_crop? && !user.disable_cropped_thumbnails?
+    cropped_url = if AdminConfig.instance.enable_image_cropping? && options[:show_cropped] && post.has_crop? && !user.disable_cropped_thumbnails?
                     post.crop_file_url(user)
                   elsif post.has_preview?
                     post.preview_file_url(user)
@@ -90,9 +90,9 @@ class PostsDecorator < ApplicationDecorator
                     post.file_url(user)
                   end
 
-    cropped_url = Config.instance.deleted_preview_url if post.deleteblocked?(user)
+    cropped_url = AdminConfig.instance.deleted_preview_url if post.deleteblocked?(user)
     preview_url = if post.deleteblocked?(user)
-                    Config.instance.deleted_preview_url
+                    AdminConfig.instance.deleted_preview_url
                   elsif post.has_preview?
                     post.preview_file_url(user)
                   else

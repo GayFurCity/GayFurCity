@@ -19,7 +19,7 @@ module ImageResizer
   end
 
   def crop(file, width, height, resize_quality = 90)
-    return nil unless Config.instance.enable_image_cropping?
+    return nil unless AdminConfig.instance.enable_image_cropping?
     options = WEBP_OPTIONS.merge(Q: resize_quality)
     output_file = Tempfile.new(%w[image-crop .webp], binmode: true)
     resized_image = thumbnail(file, width, height, CROP_OPTIONS)

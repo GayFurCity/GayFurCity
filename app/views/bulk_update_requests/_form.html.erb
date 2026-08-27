@@ -18,7 +18,7 @@
       <li>category tag_name -> category_name</li>
       <li>deprecate aaa</li>
       <li>undeprecate aaa</li>
-      <% if Config.user?(:bur_nuke, CurrentUser.user) %>
+      <% if AdminConfig.user?(:bur_nuke, CurrentUser.user) %>
         <li>nuke tag_name</li>
       <% end %>
       <li># comment</li>
@@ -26,7 +26,7 @@
   </div>
 
   <% if @bulk_update_request.new_record? %>
-    <%= f.input(:reason, as: :dtext, limit: Config.instance.forum_post_max_size) %>
+    <%= f.input(:reason, as: :dtext, limit: AdminConfig.instance.forum_post_max_size) %>
   <% end %>
 
   <% if can_use_attribute?(@bulk_update_request, :skip_forums) %>

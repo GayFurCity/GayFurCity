@@ -57,7 +57,7 @@ class TagQuery
 
   def initialize(query, user, resolve_aliases: true, free_tags_count: 0)
     if user.is_anonymous?
-      hard_limit = Config.instance.anonymous_hard_tag_limit
+      hard_limit = AdminConfig.instance.anonymous_hard_tag_limit
       if query.to_s.split.size > hard_limit
         raise(CountExceededError, "Your query exceeds the limit.")
       end
@@ -75,7 +75,7 @@ class TagQuery
     @tag_count = 0
 
     parse_query(query)
-    limit = Config.get_user(:tag_query_limit, user)
+    limit = AdminConfig.get_user(:tag_query_limit, user)
     if @tag_count > limit - free_tags_count
       raise(CountExceededError, "You cannot search for more than #{limit} tags at a time")
     end
@@ -454,7 +454,7 @@ class TagQuery
   end
 
   def pull_wildcard_tags(tag)
-    limit = Config.get_user(:tag_query_limit, user)
+    limit = AdminConfig.get_user(:tag_query_limit, user)
     matches = Tag.name_matches(tag).limit(limit == Float::INFINITY ? nil : limit).order(post_count: :desc).pluck(:name)
     matches = ["~~not_found~~"] if matches.empty?
     matches

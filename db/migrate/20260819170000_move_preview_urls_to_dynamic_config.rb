@@ -17,6 +17,6 @@ class MovePreviewUrlsToDynamicConfig < ExtendedMigration[8.1]
     add_column(:config, :missing_preview_url, :string, null: false, default: "/images/missing-preview.png")
     add_column(:config, :placeholder_preview_url, :string, null: false, default: "/images/placeholder-preview.png")
 
-    Config.delete_cache
+    AdminConfig.delete_cache
   end
 end

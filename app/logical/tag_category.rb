@@ -44,14 +44,14 @@ module TagCategory
   class AdminCategory < Category; end
 
   GENERAL = Category.new(0, "general", %w[gen])
-  ARTIST = Category.new(1, "artist", %w[art], header: "Artists", exclusion: -> { Config.instance.ary(:artist_exclusion_tags) }, formatstr: "created by %s")
-  CONTRIBUTOR = Category.new(2, "contributor", %w[cont], header: "Contributors", suffixes: -> { Config.instance.ary(:contributor_suffixes) })
+  ARTIST = Category.new(1, "artist", %w[art], header: "Artists", exclusion: -> { AdminConfig.instance.ary(:artist_exclusion_tags) }, formatstr: "created by %s")
+  CONTRIBUTOR = Category.new(2, "contributor", %w[cont], header: "Contributors", suffixes: -> { AdminConfig.instance.ary(:contributor_suffixes) })
   COPYRIGHT = Category.new(3, "copyright", %w[copy co], header: "Copyrights", limit: 1, formatstr: "(%s)")
   CHARACTER = Category.new(4, "character", %w[char ch oc], header: "Characters", limit: 5, regex: /^(.+?)(?:_\(.+\))?$/)
   SPECIES = Category.new(5, "species", %w[spec])
   INVALID = AdminCategory.new(6, "invalid", %w[inv])
   META = AdminCategory.new(7, "meta")
-  LORE = AdminCategory.new(8, "lore", %w[lor], suffixes: -> { Config.instance.ary(:lore_suffixes) })
+  LORE = AdminCategory.new(8, "lore", %w[lor], suffixes: -> { AdminConfig.instance.ary(:lore_suffixes) })
   GENDER = AdminCategory.new(9, "gender")
   IMPORTANT = AdminCategory.new(10, "important", %w[imp])
 

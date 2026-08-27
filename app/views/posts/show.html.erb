@@ -40,7 +40,7 @@
           <li><%= link_to("Recommendations", post_recommendations_path(search: { post_id: @post.id }), rel: "nofollow") %></li>
         <% end %>
         <% if @post.visible?(CurrentUser.user) && @post.is_image? %>
-          <li><a rel="nofollow" href="https://www.google.com/searchbyimage?image_url=<%= @post.reverse_image_url(CurrentUser.user) %>&client=<%= Config.instance.app_name %>">Reverse Google Search</a></li>
+          <li><a rel="nofollow" href="https://www.google.com/searchbyimage?image_url=<%= @post.reverse_image_url(CurrentUser.user) %>&client=<%= AdminConfig.instance.app_name %>">Reverse Google Search</a></li>
           <li><a rel="nofollow" href="https://saucenao.com/search.php?url=<%= @post.reverse_image_url(CurrentUser.user) %>">Reverse SauceNAO Search</a></li>
           <li><a rel="nofollow" href="https://derpibooru.org/search/reverse?url=<%= @post.reverse_image_url(CurrentUser.user) %>">Reverse Derpibooru Search</a></li>
           <li><a rel="nofollow" href="https://kheina.com/?url=<%= @post.reverse_image_url(CurrentUser.user) %>">Reverse Kheina Search</a></li>

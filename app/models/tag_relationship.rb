@@ -72,7 +72,7 @@ class TagRelationship < ApplicationRecord
     return false unless is_pending? && user.can_manage_aibur?
     return false unless user.is_owner? || !(consequent_tag&.artist&.is_dnp? || antecedent_tag&.artist&.is_dnp?)
     return false unless user.is_admin? || creator_id != user.id
-    Config.get_user(:tag_change_request_update_limit, user) >= estimate_update_count
+    AdminConfig.get_user(:tag_change_request_update_limit, user) >= estimate_update_count
   end
 
   def rejectable_by?(user)
@@ -147,8 +147,8 @@ class TagRelationship < ApplicationRecord
         .field(:consequent_name, multi: true)
         .field(:ip_addr, :creator_ip_addr)
         .field(:updater_ip_addr)
-        .custom(:antecedent_tag_category, ->(q, v) { q.join_antecedent.where("antecedent_tag.category": v.split(",").map(&:to_i).compact_blank.first(Config.instance.max_multi_count)) })
-        .custom(:consequent_tag_category, ->(q, v) { q.join_consequent.where("consequent_tag.category": v.split(",").map(&:to_i).compact_blank.first(Config.instance.max_multi_count)) })
+        .custom(:antecedent_tag_category, ->(q, v) { q.join_antecedent.where("antecedent_tag.category": v.split(",").map(&:to_i).compact_blank.first(AdminConfig.instance.max_multi_count)) })
+        .custom(:consequent_tag_category, ->(q, v) { q.join_consequent.where("consequent_tag.category": v.split(",").map(&:to_i).compact_blank.first(AdminConfig.instance.max_multi_count)) })
         .custom(:name_matches, ->(q, v) { q.where.like(antecedent_name: v).or(q.where.like(consequent_name: v)) })
         .custom(:status, ->(q, v) { q.status_matches(v) })
         .association(:updater)

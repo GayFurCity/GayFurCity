@@ -11,6 +11,6 @@ class AddPostSetLimitsToConfig < ExtendedMigration[8.1]
       User::Levels::ADMIN    => -1,
     })
 
-    Config.delete_cache
+    AdminConfig.delete_cache
   end
 end

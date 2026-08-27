@@ -34,7 +34,7 @@
         <strong>Note:</strong> Abuse of this system will lead to disciplinary action
       </span>
 
-      <%= f.input(:reason, as: :dtext, limit: Config.instance.ticket_max_size) %>
+      <%= f.input(:reason, as: :dtext, limit: AdminConfig.instance.ticket_max_size) %>
 
     </div>
     <%= submit_tag("Submit") %>

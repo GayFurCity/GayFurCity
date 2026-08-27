@@ -1,7 +1,7 @@
 <%= error_messages_for("forum_post") %>
 
 <%= custom_form_for(forum_post) do |f| %>
-  <%= f.input(:body, as: :dtext, limit: Config.instance.forum_post_max_size) %>
+  <%= f.input(:body, as: :dtext, limit: AdminConfig.instance.forum_post_max_size) %>
   <% if policy(forum_post).can_use_attribute?(:allow_voting, :update) %>
     <%= f.input(:allow_voting, label: "Voting", hint: "Enables voting on the post. This should be used sparingly, and cannot be disabled once enabled.") %>
   <% end %>

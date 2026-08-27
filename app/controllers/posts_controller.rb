@@ -264,7 +264,7 @@ class PostsController < ApplicationController
   def ai_check
     @post = authorize(Post.find(params[:id]))
     @post.ai_check! => { score:, reason: }
-    if score < Config.ai_confidence_threshold
+    if score < AdminConfig.ai_confidence_threshold
       notice("Post is not AI")
     else
       notice("Post is AI: #{reason} (score: #{score})  ")

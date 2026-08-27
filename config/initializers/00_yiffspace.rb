@@ -16,7 +16,7 @@ require("yiffspace/core_ext/all")
 # user_class/user_like_class/user_resolvable_class all default to ::User/::UserLike/::UserResolvable
 # already, which is correct for this app - no explicit configuration needed for those.
 YiffSpace.configure do |config|
-  config.max_multi_count = -> { Config.instance.max_multi_count }
+  config.max_multi_count = -> { AdminConfig.instance.max_multi_count }
   config.redis_url = GayFurCity.config.redis_url
 
   # "Login with YiffSpace" (Logto-based Discord OAuth). See .env.sample for the GAYFURCITY_LOGTO_*

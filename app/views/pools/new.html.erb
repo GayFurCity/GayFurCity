@@ -4,7 +4,7 @@
 
 <%= custom_form_for(@pool) do |f| %>
   <%= f.input(:name, as: :string, required: true) %>
-  <%= f.input(:description, as: :dtext, limit: Config.instance.pool_description_max_size, allow_color: false) %>
+  <%= f.input(:description, as: :dtext, limit: AdminConfig.instance.pool_description_max_size, allow_color: false) %>
   <%= f.input(:post_ids_string, as: :text, label: "Posts") %>
   <%= f.input(:is_ongoing) %>
   <%= f.input(:category, collection: [%w[Series/Comic series], %w[Collection collection]], include_blank: true, selected: "", required: true) %>

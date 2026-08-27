@@ -50,13 +50,13 @@ class ElasticQueryBuilder
   end
 
   def elasticsearch_query_timeout
-    timeout = user ? Config.get_user(:elasticsearch_query_timeout, user) : 3_000
+    timeout = user ? AdminConfig.get_user(:elasticsearch_query_timeout, user) : 3_000
     timeout.is_a?(Numeric) ? timeout : 3_000
   end
 
   # In seconds, not ms - matches what Elasticsearch::Client#request_timeout natively expects.
   def elasticsearch_request_timeout
-    timeout = user ? Config.get_user(:elasticsearch_request_timeout, user) : 5
+    timeout = user ? AdminConfig.get_user(:elasticsearch_request_timeout, user) : 5
     timeout.is_a?(Numeric) ? timeout : 5
   end
 

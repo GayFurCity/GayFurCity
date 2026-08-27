@@ -79,7 +79,7 @@ class PostSetTest < ActiveSupport::TestCase
       end
 
       should("limit the number of posts") do
-        stub_dynamic_config(:set_post_limit, 2)
+        stub_admin_config(:set_post_limit, 2)
         @set.post_ids = create_list(:post, 3).map(&:id)
 
         assert_not(@set.valid?)
@@ -87,7 +87,7 @@ class PostSetTest < ActiveSupport::TestCase
       end
 
       should("limit the number of sets a user can create") do
-        stub_dynamic_config(:post_set_limit, 1, user: @user)
+        stub_admin_config(:post_set_limit, 1, user: @user)
         create(:post_set, creator: @user)
 
         assert_not(@set.valid?)

@@ -1,6 +1,6 @@
 <h4>You may request a takedown by submitting the following form.</h4>
 <p>Please read our <%= link_to("takedown policy page", takedown_static_path) %> before submitting a takedown request form. This form is for use ONLY by people who have a legitimate copyright/trademark infringement claim.</p>
-<p>If you feel you need to handle a takedown request with an admin personally, you can email <%= Config.instance.takedown_email %></p>
+<p>If you feel you need to handle a takedown request with an admin personally, you can email <%= AdminConfig.instance.takedown_email %></p>
 <br>
 
 <%= custom_form_for(@takedown) do |f| %>

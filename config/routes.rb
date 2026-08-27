@@ -35,7 +35,9 @@ Rails.application.routes.draw do
     resource(:stuck_dnp, controller: "stuck_dnp", only: %i[new create])
     resources(:destroyed_posts, only: %i[index show update])
     resources(:audit_logs, only: %i[index])
-    resource(:config, only: %i[show update])
+    resource(:config, only: %i[show update]) do
+      put(:clear_cache, on: :collection)
+    end
   end
 
   namespace(:security) do

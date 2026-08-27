@@ -7,7 +7,7 @@ users = User.left_joins(:followed_tags).where("tag_followers.user_id": nil, "lev
 
 total = users.count
 MIN_FOLLOWS = 15
-MAX_FOLLOWS = Config.get_user(:followed_tag_limit, User.new(level: User::Levels::MEMBER))
+MAX_FOLLOWS = AdminConfig.get_user(:followed_tag_limit, User.new(level: User::Levels::MEMBER))
 users.each_with_index do |user, i|
   count = rand(MIN_FOLLOWS..MAX_FOLLOWS)
   puts("Creating #{count} follows for #{user.name} (#{i + 1}/#{total})")

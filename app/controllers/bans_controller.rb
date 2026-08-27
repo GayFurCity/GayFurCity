@@ -57,7 +57,7 @@ class BansController < ApplicationController
       @user.unban!(CurrentUser.user, ack: true)
       redirect_to(new_session_path, notice: "Your ban has been removed, please log in again")
     else
-      @notice = view_context.safe_wiki(Config.instance.ban_notice_wiki_page).body
+      @notice = view_context.safe_wiki(AdminConfig.instance.ban_notice_wiki_page).body
                             .gsub("%BAN_REASON%", @ban.reason)
                             .gsub("%BAN_USER%", view_context.link_to_user(@ban.creator))
     end

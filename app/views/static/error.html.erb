@@ -1,4 +1,4 @@
-<% if @exception.present? && Config.show_backtrace?(CurrentUser.user) %>
+<% if @exception.present? && AdminConfig.show_backtrace?(CurrentUser.user) %>
   <h1><%= @exception.class.to_s %> exception raised</h1>
 
   <p><%= @message || @exception.message.dup.force_encoding("utf-8") %></p>

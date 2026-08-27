@@ -3,7 +3,7 @@
 
 require(File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config", "environment")))
 
-config = Config.uncached
+config = AdminConfig.uncached
 
 updates = {}
 updates[:app_name] = "GayFur City" if config.app_name == "Femboy Fans"

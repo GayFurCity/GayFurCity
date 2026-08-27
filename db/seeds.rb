@@ -83,7 +83,7 @@ module Seeds
           masc.background_color = mascot["background_color"]
           masc.artist_url = mascot["artist_url"]
           masc.artist_name = mascot["artist_name"]
-          masc.available_on_string = Config.instance.app_name
+          masc.available_on_string = AdminConfig.instance.app_name
           masc.hide_anonymous = mascot["hide_anonymous"]
           masc.active = mascot["active"]
           masc.creator = user
@@ -101,7 +101,7 @@ module Seeds
           masc.background_color = mascot["color"]
           masc.artist_url = mascot["artist_url"]
           masc.artist_name = mascot["artist_name"]
-          masc.available_on_string = Config.instance.app_name
+          masc.available_on_string = AdminConfig.instance.app_name
           masc.active = mascot["active"]
           masc.hide_anonymous = mascot["hide_anonymous"]
           masc.creator = user

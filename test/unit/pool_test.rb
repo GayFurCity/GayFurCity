@@ -224,7 +224,7 @@ class PoolTest < ActiveSupport::TestCase
 
       context("by changing the category") do
         setup do
-          Config.any_instance.stubs(:pool_category_change_cutoff).returns(1)
+          AdminConfig.any_instance.stubs(:pool_category_change_cutoff).returns(1)
           @pool.add!(@p1, @user)
           @pool.add!(@p2, @user)
         end

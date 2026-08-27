@@ -123,7 +123,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
       end
 
       should("redirect to the sign in page even when signups are disabled") do
-        Config.instance.stubs(:enable_signups?).returns(false)
+        AdminConfig.instance.stubs(:enable_signups?).returns(false)
         get(new_user_path)
 
         assert_redirected_to(new_session_path)
@@ -144,14 +144,14 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
         created_user = User.find(session[:user_id])
 
         assert_equal("xxx", created_user.name)
-        assert_equal(Config.instance.records_per_page, created_user.per_page)
+        assert_equal(AdminConfig.instance.records_per_page, created_user.per_page)
         assert_not_nil(created_user.last_ip_addr)
         assert_predicate(created_user.user_events.user_creation, :exists?)
       end
 
       context("with sockpuppet validation enabled") do
         setup do
-          Config.any_instance.stubs(:enable_sock_puppet_validation).returns(true)
+          AdminConfig.any_instance.stubs(:enable_sock_puppet_validation).returns(true)
           @user.update_columns(last_ip_addr: "127.0.0.1")
         end
 
@@ -178,7 +178,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
       context("with email validation") do
         setup do
-          Config.any_instance.stubs(:enable_email_verification).returns(true)
+          AdminConfig.any_instance.stubs(:enable_email_verification).returns(true)
         end
 
         should("reject invalid emails") do
@@ -250,7 +250,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
       context("for a user with blank email") do
         setup do
           @user = create(:user, email: "")
-          Config.any_instance.stubs(:enable_email_verification).returns(true)
+          AdminConfig.any_instance.stubs(:enable_email_verification).returns(true)
         end
 
         should("force them to update their email") do

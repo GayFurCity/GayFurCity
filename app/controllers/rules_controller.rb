@@ -6,7 +6,7 @@ class RulesController < ApplicationController
   respond_to(:js, only: %i[reorder])
 
   def index
-    @wiki = view_context.safe_wiki(Config.instance.rules_body_wiki_page)
+    @wiki = view_context.safe_wiki(AdminConfig.instance.rules_body_wiki_page)
     respond_to do |format|
       format.html
       format.json { render(json: { rules: Rule.order(:category_id, :order), categories: @categories, body: @wiki }) }

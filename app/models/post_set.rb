@@ -15,7 +15,7 @@ class PostSet < ApplicationRecord
   validates(:shortname, length: { minimum: 3, maximum: 50, message: "must be between three and fifty characters long" })
   validates(:shortname, format: { with: /\A\w+\z/, message: "must only contain numbers, lowercase letters, and underscores" })
   validates(:shortname, format: { with: /\A\d*[a-z_]\w*\z/, message: "must contain at least one lowercase letter or underscore" })
-  validates(:description, length: { maximum: -> { Config.instance.pool_description_max_size } })
+  validates(:description, length: { maximum: -> { AdminConfig.instance.pool_description_max_size } })
   validate(:validate_number_of_posts)
   validate(:can_make_public, if: :is_public_changed?)
   validate(:user_not_limited, on: :create)
@@ -115,7 +115,7 @@ class PostSet < ApplicationRecord
     end
 
     def can_create_new_set_limit
-      limit = Config.get_with_bypass(:post_set_limit, creator)
+      limit = AdminConfig.get_with_bypass(:post_set_limit, creator)
       if PostSet.where(creator_id: creator_id).count >= limit
         errors.add(:base, "You can only create #{limit} sets.")
         return false
@@ -136,7 +136,7 @@ class PostSet < ApplicationRecord
       post_ids_before = post_ids_before_last_save || post_ids_was
       added = post_ids - post_ids_before
       return if added.empty?
-      max = Config.get_with_bypass(:set_post_limit, updater)
+      max = AdminConfig.get_with_bypass(:set_post_limit, updater)
       if post_ids.size > max
         errors.add(:base, "Sets can only have up to #{ActiveSupport::NumberHelper.number_to_delimited(max)} posts each")
         false

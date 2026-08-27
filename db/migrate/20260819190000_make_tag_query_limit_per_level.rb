@@ -8,6 +8,6 @@ class MakeTagQueryLimitPerLevel < ExtendedMigration[8.1]
     remove_column(:config, :tag_query_limit, :integer, default: 40, null: false)
     add_column(:config, :tag_query_limit, :jsonb, default: { User::Levels::ANONYMOUS => 40 }, null: false)
 
-    Config.delete_cache
+    AdminConfig.delete_cache
   end
 end

@@ -31,7 +31,7 @@ module Downloads
 
     def download!(max_size: nil)
       # default arguments are evaluated when the method is defined
-      max_size ||= Config.instance.max_file_size * 1.megabyte
+      max_size ||= AdminConfig.instance.max_file_size * 1.megabyte
       file = Tempfile.new(binmode: true)
       conn = Faraday.new(GayFurCity.config.faraday_options) do |f|
         f.response(:follow_redirects, callback: ->(_old_env, new_env) { validate_uri_allowed!(new_env.url) })

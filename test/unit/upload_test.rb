@@ -26,7 +26,7 @@ class UploadTest < ActiveSupport::TestCase
 
     context("From a user that has too many pending uploads") do
       setup do
-        Config.any_instance.stubs(:pending_uploads_limit).returns(0)
+        AdminConfig.any_instance.stubs(:pending_uploads_limit).returns(0)
       end
 
       should("fail creation") do
@@ -99,8 +99,8 @@ class UploadTest < ActiveSupport::TestCase
 
     context("That is AI") do
       should("be flagged") do
-        Config.any_instance.stubs(:ai_confidence_threshold).returns(50)
-        Config.any_instance.stubs(:flag_ai_posts).returns(true)
+        AdminConfig.any_instance.stubs(:ai_confidence_threshold).returns(50)
+        AdminConfig.any_instance.stubs(:flag_ai_posts).returns(true)
         @upload = create(:ai_upload, uploader: @user)
         perform_enqueued_jobs(only: AiCheckJob)
         @post = @upload.post&.reload
@@ -115,8 +115,8 @@ class UploadTest < ActiveSupport::TestCase
       end
 
       should("be tagged") do
-        Config.any_instance.stubs(:ai_confidence_threshold).returns(50)
-        Config.any_instance.stubs(:tag_ai_posts).returns(true)
+        AdminConfig.any_instance.stubs(:ai_confidence_threshold).returns(50)
+        AdminConfig.any_instance.stubs(:tag_ai_posts).returns(true)
         @upload = create(:ai_upload, uploader: @user)
         perform_enqueued_jobs(only: AiCheckJob)
         @post = @upload.post&.reload
@@ -127,9 +127,9 @@ class UploadTest < ActiveSupport::TestCase
       end
 
       should("keep the correct uploader and editor") do
-        Config.any_instance.stubs(:ai_confidence_threshold).returns(50)
-        Config.any_instance.stubs(:flag_ai_posts).returns(true)
-        Config.any_instance.stubs(:tag_ai_posts).returns(true)
+        AdminConfig.any_instance.stubs(:ai_confidence_threshold).returns(50)
+        AdminConfig.any_instance.stubs(:flag_ai_posts).returns(true)
+        AdminConfig.any_instance.stubs(:tag_ai_posts).returns(true)
         @upload = create(:ai_upload, uploader: @user)
         perform_enqueued_jobs(only: AiCheckJob)
         @post = @upload.post&.reload

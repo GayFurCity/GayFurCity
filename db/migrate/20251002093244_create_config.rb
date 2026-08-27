@@ -153,6 +153,6 @@ class CreateConfig < ActiveRecord::Migration[7.1]
       t.column(:post_sample_size, :integer, default: 300, null: false)
       t.column(:updated_at, :datetime)
     end
-    Config.delete_cache
+    AdminConfig.delete_cache
   end
 end

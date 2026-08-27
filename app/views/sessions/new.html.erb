@@ -30,7 +30,7 @@
     </div>
   </div>
 
-  <div class="session-modal register-modal <%= "disabled" unless Config.instance.enable_signups? %>" id="register-modal">
+  <div class="session-modal register-modal <%= "disabled" unless AdminConfig.instance.enable_signups? %>" id="register-modal">
     <button type="button" class="signup-info-toggle" id="signup-info-toggle" aria-expanded="false">
       <i class="fa-solid fa-circle-info"></i>
     </button>

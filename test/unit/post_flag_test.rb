@@ -14,7 +14,7 @@ class PostFlagTest < ActiveSupport::TestCase
 
     should("respect the throttle limit") do
       GayFurCity.config.stubs(:disable_throttles).returns(false)
-      Config.any_instance.stubs(:post_flag_limit).returns(0)
+      AdminConfig.any_instance.stubs(:post_flag_limit).returns(0)
 
       error = assert_raises(ActiveRecord::RecordInvalid) do
         @post_flag = create(:post_flag, post: @post, creator: @bob)

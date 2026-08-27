@@ -110,7 +110,7 @@ class BulkUpdateRequestProcessorTest < ActiveSupport::TestCase
 
     context("script length") do
       setup do
-        stub_dynamic_config(:bur_entry_limit, 1)
+        stub_admin_config(:bur_entry_limit, 1)
         @script = "alias aaa -> bbb\n" \
                   "imply bbb -> ccc"
 

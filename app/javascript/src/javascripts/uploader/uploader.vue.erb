@@ -240,7 +240,7 @@
                     <label class="section-label" for="post_description">Description</label>
                 </div>
                 <div class="col2">
-                    <%= ApplicationController.new.render_to_string(partial: "dtext_input", locals: { limit: Config.instance.post_description_max_size, textarea: '<textarea  class="dtext-formatter-input tag-textarea dtext" id="post_description" rows="10" v-model="description"></textarea>'.html_safe, allow_color: true }) %>
+                    <%= ApplicationController.new.render_to_string(partial: "dtext_input", locals: { limit: AdminConfig.instance.post_description_max_size, textarea: '<textarea  class="dtext-formatter-input tag-textarea dtext" id="post_description" rows="10" v-model="description"></textarea>'.html_safe, allow_color: true }) %>
                 </div>
             </div>
             <div v-if="allowUploadAsPending || allowUploadAsInProgress" class="flex-grid border-bottom">

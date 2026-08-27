@@ -52,7 +52,7 @@ class Post < ApplicationRecord
   normalizes(:description, with: ->(desc) { desc.gsub("\r\n", "\n") })
   validates(:rating, inclusion: { in: %w[s q e], message: "rating must be s, q, or e" })
   validates(:bg_color, format: { with: /\A[A-Fa-f0-9]{6}\z/ }, allow_nil: true)
-  validates(:description, length: { maximum: -> { Config.instance.post_description_max_size } }, if: :description_changed?)
+  validates(:description, length: { maximum: -> { AdminConfig.instance.post_description_max_size } }, if: :description_changed?)
   validate(:added_tags_are_valid, if: :should_process_tags?)
   validate(:removed_tags_are_valid, if: :should_process_tags?)
   validate(:has_artist_tag, if: -> { should_process_tags? && !is_in_progress? })
@@ -63,7 +63,7 @@ class Post < ApplicationRecord
   validate(:validate_thumbnail_frame)
   before_save(:update_tag_post_counts, if: :should_process_tags?)
   before_save(:update_qtags, if: :will_save_change_to_description?)
-  after_create(:ai_check, if: -> { Config.flag_ai_posts? || Config.tag_ai_posts? })
+  after_create(:ai_check, if: -> { AdminConfig.flag_ai_posts? || AdminConfig.tag_ai_posts? })
   after_update(:regenerate_image_variants, if: :saved_change_to_thumbnail_frame?)
   after_save(:create_post_events)
   after_save(:create_version)
@@ -158,15 +158,15 @@ class Post < ApplicationRecord
 
   def ai_check!
     is_ai_generated? => { score:, reason: }
-    if score > Config.ai_confidence_threshold
-      if Config.flag_ai_posts?
+    if score > AdminConfig.ai_confidence_threshold
+      if AdminConfig.flag_ai_posts?
         flags.create!(
           creator:     User.system,
           reason_name: "uploading_guidelines",
           note:        "AI Score: #{score}\nReason: #{reason}",
         )
       end
-      if Config.tag_ai_posts?
+      if AdminConfig.tag_ai_posts?
         self.updater = User.system
         self.edit_reason = "AI Generated"
         add_tag("ai_generated")
@@ -486,7 +486,7 @@ class Post < ApplicationRecord
     end
 
     def apply_source_diff
-      if Config.instance.enable_autotagging? && !should_process_tags?
+      if AdminConfig.instance.enable_autotagging? && !should_process_tags?
         tags = add_automatic_tags(tag_array)
         set_tag_string(tags.uniq.sort.join(" "))
       end
@@ -747,7 +747,7 @@ class Post < ApplicationRecord
     def tag_count_not_insane
       return if do_not_version_changes || automated_edit
 
-      max_count = Config.instance.max_tags_per_post
+      max_count = AdminConfig.instance.max_tags_per_post
       if TagQuery.scan(tag_string).size > max_count
         errors.add(:tag_string, "tag count exceeds maximum of #{max_count}")
         throw(:abort)
@@ -872,7 +872,7 @@ class Post < ApplicationRecord
     end
 
     def add_automatic_tags(tags)
-      return tags unless Config.instance.enable_autotagging?
+      return tags unless AdminConfig.instance.enable_autotagging?
 
       Autotagger.new(self).apply(tags)
     end
@@ -2188,8 +2188,8 @@ class Post < ApplicationRecord
   extend(SearchMethods)
 
   def safeblocked?(user)
-    return true if Config.instance.safe_mode? && rating != "s"
-    (Config.instance.safe_mode? || user.enable_safe_mode?) && (rating != "s" || has_tag?(*Config.ary(:safeblocked_tags)))
+    return true if AdminConfig.instance.safe_mode? && rating != "s"
+    (AdminConfig.instance.safe_mode? || user.enable_safe_mode?) && (rating != "s" || has_tag?(*AdminConfig.ary(:safeblocked_tags)))
   end
 
   def deleteblocked?(user)

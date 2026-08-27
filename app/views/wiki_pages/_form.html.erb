@@ -10,7 +10,7 @@
       <h1 id="wiki-page-title"><%= @wiki_page.pretty_title %></h1>
     <% end %>
 
-    <%= f.input(:body, as: :dtext, limit: Config.instance.wiki_page_max_size, allow_color: true) %>
+    <%= f.input(:body, as: :dtext, limit: AdminConfig.instance.wiki_page_max_size, allow_color: true) %>
     <%= f.input(:parent, label: "Redirects to", autocomplete: "wiki-page") %>
     <%= f.input(:protection_level, label: "Protection Level", collection: user_levels_for_select, include_blank: false) %>
     <%= f.input(:edit_reason, label: "Edit Reason") %>

@@ -45,7 +45,7 @@ class TagQueryTest < ActiveSupport::TestCase
 
   context("anonymous_hard_tag_limit") do
     should("reject an anonymous query over the limit before parsing it") do
-      Config.any_instance.stubs(:anonymous_hard_tag_limit).returns(2)
+      AdminConfig.any_instance.stubs(:anonymous_hard_tag_limit).returns(2)
       TagQuery.any_instance.expects(:parse_query).never
 
       assert_raise(TagQuery::CountExceededError) do
@@ -54,7 +54,7 @@ class TagQueryTest < ActiveSupport::TestCase
     end
 
     should("not affect logged-in users") do
-      Config.any_instance.stubs(:anonymous_hard_tag_limit).returns(2)
+      AdminConfig.any_instance.stubs(:anonymous_hard_tag_limit).returns(2)
 
       assert_nothing_raised do
         TagQuery.new("a b c", @user)
@@ -62,7 +62,7 @@ class TagQueryTest < ActiveSupport::TestCase
     end
 
     should("not reject an anonymous query at or under the limit") do
-      Config.any_instance.stubs(:anonymous_hard_tag_limit).returns(2)
+      AdminConfig.any_instance.stubs(:anonymous_hard_tag_limit).returns(2)
 
       assert_nothing_raised do
         TagQuery.new("a b", User.anonymous)

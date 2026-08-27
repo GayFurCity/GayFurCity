@@ -89,7 +89,7 @@ class UploadMediaAsset < MediaAssetWithVariants
     # to keep freshly-(re)generated variant lists from claiming a crop exists when it wasn't
     # actually made this round.
     def generatable_variants(list)
-      return list if Config.instance.enable_image_cropping?
+      return list if AdminConfig.instance.enable_image_cropping?
       list.reject { |variant| variant.type == :crop }
     end
 
@@ -216,7 +216,7 @@ class UploadMediaAsset < MediaAssetWithVariants
     end
 
     def crop_video(original_file, &)
-      # nil when cropping is disabled (Config#enable_image_cropping?) - skip storing rather than
+      # nil when cropping is disabled (AdminConfig#enable_image_cropping?) - skip storing rather than
       # blow up on a nil file. #generatable_variants keeps this from being attempted normally,
       # this is a fallback for anything calling store! on a crop variant directly.
       VideoResizer.crop(original_file.path, width, height, frame: post&.thumbnail_frame)&.tap(&)&.close!

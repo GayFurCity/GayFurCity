@@ -6,7 +6,7 @@ FactoryBot.define do
     sequence(:title) { |n| "forum_topic_title_#{n}" }
     is_sticky { false }
     is_locked { false }
-    category_id { Config.instance.alias_and_implication_forum_category }
+    category_id { AdminConfig.instance.alias_and_implication_forum_category }
 
     transient do
       sequence(:body) { |n| "forum_topic_body_#{n}" }

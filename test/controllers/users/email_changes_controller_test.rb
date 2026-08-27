@@ -6,7 +6,7 @@ module Users
   class EmailChangesControllerTest < ActionDispatch::IntegrationTest
     context("in all cases") do
       setup do
-        Config.any_instance.stubs(:enable_email_verification).returns(true)
+        AdminConfig.any_instance.stubs(:enable_email_verification).returns(true)
         @user = create(:user, email: "bob@ogres.net")
       end
 

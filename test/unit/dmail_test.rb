@@ -87,11 +87,11 @@ class DmailTest < ActiveSupport::TestCase
       GayFurCity.config.stubs(:disable_throttles).returns(false)
       @user = create(:user, created_at: 2.weeks.ago)
       @recipient = create(:user)
-      (Config.instance.dmail_minute_limit + 1).times do
+      (AdminConfig.instance.dmail_minute_limit + 1).times do
         Dmail.create_split(title: SecureRandom.hex(10), body: SecureRandom.hex(10), from: @user, to: @recipient)
       end
 
-      assert_equal(Config.instance.dmail_minute_limit * 2, Dmail.count)
+      assert_equal(AdminConfig.instance.dmail_minute_limit * 2, Dmail.count)
     end
 
     should("should parse user names") do

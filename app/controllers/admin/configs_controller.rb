@@ -4,17 +4,17 @@ module Admin
   class ConfigsController < ApplicationController
     respond_to(:html, :json)
     def show
-      @config = authorize(Config.uncached)
+      @config = authorize(AdminConfig.uncached)
       respond_with(@config)
     end
 
     def update
-      @config = authorize(Config.uncached)
+      @config = authorize(AdminConfig.uncached)
       input = params[:config].permit!
       attr = policy(@config).permitted_attributes_for_update
       input.select! { |key,| attr.include?(key.to_sym) }
       values = input.to_h do |key, value|
-        col = Config.columns.find { |c| c.name == key }
+        col = AdminConfig.columns.find { |c| c.name == key }
         if col&.type == :jsonb
           next [key, {}] unless value.is_a?(Hash)
           next [key, value.reject { |_k, v| v == "" }.transform_values(&:to_i)]
@@ -28,6 +28,15 @@ module Admin
       notice("Config updated")
       respond_with(@config) do |format|
         format.html { redirect_back_or_to(admin_config_path) }
+      end
+    end
+
+    def clear_cache
+      authorize(AdminConfig).delete_cache
+      notice("Config cache cleared")
+      respond_to do |format|
+        format.html { redirect_back_or_to(admin_config_path) }
+        format.json
       end
     end
   end

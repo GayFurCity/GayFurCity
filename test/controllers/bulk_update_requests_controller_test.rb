@@ -35,7 +35,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
       end
 
       context("access control") do
-        setup { Config.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
+        setup { AdminConfig.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
 
         asserts do
           access.gte(User::Levels::MEMBER).get { |user| edit_bulk_update_request_path(create(:bulk_update_request, creator: user, skip_forum: true)) }
@@ -78,7 +78,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
       end
 
       context("access control") do
-        setup { Config.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
+        setup { AdminConfig.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
 
         asserts do
           access.gte(User::Levels::MEMBER).put { |user| bulk_update_request_path(create(:bulk_update_request, creator: user, skip_forum: true)) }.params { { bulk_update_request: { script: "alias xxx -> 333" } } }.success(:redirect)
@@ -181,7 +181,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
       end
 
       context("access control") do
-        setup { Config.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
+        setup { AdminConfig.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
 
         asserts do
           access.gte(User::Levels::MEMBER).delete { |user| bulk_update_request_path(create(:bulk_update_request, creator: user, skip_forum: true)) }.success(:redirect)
@@ -229,7 +229,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
 
         should("not succeed if its estimated count is greater than allowed") do
           reset_post_index
-          stub_dynamic_config(:tag_change_request_update_limit, 1)
+          stub_admin_config(:tag_change_request_update_limit, 1)
           create_list(:post, 2, tag_string: "aaa")
           post_auth(approve_bulk_update_request_path(@bulk_update_request), @admin, params: { format: :json })
 
@@ -273,7 +273,7 @@ class BulkUpdateRequestsControllerTest < ActionDispatch::IntegrationTest
       end
 
       context("access control") do
-        setup { Config.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
+        setup { AdminConfig.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
 
         asserts do
           access do |builder|

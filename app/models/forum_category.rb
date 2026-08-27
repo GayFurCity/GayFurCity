@@ -7,7 +7,7 @@ class ForumCategory < ApplicationRecord
   has_one(:last_topic, -> { order(id: :desc) }, class_name: "ForumTopic", foreign_key: :category_id)
   has_one(:last_post, through: :last_topic)
   validates(:name, uniqueness: { case_sensitive: false }, length: { minimum: 3, maximum: 100 })
-  validates(:description, length: { maximum: -> { Config.instance.forum_category_description_max_size } })
+  validates(:description, length: { maximum: -> { AdminConfig.instance.forum_category_description_max_size } })
   belongs_to_user(:creator, ip: true, clones: :updater)
   belongs_to_user(:updater, ip: true)
   resolvable(:destroyer)

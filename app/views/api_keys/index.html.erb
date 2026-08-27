@@ -4,10 +4,10 @@
 
 <% if params[:user_id].present? %>
   <div class="prose">
-    <p>An API key is used to give programs access to your <%= Config.instance.app_name %> account.</p>
+    <p>An API key is used to give programs access to your <%= AdminConfig.instance.app_name %> account.</p>
 
     <p>If you're a developer, you can use an API key to access the
-      <%= link_to("#{Config.instance.app_name} API", help_page_path(id: "api")) %>. If you're not a
+      <%= link_to("#{AdminConfig.instance.app_name} API", help_page_path(id: "api")) %>. If you're not a
       developer, and you're not using any third-party apps, then you probably don't need an API key.</p>
 
     <p><strong>Your API key is like your password</strong>. Anyone who has it has full access to

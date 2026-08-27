@@ -33,9 +33,9 @@
 
     <%= f.input(:avatar_id, as: :string, label: "Avatar Post ID") %>
 
-    <%= f.input(:profile_about, as: :dtext, label: "About Me", limit: Config.instance.user_about_max_size, allow_color: true) %>
+    <%= f.input(:profile_about, as: :dtext, label: "About Me", limit: AdminConfig.instance.user_about_max_size, allow_color: true) %>
 
-    <%= f.input(:profile_artinfo, as: :dtext, label: "Commission Info", limit: Config.instance.user_about_max_size, allow_color: true) %>
+    <%= f.input(:profile_artinfo, as: :dtext, label: "Commission Info", limit: AdminConfig.instance.user_about_max_size, allow_color: true) %>
 
     <%= f.input(:time_zone, include_blank: false) %>
 
@@ -95,7 +95,7 @@
     <%= f.input(:show_hidden_comments, label: "Show Own Hidden Comments", as: :select, collection: [%w[No false], %w[Yes true]], include_blank: false,
                 hint: "Show your own hidden comments on comment pages.") %>
 
-    <% if @user.post_active_count >= Config.instance.compact_uploader_minimum_posts %>
+    <% if @user.post_active_count >= AdminConfig.instance.compact_uploader_minimum_posts %>
       <%= f.input(:enable_compact_uploader, label: "Enable Compact Uploader", as: :select,
       collection: [%w[No false], %w[Yes true]], include_blank: false,
       hint: "Enables a more compact and less guided post uploader.") %>

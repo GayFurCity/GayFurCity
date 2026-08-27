@@ -6,7 +6,7 @@
   <% unless user_feedback.new_record? %>
     <%= f.input(:send_update_notification, as: :boolean) %>
   <% end %>
-  <%= f.input(:body, as: :dtext, limit: Config.instance.user_feedback_max_size, allow_color: false) %>
+  <%= f.input(:body, as: :dtext, limit: AdminConfig.instance.user_feedback_max_size, allow_color: false) %>
   <%= f.button(:submit, "Submit") %>
 <% end %>
 

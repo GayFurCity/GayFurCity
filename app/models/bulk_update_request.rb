@@ -23,7 +23,7 @@ class BulkUpdateRequest < ApplicationRecord
   validate(:forum_topic_id_not_invalid)
   validate(:validate_script, on: :create)
   validate(:check_validate_script, on: :update)
-  validates(:reason, length: { minimum: 5, maximum: -> { Config.instance.forum_post_max_size } }, on: :create, unless: :skip_forum)
+  validates(:reason, length: { minimum: 5, maximum: -> { AdminConfig.instance.forum_post_max_size } }, on: :create, unless: :skip_forum)
   before_validation(:normalize_text)
   after_create(:create_forum_topic)
   after_create(:create_version)
@@ -114,7 +114,7 @@ class BulkUpdateRequest < ApplicationRecord
         forum_post = forum_topic.posts.create(body: "Reason: #{reason}", creator: creator)
         update(forum_post_id: forum_post.id, updater: creator)
       else
-        forum_topic = ForumTopic.create(title: title, category_id: Config.instance.alias_and_implication_forum_category, original_post_attributes: { body: "Reason: #{reason}" }, creator: creator)
+        forum_topic = ForumTopic.create(title: title, category_id: AdminConfig.instance.alias_and_implication_forum_category, original_post_attributes: { body: "Reason: #{reason}" }, creator: creator)
         forum_post = forum_topic.posts.first
         update(forum_topic_id: forum_topic.id, forum_post_id: forum_post.id, updater: creator)
       end
@@ -197,7 +197,7 @@ class BulkUpdateRequest < ApplicationRecord
 
   def approvable?(user)
     return false unless is_pending? && user.can_manage_aibur?
-    (creator_id != user.id || user.is_admin?) && Config.get_user(:tag_change_request_update_limit, user) >= estimate_update_count
+    (creator_id != user.id || user.is_admin?) && AdminConfig.get_user(:tag_change_request_update_limit, user) >= estimate_update_count
   end
 
   def rejectable?(user)

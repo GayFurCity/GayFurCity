@@ -10,7 +10,7 @@ class MFA
   # @param secret [String] The secret used to generate the code. This is shared by the server and the user.
   # @param username [String] The user's name. Only used for display purposes by the authenticator app.
   # @param issuer [String] The site name. Only used for display purposes by the authenticator app.
-  def initialize(secret = MFA.generate_secret, username: nil, issuer: Config.instance.canonical_app_name, last_used_at: nil)
+  def initialize(secret = MFA.generate_secret, username: nil, issuer: AdminConfig.instance.canonical_app_name, last_used_at: nil)
     @secret = secret
     @username = username
     @issuer = issuer

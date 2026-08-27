@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-class Config < ApplicationRecord
-  self.table_name = "config"
+class AdminConfig < ApplicationRecord
+  self.table_name = "admin_config"
   validate(:validate_singleton_instance, on: :create)
   before_update(:log_update)
-  after_update(-> { Config.delete_cache })
+  after_update(-> { AdminConfig.delete_cache })
   resolvable(:updater)
 
   def validate_singleton_instance
-    errors.add(:base, "Only one config record per instance is allowed") if Config.exists?(id: Config.config_id)
+    errors.add(:base, "Only one config record per instance is allowed") if AdminConfig.exists?(id: AdminConfig.config_id)
   end
 
   def log_update
@@ -33,6 +33,40 @@ class Config < ApplicationRecord
     v
   end
 
+  # Admin config options are normally edited through the admin UI and stored in the `admin_config`
+  # table, but any of them can be pinned to a fixed value via GAYFURCITY_ADMIN_CONFIG_<NAME>
+  # (e.g. GAYFURCITY_ADMIN_CONFIG_ENABLE_SIGNUPS=false). A pinned option always wins over the
+  # stored value and can no longer be edited in the UI - see settable_columns.
+  def self.env_override_name(column)
+    "#{GayFurCity::Config.env_name}_ADMIN_CONFIG_#{column.to_s.upcase}"
+  end
+
+  def self.env_override?(column)
+    return false if %w[id updated_at].include?(column.to_s)
+    ENV.key?(env_override_name(column))
+  end
+
+  def self.env_override(column)
+    cast_env_value(column, ENV.fetch(env_override_name(column)))
+  end
+
+  def self.cast_env_value(column, raw)
+    case columns_hash[column.to_s]&.type
+    when :integer
+      raw.to_i
+    when :boolean
+      raw.truthy?
+    when :jsonb, :json
+      JSON.parse(raw)
+    else
+      raw
+    end
+  end
+
+  def self.env_overridden_columns
+    column_names.select { |c| env_override?(c) }
+  end
+
   def self.get_user(option, user)
     value = get(option)
     return nil if value.blank?
@@ -55,13 +89,13 @@ class Config < ApplicationRecord
   end
 
   def self.instance
-    Cache.fetch("config:#{config_id}") do
+    Cache.fetch("admin_config:#{config_id}") do
       uncached
     end
   end
 
   def self.hash_columns
-    Cache.fetch("config:hash_columns") do
+    Cache.fetch("admin_config:hash_columns") do
       columns_hash.select { |_k, v| %i[json jsonb].include?(v.type) }.keys
     end
   end
@@ -77,8 +111,8 @@ class Config < ApplicationRecord
   end
 
   def self.delete_cache
-    Cache.delete("config:#{config_id}")
-    Cache.delete("config:hash_columns")
+    Cache.delete("admin_config:#{config_id}")
+    Cache.delete("admin_config:hash_columns")
   end
 
   def self.config_id
@@ -86,7 +120,8 @@ class Config < ApplicationRecord
   end
 
   def self.settable_columns(_user)
-    columns.reject { |c| (%w[id updated_at] + disabled_config_options).include?(c.name) }
+    excluded = %w[id updated_at] + disabled_config_options + env_overridden_columns
+    columns.reject { |c| excluded.include?(c.name) }
   end
 
   def self.disabled_config_options
@@ -112,7 +147,7 @@ class Config < ApplicationRecord
   end
 
   def usable?(...)
-    Config.usable?(...)
+    AdminConfig.usable?(...)
   end
 
   def ary(key)
@@ -129,6 +164,16 @@ class Config < ApplicationRecord
   end
 
   column_names.each do |column|
+    # Every read of a config value (instance readers, the AdminConfig.foo/foo? class delegates
+    # below, and get/get_user/bypass? above, which all funnel through instance.public_send) needs
+    # to see the env override transparently, so it's applied here at the lowest level rather than
+    # in each of those call sites individually.
+    unless %w[id updated_at].include?(column)
+      define_method(column) do
+        next self.class.env_override(column) if self.class.env_override?(column)
+        super()
+      end
+    end
     define_method("#{column}?") { !!public_send(column) } unless method_defined?(:"#{column}?")
     define_singleton_method(column) { get(column) } unless singleton_methods.include?(column)
     define_singleton_method("#{column}?") { !!public_send(column) } unless singleton_methods.include?(:"#{column}?")

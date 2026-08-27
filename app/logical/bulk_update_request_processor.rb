@@ -45,7 +45,7 @@ class BulkUpdateRequestProcessor
   end
 
   def validate_script_length
-    limit = Config.get_user(:bur_entry_limit, creator)
+    limit = AdminConfig.get_user(:bur_entry_limit, creator)
     errors.add(:script, "cannot have more than #{limit} entries") if entry_count > limit
   end
 

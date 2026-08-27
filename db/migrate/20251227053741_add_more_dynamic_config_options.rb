@@ -14,6 +14,6 @@ class AddMoreDynamicConfigOptions < ExtendedMigration[7.1]
     add_column(:config, :app_description, :string, null: false, default: "Your one-stop shop for femboy furries.")
     add_column(:config, :anonymous_user_name, :string, null: false, default: "Anonymous")
     add_column(:config, :system_user_name, :string, null: false, default: "System")
-    Config.delete_cache
+    AdminConfig.delete_cache
   end
 end

@@ -11,7 +11,7 @@
         <li>category tag_name -> category_name</li>
         <li>deprecate aaa</li>
         <li>undeprecate aaa</li>
-    <% if Config.user?(:bur_nuke, CurrentUser.user) %>
+    <% if AdminConfig.user?(:bur_nuke, CurrentUser.user) %>
       <li>nuke tag_name</li>
     <% end %>
     <li># comment</li>

@@ -26,6 +26,6 @@ class AddTimeoutConfigOptions < ExtendedMigration[7.1]
       User::Levels::FORMER_STAFF => 30_000,
     }, null: false)
 
-    Config.delete_cache
+    AdminConfig.delete_cache
   end
 end

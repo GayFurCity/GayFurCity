@@ -12,6 +12,6 @@ class DbExportsController < ApplicationController
   private
 
   def validate_enabled
-    raise(FeatureUnavailable) unless Config.db_exports_enabled?
+    raise(FeatureUnavailable) unless AdminConfig.db_exports_enabled?
   end
 end

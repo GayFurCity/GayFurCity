@@ -15,7 +15,7 @@ class MascotMediaAsset < MediaAsset
 
   module FileMethods
     def validate_file
-      FileValidator.new(self, file.path).validate(max_file_sizes: Config.max_mascot_file_sizes.transform_values { |v| v * 1.kilobyte }, min_width: Config.mascot_width[:min], max_width: Config.mascot_width[:max], min_height: Config.mascot_height[:min], max_height: Config.mascot_height[:max])
+      FileValidator.new(self, file.path).validate(max_file_sizes: AdminConfig.max_mascot_file_sizes.transform_values { |v| v * 1.kilobyte }, min_width: AdminConfig.mascot_width[:min], max_width: AdminConfig.mascot_width[:max], min_height: AdminConfig.mascot_height[:min], max_height: AdminConfig.mascot_height[:max])
     end
   end
 

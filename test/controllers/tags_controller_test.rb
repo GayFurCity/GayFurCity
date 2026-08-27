@@ -203,7 +203,7 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should("not allow following more than the user's limit") do
-        stub_dynamic_config(:followed_tag_limit, 0)
+        stub_admin_config(:followed_tag_limit, 0)
         put_auth(follow_tag_path(@tag), @user, params: { format: :json })
 
         assert_response(:unprocessable_entity)

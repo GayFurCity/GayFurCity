@@ -159,7 +159,7 @@ class ApplicationController < ActionController::Base
     @backtrace = Rails.backtrace_cleaner.clean(@exception.backtrace)
     format = :html unless format.in?(%i[html json atom])
 
-    if !Config.user?(:show_backtrace, CurrentUser.user) && message == exception.message
+    if !AdminConfig.user?(:show_backtrace, CurrentUser.user) && message == exception.message
       @message = "An unexpected error occurred."
     end
 
@@ -204,7 +204,7 @@ class ApplicationController < ActionController::Base
     return unless CurrentUser.user.is_anonymous?
     return if params[:tags].blank?
 
-    hard_limit = Config.instance.anonymous_hard_tag_limit
+    hard_limit = AdminConfig.instance.anonymous_hard_tag_limit
     if params[:tags].to_s.split.size > hard_limit
       raise(TagQuery::CountExceededError, "Your query exceeds the limit.")
     end
@@ -223,7 +223,7 @@ class ApplicationController < ActionController::Base
   # slow enough to cross even a generous timeout, so this fired for real, unrelated test failures.
   def enforce_request_cycle_timeout(&action)
     return action.call if Rails.env.test?
-    timeout = Config.get_user(:request_cycle_timeout, CurrentUser.user)
+    timeout = AdminConfig.get_user(:request_cycle_timeout, CurrentUser.user)
     timeout = 10_000 unless timeout.is_a?(Numeric) # jsonb has no schema - guard against a corrupt stored value
     return action.call unless timeout.finite?
     Timeout.timeout(timeout / 1000.0, RequestTimeoutError, &action)

@@ -30,7 +30,7 @@
     <%= li_link_to("API Documentation", help_page_path(id: "api")) %>
     <%= li_link_to("Stats", stats_path) %>
     <%= li_link_to("Status", status_path) %>
-    <% if Config.db_exports_enabled? %>
+    <% if AdminConfig.db_exports_enabled? %>
       <%= li_link_to("DB Exports", db_exports_path) %>
     <% end %>
   </ul>
@@ -121,7 +121,7 @@
     <%= li_link_to_if(policy(Admin::PerformanceLog).index?, "Performance Logs", performance_admin_logs_path) %>
     <%= li_link_to_if(policy(AdminDashboard).show?, "Admin Dashboard", admin_dashboard_path) %>
     <%= li_link_to_if(policy(EmailBlacklist).index?, "Email Blacklist", email_blacklists_path) %>
-    <%= li_link_to_if(policy(Config).index?, "Config", admin_config_path) %>
+    <%= li_link_to_if(policy(AdminConfig).index?, "Config", admin_config_path) %>
     <%= li_link_to_if(policy(%i[security dashboard]).index?, "Security", security_root_path) %>
     <%= li_link_to_if(policy(IpBan).index?, "IP Bans", ip_bans_path) %>
     <%= li_link_to_if(policy(%i[admin user]).alt_list?, "Alt list", alt_list_admin_users_path) %>

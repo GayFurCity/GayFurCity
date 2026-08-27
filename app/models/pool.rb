@@ -15,8 +15,8 @@ class Pool < ApplicationRecord
 
   normalizes(:description, with: ->(desc) { desc.gsub("\r\n", "\n") })
   validates(:name, uniqueness: { case_sensitive: false, if: :name_changed? })
-  validates(:name, length: { minimum: 1, maximum: -> { Config.pool_name_max_size } })
-  validates(:description, length: { maximum: -> { Config.instance.pool_description_max_size } })
+  validates(:name, length: { minimum: 1, maximum: -> { AdminConfig.pool_name_max_size } })
+  validates(:description, length: { maximum: -> { AdminConfig.instance.pool_description_max_size } })
   validates(:category, inclusion: { in: %w[series collection] })
   validates(:cover_post_id, presence: true, allow_nil: false, unless: -> { post_ids.empty? })
   validate(:validate_updater_can_change_category, on: :update, if: :category_changed?)
@@ -170,20 +170,20 @@ class Pool < ApplicationRecord
   end
 
   def category_changeable_by?(user)
-    return true if Config.bypass?(:pool_category_change_cutoff, user)
-    user.is_member? && post_count <= Config.pool_category_change_cutoff
+    return true if AdminConfig.bypass?(:pool_category_change_cutoff, user)
+    user.is_member? && post_count <= AdminConfig.pool_category_change_cutoff
   end
 
   def validate_updater_can_change_category
     return if category_changeable_by?(updater)
-    errors.add(:base, "You cannot change the category of pools with more than #{Config.pool_category_change_cutoff} posts")
+    errors.add(:base, "You cannot change the category of pools with more than #{AdminConfig.pool_category_change_cutoff} posts")
   end
 
   def validate_number_of_posts
     post_ids_before = post_ids_before_last_save || post_ids_was
     added = post_ids - post_ids_before
     return if added.empty?
-    max = Config.get_with_bypass(:pool_post_limit, updater)
+    max = AdminConfig.get_with_bypass(:pool_post_limit, updater)
     if post_ids.size > max
       errors.add(:base, "Pools can only have up to #{ActiveSupport::NumberHelper.number_to_delimited(max)} posts each")
       false

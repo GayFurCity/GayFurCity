@@ -6,7 +6,7 @@
               hint: safe_join(["The short name is used for the set's metatag name. Can only contain letters, numbers, and underscores",
           "and must contain at least one letter or underscore. ", link_to("set:example", posts_path(tags: "set:example"))])) %>
 
-  <%= f.input(:description, as: :dtext, limit: Config.instance.pool_description_max_size, allow_color: false) %>
+  <%= f.input(:description, as: :dtext, limit: AdminConfig.instance.pool_description_max_size, allow_color: false) %>
 
   <%= f.input(:is_public, label: "Public", hint: "Private sets are only visible to you. Public sets are visible to anyone, but only you and users you
             assign as maintainers can edit the set. Only accounts three days or older can make public sets.") %>

@@ -181,22 +181,22 @@ class User < ApplicationRecord
   normalizes(:profile_about, :profile_artinfo, with: ->(value) { value.gsub("\r\n", "\n") })
   validates(:name, user_name: true, on: :create)
   validates(:default_image_size, inclusion: { in: %w[large fit fitv original] })
-  validates(:per_page, inclusion: { in: -> { 1..Config.instance.max_per_page } })
+  validates(:per_page, inclusion: { in: -> { 1..AdminConfig.instance.max_per_page } })
   validates(:comment_threshold, presence: true)
   validates(:comment_threshold, numericality: { only_integer: true, less_than: 50_000, greater_than: -50_000 })
   validates(:password, length: { minimum: 6, maximum: 128, if: ->(rec) { rec.new_record? || rec.password.present? || rec.old_password.present? } }, unless: :is_system?)
   validates(:password, confirmation: true, unless: :is_system?)
   validates(:password_confirmation, presence: { if: ->(rec) { rec.new_record? || rec.old_password.present? } }, unless: :is_system?)
   validate(:validate_ip_addr_is_not_banned, on: :create)
-  validate(:validate_sock_puppets, on: :create, if: -> { Config.instance.enable_sock_puppet_validation && !is_system? })
+  validate(:validate_sock_puppets, on: :create, if: -> { AdminConfig.instance.enable_sock_puppet_validation && !is_system? })
   validate(:validate_prefs, if: :will_save_change_to_bit_prefs?)
   before_validation(:normalize_blacklisted_tags, if: ->(rec) { rec.blacklisted_tags_changed? })
   before_validation(:staff_cant_disable_dmail)
   before_validation(:blank_out_nonexistent_avatars)
-  validates(:blacklisted_tags, length: { maximum: -> { Config.instance.blacklisted_tags_max_size } })
-  validates(:custom_style, length: { maximum: -> { Config.instance.custom_style_max_size } })
-  validates(:profile_about, length: { maximum: -> { Config.instance.user_about_max_size } })
-  validates(:profile_artinfo, length: { maximum: -> { Config.instance.user_about_max_size } })
+  validates(:blacklisted_tags, length: { maximum: -> { AdminConfig.instance.blacklisted_tags_max_size } })
+  validates(:custom_style, length: { maximum: -> { AdminConfig.instance.custom_style_max_size } })
+  validates(:profile_about, length: { maximum: -> { AdminConfig.instance.user_about_max_size } })
+  validates(:profile_artinfo, length: { maximum: -> { AdminConfig.instance.user_about_max_size } })
   validates(:time_zone, inclusion: { in: ActiveSupport::TimeZone.all.map(&:name) })
   validates(:upload_notifications, inclusion: { in: -> { User.upload_notifications_options } })
   before_create(:promote_to_owner_if_first_user)
@@ -342,7 +342,7 @@ class User < ApplicationRecord
           return RequestStore[:id_name_cache][user_id]
         end
         name = Cache.fetch("uin:#{user_id}", expires_in: 4.hours) do
-          User.where(id: user_id).pick(:name) || Config.instance.anonymous_user_name
+          User.where(id: user_id).pick(:name) || AdminConfig.instance.anonymous_user_name
         end
         RequestStore[:id_name_cache][user_id] = name
         name
@@ -466,7 +466,7 @@ class User < ApplicationRecord
       def anonymous
         @anonymous ||= begin
           user = User.new do |user|
-            user.name = Config.instance.anonymous_user_name
+            user.name = AdminConfig.instance.anonymous_user_name
             user.level = Levels::ANONYMOUS
             user.created_at = Time.now
             user.email = "anonymous@#{GayFurCity.config.domain}"
@@ -480,7 +480,7 @@ class User < ApplicationRecord
         @system ||= begin
           user = User.find_or_initialize_by(level: Levels::SYSTEM).tap do |user|
             user.email = "system@#{GayFurCity.config.domain}"
-            user.name = Config.instance.system_user_name
+            user.name = AdminConfig.instance.system_user_name
             user.can_approve_posts    = true
             user.unrestricted_uploads = true
             user.email_verified       = true
@@ -607,7 +607,7 @@ class User < ApplicationRecord
     def enable_email_verification?
       # Allow admins to edit users with blank/duplicate emails
       return false if is_admin_edit && !email_changed?
-      Config.instance.enable_email_verification? && validate_email_format
+      AdminConfig.instance.enable_email_verification? && validate_email_format
     end
 
     def validate_email_address_allowed
@@ -798,7 +798,7 @@ class User < ApplicationRecord
     end
 
     def self.create_user_throttle(name, config, klass, method, column, newbie, window: 1.hour, level: Levels::MEMBER..)
-      create_user_throttle_detailed(name, -> { Config.get(config) - klass.public_send(method, id).where.gt(column => window.ago).count }, -> { Config.bypass?(config, self) }, newbie, level)
+      create_user_throttle_detailed(name, -> { AdminConfig.get(config) - klass.public_send(method, id).where.gt(column => window.ago).count }, -> { AdminConfig.bypass?(config, self) }, newbie, level)
     end
 
     def token_bucket
@@ -829,9 +829,9 @@ class User < ApplicationRecord
     create_user_throttle(:ticket, :ticket_limit, Ticket, :for_creator, :created_at, 3.days)
     create_user_throttle(:forum_vote, :forum_vote_limit, ForumPostVote, :for_user, :created_at, 3.days)
     create_user_throttle(:post_set_create, :post_set_create_limit, PostSet, :for_creator, :created_at, nil)
-    create_user_throttle_detailed(:pool_post_edit, -> { Config.instance.pool_post_edit_limit - PoolVersion.for_updater(id).where.gt(updated_at: 1.hour.ago).group(:pool_id).count(:pool_id).length },
+    create_user_throttle_detailed(:pool_post_edit, -> { AdminConfig.instance.pool_post_edit_limit - PoolVersion.for_updater(id).where.gt(updated_at: 1.hour.ago).group(:pool_id).count(:pool_id).length },
                                   :general_bypass_throttle?, 3.days, Levels::MEMBER..)
-    create_user_throttle_detailed(:suggest_tag, -> { Config.instance.tag_suggestion_limit - (TagAlias.for_creator(id).where.gt(created_at: 1.hour.ago).count + TagImplication.for_creator(id).where.gt(created_at: 1.hour.ago).count + BulkUpdateRequest.for_creator(id).where.gt(created_at: 1.hour.ago).count) },
+    create_user_throttle_detailed(:suggest_tag, -> { AdminConfig.instance.tag_suggestion_limit - (TagAlias.for_creator(id).where.gt(created_at: 1.hour.ago).count + TagImplication.for_creator(id).where.gt(created_at: 1.hour.ago).count + BulkUpdateRequest.for_creator(id).where.gt(created_at: 1.hour.ago).count) },
                                   :is_janitor?, 3.days, Levels::MEMBER..)
 
     def can_remove_from_pools?
@@ -884,7 +884,7 @@ class User < ApplicationRecord
       @hourly_upload_limit ||= begin
         post_count = posts.where(created_at: 1.hour.ago..).count
         replacement_count = can_approve_posts? ? 0 : post_replacements.where("created_at >= ? and status != ?", 1.hour.ago, "original").count
-        Config.instance.hourly_upload_limit - post_count - replacement_count
+        AdminConfig.instance.hourly_upload_limit - post_count - replacement_count
       end
     end
 
@@ -929,7 +929,7 @@ class User < ApplicationRecord
     end
 
     def tag_query_limit
-      Config.get_user(:tag_query_limit, self)
+      AdminConfig.get_user(:tag_query_limit, self)
     end
 
     def favorite_limit
@@ -957,7 +957,7 @@ class User < ApplicationRecord
     end
 
     def statement_timeout
-      Config.get_user(:postgres_query_timeout, self)
+      AdminConfig.get_user(:postgres_query_timeout, self)
     end
   end
 
@@ -1230,7 +1230,7 @@ class User < ApplicationRecord
 
   def set_per_page
     if per_page.nil?
-      self.per_page = Config.instance.posts_per_page
+      self.per_page = AdminConfig.instance.posts_per_page
     end
 
     true
@@ -1356,7 +1356,7 @@ class User < ApplicationRecord
   end
 
   def safe_mode?
-    Config.instance.safe_mode? || enable_safe_mode?
+    AdminConfig.instance.safe_mode? || enable_safe_mode?
   end
 
   def ==(other)

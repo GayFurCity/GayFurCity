@@ -7,7 +7,7 @@
     |
     <%= subnav_link_to_if(policy(PostVersion).undo?, "Undo selected", "") %>
     <%= subnav_link_to("Select All", "") %>
-    <% if Config.user?(:show_tag_scripting, CurrentUser.user) %>
+    <% if AdminConfig.user?(:show_tag_scripting, CurrentUser.user) %>
       |
       <%= subnav_link_to("Apply Tag Script To Selected", "") %>
       <%= latest_link(@post_versions, raw: true) %>

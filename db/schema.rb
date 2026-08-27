@@ -10,10 +10,164 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_21_015609) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_26_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
+
+  create_table "admin_config", id: :text, default: "config", force: :cascade do |t|
+    t.integer "ai_confidence_threshold", default: 50, null: false
+    t.integer "alias_and_implication_forum_category", default: 1, null: false
+    t.integer "alias_category_change_cutoff", default: 10000, null: false
+    t.integer "anonymous_hard_tag_limit", default: 40, null: false
+    t.string "anonymous_user_name", default: "Anonymous", null: false
+    t.string "app_description", default: "Your one-stop shop for gay furries.", null: false
+    t.string "app_name", default: "GayFur City", null: false
+    t.string "appeal_notice_wiki_page", default: "internal:appeal_notice", null: false
+    t.integer "artist_edit_limit", default: 25, null: false
+    t.integer "artist_edit_limit_bypass", default: 15, null: false
+    t.text "artist_exclusion_tags", default: "avoid_posting, conditional_dnp, epilepsy_warning, sound_warning", null: false
+    t.string "avoid_posting_notice_wiki_page", default: "internal:avoid_posting_notice", null: false
+    t.string "ban_notice_wiki_page", default: "internal:ban_notice", null: false
+    t.string "blacklisted_preview_url", default: "/images/blacklisted-preview.png", null: false
+    t.integer "blacklisted_tags_max_size", default: 150000, null: false
+    t.jsonb "bur_entry_limit", default: {"10" => 50, "40" => -1}, null: false
+    t.integer "bur_nuke", default: 40, null: false
+    t.string "canonical_app_name", default: "GayFur City", null: false
+    t.integer "comment_bump_threshold", default: 40, null: false
+    t.integer "comment_limit", default: 15, null: false
+    t.integer "comment_limit_bypass", default: 15, null: false
+    t.integer "comment_max_size", default: 10000, null: false
+    t.integer "comment_vote_limit", default: 25, null: false
+    t.integer "comment_vote_limit_bypass", default: 15, null: false
+    t.integer "compact_uploader_minimum_posts", default: 10, null: false
+    t.string "contact_email", default: "admin@gayfur.city", null: false
+    t.text "contributor_suffixes", default: "va, modeler", null: false
+    t.integer "custom_style_max_size", default: 500000, null: false
+    t.boolean "db_exports_enabled", default: false, null: false
+    t.string "default_blacklist", default: "", null: false
+    t.integer "default_forum_category", default: 1, null: false
+    t.string "default_user_timezone", default: "Central Time (US & Canada)"
+    t.string "deleted_preview_url", default: "/images/deleted-preview.png", null: false
+    t.integer "disapproval_message_max_size", default: 250, null: false
+    t.string "discord_notice_wiki_page", default: "internal:discord_notice", null: false
+    t.integer "dmail_day_limit", default: 60, null: false
+    t.integer "dmail_day_limit_bypass", default: 20, null: false
+    t.integer "dmail_hour_limit", default: 30, null: false
+    t.integer "dmail_hour_limit_bypass", default: 20, null: false
+    t.integer "dmail_max_size", default: 50000, null: false
+    t.integer "dmail_minute_limit", default: 2, null: false
+    t.integer "dmail_minute_limit_bypass", default: 20, null: false
+    t.integer "dmail_restricted_day_limit", default: 5, null: false
+    t.string "download_preview_url", default: "/images/download-preview.png", null: false
+    t.jsonb "elasticsearch_query_timeout", default: {"0" => 3000, "15" => 6000, "19" => 9000}, null: false
+    t.jsonb "elasticsearch_request_timeout", default: {"0" => 5, "15" => 10, "19" => 15}, null: false
+    t.boolean "enable_autotagging", default: true, null: false
+    t.boolean "enable_bad_sources", default: true, null: false
+    t.boolean "enable_email_verification", default: false, null: false
+    t.boolean "enable_image_cropping", default: true, null: false
+    t.boolean "enable_signups", default: true, null: false
+    t.boolean "enable_sock_puppet_validation", default: false, null: false
+    t.boolean "enable_stale_forum_topics", default: true, null: false
+    t.boolean "flag_ai_posts", default: true, null: false
+    t.string "flag_notice_wiki_page", default: "internal:flag_notice", null: false
+    t.jsonb "followed_tag_limit", default: {"10" => 100, "15" => 500, "20" => 1000}, null: false
+    t.integer "forum_category_description_max_size", default: 250, null: false
+    t.integer "forum_post_max_size", default: 50000, null: false
+    t.integer "forum_topic_aibur_stale_window", default: 365, null: false
+    t.integer "forum_topic_stale_window", default: 180, null: false
+    t.integer "forum_vote_limit", default: 25, null: false
+    t.integer "forum_vote_limit_bypass", default: 15, null: false
+    t.integer "hourly_upload_limit", default: 30, null: false
+    t.jsonb "image_height", default: {"max" => 40000, "min" => 300}, null: false
+    t.jsonb "image_width", default: {"max" => 40000, "min" => 300}, null: false
+    t.text "lore_suffixes", default: "lore", null: false
+    t.jsonb "mascot_height", default: {"max" => 1000, "min" => 250}, null: false
+    t.jsonb "mascot_width", default: {"max" => 1000, "min" => 250}, null: false
+    t.integer "max_file_size", default: 200, null: false
+    t.jsonb "max_file_sizes", default: {"gif" => 30, "jpg" => 100, "mp4" => 200, "png" => 100, "apng" => 30, "webm" => 200, "webp" => 100}, null: false
+    t.integer "max_image_resolution", default: 441, null: false
+    t.jsonb "max_mascot_file_sizes", default: {"jpg" => 1000, "png" => 1000, "webp" => 1000}, null: false
+    t.integer "max_multi_count", default: 100, null: false
+    t.integer "max_numbered_pages", default: 1000, null: false
+    t.integer "max_per_page", default: 500, null: false
+    t.integer "max_tags_per_post", default: 2000, null: false
+    t.integer "max_upload_per_request", default: 75, null: false
+    t.integer "max_video_duration", default: 1800, null: false
+    t.string "missing_preview_url", default: "/images/missing-preview.png", null: false
+    t.integer "news_update_max_size", default: 50000, null: false
+    t.integer "note_edit_limit", default: 50, null: false
+    t.integer "note_edit_limit_bypass", default: 15, null: false
+    t.integer "note_max_size", default: 1000, null: false
+    t.integer "pending_uploads_limit", default: 3, null: false
+    t.string "placeholder_preview_url", default: "/images/placeholder-preview.png", null: false
+    t.integer "pool_category_change_cutoff", default: 30, null: false
+    t.integer "pool_category_change_cutoff_bypass", default: 20, null: false
+    t.integer "pool_category_change_limit", default: 30, null: false
+    t.integer "pool_description_max_size", default: 10000, null: false
+    t.integer "pool_edit_limit", default: 10, null: false
+    t.integer "pool_edit_limit_bypass", default: 15, null: false
+    t.integer "pool_limit", default: 2, null: false
+    t.integer "pool_limit_bypass", default: 15, null: false
+    t.integer "pool_name_max_size", default: 250, null: false
+    t.integer "pool_post_edit_limit", default: 30, null: false
+    t.integer "pool_post_edit_limit_bypass", default: 15, null: false
+    t.integer "pool_post_limit", default: 1000, null: false
+    t.integer "pool_post_limit_bypass", default: 40, null: false
+    t.integer "post_appeal_limit", default: 5, null: false
+    t.integer "post_appeal_limit_bypass", default: 15, null: false
+    t.integer "post_description_max_size", default: 50000, null: false
+    t.integer "post_edit_limit", default: 150, null: false
+    t.integer "post_edit_limit_bypass", default: 15, null: false
+    t.integer "post_flag_limit", default: 20, null: false
+    t.integer "post_flag_limit_bypass", default: 15, null: false
+    t.integer "post_flag_note_max_size", default: 10000, null: false
+    t.integer "post_replacement_per_day_limit", default: 2, null: false
+    t.integer "post_replacement_per_day_limit_bypass", default: 20, null: false
+    t.integer "post_replacement_per_post_limit", default: 5, null: false
+    t.integer "post_replacement_per_post_limit_bypass", default: 20, null: false
+    t.integer "post_sample_size", default: 300, null: false
+    t.integer "post_set_create_limit", default: 6, null: false
+    t.integer "post_set_create_limit_bypass", default: 20, null: false
+    t.jsonb "post_set_limit", default: {"4" => 5, "10" => 75, "15" => 150, "40" => -1}, null: false
+    t.integer "post_vote_limit", default: 1000, null: false
+    t.integer "post_vote_limit_bypass", default: 15, null: false
+    t.jsonb "postgres_query_timeout", default: {"0" => 3000, "15" => 6000, "19" => 9000}, null: false
+    t.integer "records_per_page", default: 100, null: false
+    t.string "rejected_notice_wiki_page", default: "internal:rejected_notice", null: false
+    t.string "replacement_notice_wiki_page", default: "internal:replacement_notice", null: false
+    t.jsonb "request_cycle_timeout", default: {"0" => 10000, "15" => 20000, "19" => 30000}, null: false
+    t.string "restricted_notice_wiki_page", default: "internal:restricted_notice", null: false
+    t.string "rules_body_wiki_page", default: "internal:rules_body", null: false
+    t.boolean "safe_mode", default: false, null: false
+    t.string "safeblocked_tags", default: "", null: false
+    t.integer "set_post_limit", default: 10000, null: false
+    t.integer "set_post_limit_bypass", default: 40, null: false
+    t.integer "show_backtrace", default: 20, null: false
+    t.integer "show_tag_scripting", default: 15, null: false
+    t.string "system_user_name", default: "System", null: false
+    t.boolean "tag_ai_posts", default: true, null: false
+    t.jsonb "tag_change_request_update_limit", default: {"15" => 500, "20" => 1000, "30" => 10000, "40" => 100000, "50" => -1}, null: false
+    t.jsonb "tag_query_limit", default: {"0" => 40}, null: false
+    t.integer "tag_suggestion_limit", default: 15, null: false
+    t.integer "tag_suggestion_limit_bypass", default: 15, null: false
+    t.jsonb "tag_type_edit_implicit_limit", default: {"10" => 100, "15" => 1000}, null: false
+    t.jsonb "tag_type_edit_limit", default: {"10" => 100, "15" => 1000, "20" => 10000, "40" => -1}, null: false
+    t.string "takedown_email", default: "admin@gayfur.city", null: false
+    t.integer "ticket_limit", default: 30, null: false
+    t.integer "ticket_limit_bypass", default: 15, null: false
+    t.integer "ticket_max_size", default: 5000, null: false
+    t.datetime "updated_at"
+    t.integer "upload_whitelists_forum_topic", default: 0, null: false
+    t.integer "user_about_max_size", default: 50000, null: false
+    t.boolean "user_approvals_enabled", default: true, null: false
+    t.string "user_approved_wiki_page", default: "internal:user_approved", null: false
+    t.integer "user_feedback_max_size", default: 20000, null: false
+    t.string "user_rejected_wiki_page", default: "internal:user_rejected", null: false
+    t.integer "wiki_edit_limit", default: 60, null: false
+    t.integer "wiki_edit_limit_bypass", default: 15, null: false
+    t.integer "wiki_page_max_size", default: 250000, null: false
+  end
 
   create_table "api_keys", force: :cascade do |t|
     t.datetime "created_at", precision: nil, null: false
@@ -215,160 +369,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_21_015609) do
     t.index ["creator_ip_addr"], name: "index_comments_on_creator_ip_addr"
     t.index ["post_id", "is_hidden"], name: "index_comments_on_post_id_and_is_hidden"
     t.index ["post_id"], name: "index_comments_on_post_id"
-  end
-
-  create_table "config", id: :text, default: "config", force: :cascade do |t|
-    t.integer "ai_confidence_threshold", default: 50, null: false
-    t.integer "alias_and_implication_forum_category", default: 1, null: false
-    t.integer "alias_category_change_cutoff", default: 10000, null: false
-    t.integer "anonymous_hard_tag_limit", default: 40, null: false
-    t.string "anonymous_user_name", default: "Anonymous", null: false
-    t.string "app_description", default: "Your one-stop shop for gay furries.", null: false
-    t.string "app_name", default: "GayFur City", null: false
-    t.string "appeal_notice_wiki_page", default: "internal:appeal_notice", null: false
-    t.integer "artist_edit_limit", default: 25, null: false
-    t.integer "artist_edit_limit_bypass", default: 15, null: false
-    t.text "artist_exclusion_tags", default: "avoid_posting, conditional_dnp, epilepsy_warning, sound_warning", null: false
-    t.string "avoid_posting_notice_wiki_page", default: "internal:avoid_posting_notice", null: false
-    t.string "ban_notice_wiki_page", default: "internal:ban_notice", null: false
-    t.string "blacklisted_preview_url", default: "/images/blacklisted-preview.png", null: false
-    t.integer "blacklisted_tags_max_size", default: 150000, null: false
-    t.jsonb "bur_entry_limit", default: {"10" => 50, "40" => -1}, null: false
-    t.integer "bur_nuke", default: 40, null: false
-    t.string "canonical_app_name", default: "GayFur City", null: false
-    t.integer "comment_bump_threshold", default: 40, null: false
-    t.integer "comment_limit", default: 15, null: false
-    t.integer "comment_limit_bypass", default: 15, null: false
-    t.integer "comment_max_size", default: 10000, null: false
-    t.integer "comment_vote_limit", default: 25, null: false
-    t.integer "comment_vote_limit_bypass", default: 15, null: false
-    t.integer "compact_uploader_minimum_posts", default: 10, null: false
-    t.string "contact_email", default: "admin@gayfur.city", null: false
-    t.text "contributor_suffixes", default: "va, modeler", null: false
-    t.integer "custom_style_max_size", default: 500000, null: false
-    t.boolean "db_exports_enabled", default: false, null: false
-    t.string "default_blacklist", default: "", null: false
-    t.integer "default_forum_category", default: 1, null: false
-    t.string "default_user_timezone", default: "Central Time (US & Canada)"
-    t.string "deleted_preview_url", default: "/images/deleted-preview.png", null: false
-    t.integer "disapproval_message_max_size", default: 250, null: false
-    t.string "discord_notice_wiki_page", default: "internal:discord_notice", null: false
-    t.integer "dmail_day_limit", default: 60, null: false
-    t.integer "dmail_day_limit_bypass", default: 20, null: false
-    t.integer "dmail_hour_limit", default: 30, null: false
-    t.integer "dmail_hour_limit_bypass", default: 20, null: false
-    t.integer "dmail_max_size", default: 50000, null: false
-    t.integer "dmail_minute_limit", default: 2, null: false
-    t.integer "dmail_minute_limit_bypass", default: 20, null: false
-    t.integer "dmail_restricted_day_limit", default: 5, null: false
-    t.string "download_preview_url", default: "/images/download-preview.png", null: false
-    t.jsonb "elasticsearch_query_timeout", default: {"0" => 3000, "15" => 6000, "19" => 9000}, null: false
-    t.jsonb "elasticsearch_request_timeout", default: {"0" => 5, "15" => 10, "19" => 15}, null: false
-    t.boolean "enable_autotagging", default: true, null: false
-    t.boolean "enable_bad_sources", default: true, null: false
-    t.boolean "enable_email_verification", default: false, null: false
-    t.boolean "enable_image_cropping", default: true, null: false
-    t.boolean "enable_signups", default: true, null: false
-    t.boolean "enable_sock_puppet_validation", default: false, null: false
-    t.boolean "enable_stale_forum_topics", default: true, null: false
-    t.boolean "flag_ai_posts", default: true, null: false
-    t.string "flag_notice_wiki_page", default: "internal:flag_notice", null: false
-    t.jsonb "followed_tag_limit", default: {"10" => 100, "15" => 500, "20" => 1000}, null: false
-    t.integer "forum_category_description_max_size", default: 250, null: false
-    t.integer "forum_post_max_size", default: 50000, null: false
-    t.integer "forum_topic_aibur_stale_window", default: 365, null: false
-    t.integer "forum_topic_stale_window", default: 180, null: false
-    t.integer "forum_vote_limit", default: 25, null: false
-    t.integer "forum_vote_limit_bypass", default: 15, null: false
-    t.integer "hourly_upload_limit", default: 30, null: false
-    t.jsonb "image_height", default: {"max" => 40000, "min" => 300}, null: false
-    t.jsonb "image_width", default: {"max" => 40000, "min" => 300}, null: false
-    t.text "lore_suffixes", default: "lore", null: false
-    t.jsonb "mascot_height", default: {"max" => 1000, "min" => 250}, null: false
-    t.jsonb "mascot_width", default: {"max" => 1000, "min" => 250}, null: false
-    t.integer "max_file_size", default: 200, null: false
-    t.jsonb "max_file_sizes", default: {"gif" => 30, "jpg" => 100, "mp4" => 200, "png" => 100, "apng" => 30, "webm" => 200, "webp" => 100}, null: false
-    t.integer "max_image_resolution", default: 441, null: false
-    t.jsonb "max_mascot_file_sizes", default: {"jpg" => 1000, "png" => 1000, "webp" => 1000}, null: false
-    t.integer "max_multi_count", default: 100, null: false
-    t.integer "max_numbered_pages", default: 1000, null: false
-    t.integer "max_per_page", default: 500, null: false
-    t.integer "max_tags_per_post", default: 2000, null: false
-    t.integer "max_upload_per_request", default: 75, null: false
-    t.integer "max_video_duration", default: 1800, null: false
-    t.string "missing_preview_url", default: "/images/missing-preview.png", null: false
-    t.integer "news_update_max_size", default: 50000, null: false
-    t.integer "note_edit_limit", default: 50, null: false
-    t.integer "note_edit_limit_bypass", default: 15, null: false
-    t.integer "note_max_size", default: 1000, null: false
-    t.integer "pending_uploads_limit", default: 3, null: false
-    t.string "placeholder_preview_url", default: "/images/placeholder-preview.png", null: false
-    t.integer "pool_category_change_cutoff", default: 30, null: false
-    t.integer "pool_category_change_cutoff_bypass", default: 20, null: false
-    t.integer "pool_category_change_limit", default: 30, null: false
-    t.integer "pool_description_max_size", default: 10000, null: false
-    t.integer "pool_edit_limit", default: 10, null: false
-    t.integer "pool_edit_limit_bypass", default: 15, null: false
-    t.integer "pool_limit", default: 2, null: false
-    t.integer "pool_limit_bypass", default: 15, null: false
-    t.integer "pool_name_max_size", default: 250, null: false
-    t.integer "pool_post_edit_limit", default: 30, null: false
-    t.integer "pool_post_edit_limit_bypass", default: 15, null: false
-    t.integer "pool_post_limit", default: 1000, null: false
-    t.integer "pool_post_limit_bypass", default: 40, null: false
-    t.integer "post_appeal_limit", default: 5, null: false
-    t.integer "post_appeal_limit_bypass", default: 15, null: false
-    t.integer "post_description_max_size", default: 50000, null: false
-    t.integer "post_edit_limit", default: 150, null: false
-    t.integer "post_edit_limit_bypass", default: 15, null: false
-    t.integer "post_flag_limit", default: 20, null: false
-    t.integer "post_flag_limit_bypass", default: 15, null: false
-    t.integer "post_flag_note_max_size", default: 10000, null: false
-    t.integer "post_replacement_per_day_limit", default: 2, null: false
-    t.integer "post_replacement_per_day_limit_bypass", default: 20, null: false
-    t.integer "post_replacement_per_post_limit", default: 5, null: false
-    t.integer "post_replacement_per_post_limit_bypass", default: 20, null: false
-    t.integer "post_sample_size", default: 300, null: false
-    t.integer "post_set_create_limit", default: 6, null: false
-    t.integer "post_set_create_limit_bypass", default: 20, null: false
-    t.jsonb "post_set_limit", default: {"4" => 5, "10" => 75, "15" => 150, "40" => -1}, null: false
-    t.integer "post_vote_limit", default: 1000, null: false
-    t.integer "post_vote_limit_bypass", default: 15, null: false
-    t.jsonb "postgres_query_timeout", default: {"0" => 3000, "15" => 6000, "19" => 9000}, null: false
-    t.integer "records_per_page", default: 100, null: false
-    t.string "rejected_notice_wiki_page", default: "internal:rejected_notice", null: false
-    t.string "replacement_notice_wiki_page", default: "internal:replacement_notice", null: false
-    t.jsonb "request_cycle_timeout", default: {"0" => 10000, "15" => 20000, "19" => 30000}, null: false
-    t.string "restricted_notice_wiki_page", default: "internal:restricted_notice", null: false
-    t.string "rules_body_wiki_page", default: "internal:rules_body", null: false
-    t.boolean "safe_mode", default: false, null: false
-    t.string "safeblocked_tags", default: "", null: false
-    t.integer "set_post_limit", default: 10000, null: false
-    t.integer "set_post_limit_bypass", default: 40, null: false
-    t.integer "show_backtrace", default: 20, null: false
-    t.integer "show_tag_scripting", default: 15, null: false
-    t.string "system_user_name", default: "System", null: false
-    t.boolean "tag_ai_posts", default: true, null: false
-    t.jsonb "tag_change_request_update_limit", default: {"15" => 500, "20" => 1000, "30" => 10000, "40" => 100000, "50" => -1}, null: false
-    t.jsonb "tag_query_limit", default: {"0" => 40}, null: false
-    t.integer "tag_suggestion_limit", default: 15, null: false
-    t.integer "tag_suggestion_limit_bypass", default: 15, null: false
-    t.jsonb "tag_type_edit_implicit_limit", default: {"10" => 100, "15" => 1000}, null: false
-    t.jsonb "tag_type_edit_limit", default: {"10" => 100, "15" => 1000, "20" => 10000, "40" => -1}, null: false
-    t.string "takedown_email", default: "admin@gayfur.city", null: false
-    t.integer "ticket_limit", default: 30, null: false
-    t.integer "ticket_limit_bypass", default: 15, null: false
-    t.integer "ticket_max_size", default: 5000, null: false
-    t.datetime "updated_at"
-    t.integer "upload_whitelists_forum_topic", default: 0, null: false
-    t.integer "user_about_max_size", default: 50000, null: false
-    t.boolean "user_approvals_enabled", default: true, null: false
-    t.string "user_approved_wiki_page", default: "internal:user_approved", null: false
-    t.integer "user_feedback_max_size", default: 20000, null: false
-    t.string "user_rejected_wiki_page", default: "internal:user_rejected", null: false
-    t.integer "wiki_edit_limit", default: 60, null: false
-    t.integer "wiki_edit_limit_bypass", default: 15, null: false
-    t.integer "wiki_page_max_size", default: 250000, null: false
   end
 
   create_table "db_exports", force: :cascade do |t|

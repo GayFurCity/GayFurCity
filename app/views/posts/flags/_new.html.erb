@@ -3,7 +3,7 @@
     <%= PostPresenter.preview(@post, show_deleted: true, no_blacklist: true) %>
   </div>
   <div class="dtext-container">
-    <%= format_text(safe_wiki(Config.instance.flag_notice_wiki_page).body) %>
+    <%= format_text(safe_wiki(AdminConfig.instance.flag_notice_wiki_page).body) %>
   </div>
 </div>
 
@@ -47,7 +47,7 @@
     </div>
 
     <div class="flag-notes">
-      <%= f.input(:note, as: :dtext, label: "Additional Details", limit: Config.post_flag_note_max_size, input_html: { id: "flag_note_field" }) %>
+      <%= f.input(:note, as: :dtext, label: "Additional Details", limit: AdminConfig.post_flag_note_max_size, input_html: { id: "flag_note_field" }) %>
     </div>
 
     <div>

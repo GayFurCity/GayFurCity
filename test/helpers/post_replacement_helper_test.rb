@@ -22,7 +22,7 @@ class PostReplacementHelperTest < ActionView::TestCase
 
         html = CurrentUser.scoped(@admin) { replacement_thumbnail(backup) } # rubocop:disable YiffSpace/CurrentOutsideOfRequests
 
-        assert_includes(html, Config.instance.missing_preview_url)
+        assert_includes(html, AdminConfig.instance.missing_preview_url)
       end
 
       should("show the normal thumbnail for a real backup") do
@@ -34,7 +34,7 @@ class PostReplacementHelperTest < ActionView::TestCase
 
         html = CurrentUser.scoped(@admin) { replacement_thumbnail(backup) } # rubocop:disable YiffSpace/CurrentOutsideOfRequests
 
-        assert_not_includes(html, Config.instance.missing_preview_url)
+        assert_not_includes(html, AdminConfig.instance.missing_preview_url)
       end
     end
   end

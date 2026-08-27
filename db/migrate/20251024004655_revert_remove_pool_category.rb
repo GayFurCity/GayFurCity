@@ -8,6 +8,6 @@ class RevertRemovePoolCategory < ExtendedMigration[7.1]
     add_column(:config, :pool_category_change_cutoff, :integer, null: false, default: 30)
     add_column(:config, :pool_category_change_cutoff_bypass, :integer, null: false, default: User::Levels::JANITOR)
     add_column(:config, :pool_name_max_size, :integer, null: false, default: 250)
-    Config.delete_cache
+    AdminConfig.delete_cache
   end
 end

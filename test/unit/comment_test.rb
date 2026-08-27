@@ -24,7 +24,7 @@ class CommentTest < ActiveSupport::TestCase
 
     context("created by an unlimited user") do
       setup do
-        Config.any_instance.stubs(:comment_limit).returns(100)
+        AdminConfig.any_instance.stubs(:comment_limit).returns(100)
       end
 
       context("that is then deleted") do
@@ -68,7 +68,7 @@ class CommentTest < ActiveSupport::TestCase
       end
 
       should("not bump the post after exceeding the threshold") do
-        Config.any_instance.stubs(:comment_bump_threshold).returns(1)
+        AdminConfig.any_instance.stubs(:comment_bump_threshold).returns(1)
         p = create(:post)
         c1 = create(:comment, post: p)
         travel_to(2.seconds.from_now) do
@@ -81,7 +81,7 @@ class CommentTest < ActiveSupport::TestCase
 
       should("always record the last_commented_at properly") do
         post = create(:post)
-        Config.any_instance.stubs(:comment_bump_threshold).returns(1)
+        AdminConfig.any_instance.stubs(:comment_bump_threshold).returns(1)
 
         c1 = create(:comment, do_not_bump_post: true, post: post)
         post.reload

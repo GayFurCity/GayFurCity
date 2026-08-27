@@ -2,7 +2,7 @@
   <%= f.input(:antecedent_name, label: "From", autocomplete: "tag") %>
   <%= f.input(:consequent_name, label: "To", autocomplete: "tag") %>
   <% if tag_alias.new_record? %>
-    <%= f.input(:reason, as: :dtext, limit: Config.instance.forum_post_max_size) %>
+    <%= f.input(:reason, as: :dtext, limit: AdminConfig.instance.forum_post_max_size) %>
   <% end %>
 
   <% if tag_alias.new_record? %>

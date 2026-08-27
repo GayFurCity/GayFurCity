@@ -1,4 +1,4 @@
-<div id="posts" class="user-disable-cropped-<%= Config.instance.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails? %>">
+<div id="posts" class="user-disable-cropped-<%= AdminConfig.instance.enable_image_cropping? && CurrentUser.user.disable_cropped_thumbnails? %>">
   <div id="posts-container">
     <% if @posts.empty? %>
       <%= render("posts/blank") %>
@@ -12,7 +12,7 @@
   <% if post_set.hidden_posts.present? %>
     <div class="info hidden-posts-notice">
       <% if post_set.safe_posts.present? %>
-        <%= post_set.safe_posts.size %> post(s) on this page were hidden by safe mode (<%= Config.instance.app_name %>). Go to <%= link_to(Config.instance.canonical_app_name, GayFurCity.config.canonical_app_url) %> or disable safe mode to view.<br>
+        <%= post_set.safe_posts.size %> post(s) on this page were hidden by safe mode (<%= AdminConfig.instance.app_name %>). Go to <%= link_to(AdminConfig.instance.canonical_app_name, GayFurCity.config.canonical_app_url) %> or disable safe mode to view.<br>
       <% end %>
       <% if post_set.login_blocked_posts.present? %>
         <%= post_set.login_blocked_posts.size %> post(s) on this page were hidden because you need to be logged in to view them. <%= link_to("(learn more)", help_page_path(id: "global_blacklist")) %>

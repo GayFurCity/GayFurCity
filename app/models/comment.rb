@@ -15,7 +15,7 @@ class Comment < ApplicationRecord
   validate(:validate_creator_is_not_limited, on: :create)
   validate(:post_not_comment_restricted, on: :create)
   validates(:body, presence: { message: "has no content" })
-  validates(:body, length: { minimum: 1, maximum: -> { Config.instance.comment_max_size } })
+  validates(:body, length: { minimum: 1, maximum: -> { AdminConfig.instance.comment_max_size } })
 
   before_create(:auto_report_spam)
   after_create(:update_last_commented_at_on_create)
@@ -113,7 +113,7 @@ class Comment < ApplicationRecord
     post = Post.find(post_id)
     return unless post
     post.update_column(:last_commented_at, created_at)
-    if Comment.where(post_id: post_id).count <= Config.instance.comment_bump_threshold && !do_not_bump_post?
+    if Comment.where(post_id: post_id).count <= AdminConfig.instance.comment_bump_threshold && !do_not_bump_post?
       post.update_column(:last_comment_bumped_at, created_at)
     end
     post.update_index

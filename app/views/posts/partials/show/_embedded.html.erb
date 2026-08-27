@@ -3,8 +3,8 @@
 <% elsif post.loginblocked?(CurrentUser.user) %>
   <p>You must be logged in to view this image. <%= link_to("(learn more)", help_page_path(id: "global_blacklist")) %></p>
 <% elsif post.safeblocked?(CurrentUser.user) -%>
-  <p>This image is unavailable in safe mode (<%= Config.instance.app_name %>). Go
-    to <%= link_to(Config.instance.canonical_app_name, GayFurCity.config.canonical_app_url) %> or disable safe mode to view.</p>
+  <p>This image is unavailable in safe mode (<%= AdminConfig.instance.app_name %>). Go
+    to <%= link_to(AdminConfig.instance.canonical_app_name, GayFurCity.config.canonical_app_url) %> or disable safe mode to view.</p>
 <% elsif post.is_video? -%>
   <%= render("posts/partials/show/video", post: post) -%>
 <% elsif !post.is_image? -%>

@@ -152,7 +152,7 @@ class StaffAuditLog < ApplicationRecord
       json: %i[destroyed_post_id post_id],
     },
 
-    ### Config ###
+    ### AdminConfig ###
     config_update:              {
       text: ->(log) { "Updated the config keys: #{log.data.keys.join(', ')}" },
       json: %i[data],

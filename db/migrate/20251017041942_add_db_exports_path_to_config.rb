@@ -3,6 +3,6 @@
 class AddDbExportsPathToConfig < ExtendedMigration[7.1]
   def change
     add_column(:config, :db_exports_path, :string, default: "/db_exports")
-    Config.delete_cache
+    AdminConfig.delete_cache
   end
 end

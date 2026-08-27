@@ -27,7 +27,7 @@ class ForumTopic < ApplicationRecord
     Cache.delete("topic_name:#{id}")
   end
 
-  attribute(:category_id, :integer, default: -> { Config.instance.default_forum_category })
+  attribute(:category_id, :integer, default: -> { AdminConfig.instance.default_forum_category })
 
   attr_accessor(:is_merging, :target_topic_id)
 
@@ -257,7 +257,7 @@ class ForumTopic < ApplicationRecord
   end
 
   def last_page
-    (response_count / Config.instance.records_per_page.to_f).ceil.clamp(1..)
+    (response_count / AdminConfig.instance.records_per_page.to_f).ceil.clamp(1..)
   end
 
   def hide!(user)
@@ -275,9 +275,9 @@ class ForumTopic < ApplicationRecord
   end
 
   def is_stale?
-    return false unless Config.instance.enable_stale_forum_topics
-    return false if !posts.many? || (original_post&.is_aibur? && (original_post&.tag_change_request&.is_pending? || posts.last.created_at < Config.instance.forum_topic_aibur_stale_window.days.ago))
-    posts.last.created_at < Config.instance.forum_topic_stale_window.days.ago
+    return false unless AdminConfig.instance.enable_stale_forum_topics
+    return false if !posts.many? || (original_post&.is_aibur? && (original_post&.tag_change_request&.is_pending? || posts.last.created_at < AdminConfig.instance.forum_topic_aibur_stale_window.days.ago))
+    posts.last.created_at < AdminConfig.instance.forum_topic_stale_window.days.ago
   end
 
   def is_stale_for?(user)

@@ -2,7 +2,7 @@
 
 <div class="appeal-dialog-body">
   <div class="dtext-container">
-    <%= format_text(safe_wiki(Config.instance.appeal_notice_wiki_page).body) %>
+    <%= format_text(safe_wiki(AdminConfig.instance.appeal_notice_wiki_page).body) %>
   </div>
 
   <%= error_messages_for(:post_appeal) %>

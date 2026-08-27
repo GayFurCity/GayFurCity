@@ -25,8 +25,8 @@ module ConfigHelper
     usable = config.usable?(CurrentUser.user, attribute)
     tag.tr do
       safe_join([
-        tag.td { label_for_attribute(attribute, name: name, disabled: disabled || !usable) },
-        tag.td do
+        tag.td { label_for_attribute(attribute, name: name, disabled: disabled || !usable, env_overridden: AdminConfig.env_override?(attribute)) },
+        tag.td(class: "col-expand") do
           arr = [send(type, "config[#{attribute}]", value, disabled: disabled || !usable, **input_options)]
           # The hidden fallback must come BEFORE the checkbox in submission order: when both are
           # present, a duplicate param key resolves to whichever value was submitted last (Rack
@@ -50,8 +50,8 @@ module ConfigHelper
     usable = config.usable?(CurrentUser.user, attribute)
     tag.tr do
       safe_join([
-        tag.td { label_for_attribute(attribute, name: name, disabled: disabled || !usable) },
-        tag.td do
+        tag.td { label_for_attribute(attribute, name: name, disabled: disabled || !usable, env_overridden: AdminConfig.env_override?(attribute)) },
+        tag.td(class: "col-expand") do
           arr = [select_tag("config[#{attribute}]", options_for_select(options, value), disabled: disabled || !config.usable?(CurrentUser.user, attribute), **input_options)]
           arr += [tag.br, self.hint(hint)] if hint
           safe_join(arr)
@@ -74,8 +74,8 @@ module ConfigHelper
     raise("#{attribute} is not a Hash") unless value.is_a?(Hash)
     tag.tr do
       safe_join([
-        tag.td { label_for_attribute(attribute, name: name, disabled: disabled || !usable) },
-        tag.td do
+        tag.td { label_for_attribute(attribute, name: name, disabled: disabled || !usable, env_overridden: AdminConfig.env_override?(attribute)) },
+        tag.td(class: "col-expand") do
           tag.dl do
             safe_join([keys.each_with_index.map do |key, _index|
               val = value[key]
@@ -94,8 +94,8 @@ module ConfigHelper
     raise("#{attribute} is not a Hash") unless value.is_a?(Hash)
     tag.tr do
       safe_join([
-        tag.td { label_for_attribute(attribute, name: name, disabled: disabled || !usable) },
-        tag.td do
+        tag.td { label_for_attribute(attribute, name: name, disabled: disabled || !usable, env_overridden: AdminConfig.env_override?(attribute)) },
+        tag.td(class: "col-expand") do
           tag.dl do
             levels = user_levels_for_select(minimum, maximum).to_a.reject { |_k, v| v == User::Levels::SYSTEM }
             safe_join([levels.each_with_index.map do |(lvl, level), _index|
@@ -109,9 +109,15 @@ module ConfigHelper
     end
   end
 
-  def label_for_attribute(attribute, name: nil, disabled: false)
+  def label_for_attribute(attribute, name: nil, disabled: false, env_overridden: false)
     label = label_tag("config[#{attribute}]", name)
-    if disabled && attribute != :id
+    return label if attribute == :id
+    if env_overridden
+      return safe_join([label,
+                        raw("&nbsp;"), # rubocop:disable Rails/OutputSafety
+                        hint("(set via environment variable)"),])
+    end
+    if disabled
       return safe_join([label,
                         raw("&nbsp;"), # rubocop:disable Rails/OutputSafety
                         hint("(disabled)"),])

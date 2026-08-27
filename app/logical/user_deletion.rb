@@ -42,7 +42,7 @@ class UserDeletion
       recent_tags:      "",
       favorite_tags:    "",
       blacklisted_tags: "",
-      time_zone:        Config.instance.default_user_timezone,
+      time_zone:        AdminConfig.instance.default_user_timezone,
       email:            "",
       avatar_id:        nil,
       profile_about:    "",

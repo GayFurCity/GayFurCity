@@ -32,7 +32,7 @@ module GayFurCity
     config(:source_code_url) { "https://github.com/GayFurCity/GayFurCity" }
     config(:local_source_code_url) { source_code_url }
     config(:custom_html_header_content) { nil }
-    config(:user_agent) { "#{::Config.instance.safe_app_name}/#{version} (#{source_code_url})" }
+    config(:user_agent) { "#{::AdminConfig.instance.safe_app_name}/#{version} (#{source_code_url})" }
     config(:log_level) { ENV.fetch("RAILS_LOG_LEVEL", "info") }
     config(:rakismet_url) { app_url }
     config(:max_concurrency, :integer) { Concurrent.available_processor_count.to_i.clamp(1..) }
@@ -498,11 +498,11 @@ module GayFurCity
     end
 
     config(:customize_new_user, env: false) do |user|
-      user.blacklisted_tags           = ::Config.instance.default_blacklist
+      user.blacklisted_tags           = ::AdminConfig.instance.default_blacklist
       user.comment_threshold          = -10
       user.enable_autocomplete        = true
       user.enable_keyboard_navigation = true
-      user.per_page                   = ::Config.instance.records_per_page
+      user.per_page                   = ::AdminConfig.instance.records_per_page
       user.style_usernames            = true
       user.move_related_thumbnails    = true
       user.enable_hover_zoom          = true
@@ -511,8 +511,8 @@ module GayFurCity
       user.go_to_recent_forum_post    = true
       user.forum_unread_bubble        = true
       user.upload_notifications       = User.upload_notifications_options
-      user.email_verified             = !::Config.instance.enable_email_verification?
-      user.level                      = User::Levels::RESTRICTED if ::Config.instance.user_approvals_enabled? && user.level == User::Levels::MEMBER
+      user.email_verified             = !::AdminConfig.instance.enable_email_verification?
+      user.level                      = User::Levels::RESTRICTED if ::AdminConfig.instance.user_approvals_enabled? && user.level == User::Levels::MEMBER
     end
   end
 

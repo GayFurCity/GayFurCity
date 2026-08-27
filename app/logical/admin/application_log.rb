@@ -54,7 +54,7 @@ module Admin
 
     def normalize_limit(limit)
       limit = limit.present? ? limit.to_i : 100
-      limit.clamp(1, Config.instance.max_per_page)
+      limit.clamp(1, AdminConfig.instance.max_per_page)
     end
 
     def line_count

@@ -6,7 +6,7 @@
   <% else %>
     <%= f.input(:topic_id, label: "Topic ID") %>
   <% end %>
-  <%= f.input(:body, as: :dtext, limit: Config.instance.forum_post_max_size) %>
+  <%= f.input(:body, as: :dtext, limit: AdminConfig.instance.forum_post_max_size) %>
   <% if policy(forum_post).can_use_attribute?(:allow_voting, :create) %>
     <%= f.input(:allow_voting, label: "Voting", hint: "Enables voting on the post. This should be used sparingly, and cannot be disabled once enabled.") %>
   <% end %>

@@ -9,7 +9,7 @@ module GayFurCity
         @current_page = options[:current_page]
         @records_per_page = options[:records_per_page]
         @total_count = options[:total_count]
-        @max_numbered_pages = options[:max_numbered_pages] || ::Config.instance.max_numbered_pages
+        @max_numbered_pages = options[:max_numbered_pages] || ::AdminConfig.instance.max_numbered_pages
         @pagination_mode = options[:pagination_mode]
         real_array = orig_array || []
         @orig_size = real_array.size

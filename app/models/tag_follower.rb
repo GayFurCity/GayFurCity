@@ -32,7 +32,7 @@ class TagFollower < ApplicationRecord
   end
 
   def validate_user_can_follow_tags
-    limit = Config.get_user(:followed_tag_limit, user)
+    limit = AdminConfig.get_user(:followed_tag_limit, user)
     if user.followed_tags.count >= limit
       errors.add(:user, "cannot follow more than #{limit} tags")
     end

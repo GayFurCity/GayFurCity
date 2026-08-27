@@ -15,7 +15,7 @@ class PostFlag < ApplicationRecord
   validate(:validate_reason)
   validate(:update_reason, on: :create)
   validates(:reason, presence: true)
-  validates(:note, length: { maximum: -> { Config.post_flag_note_max_size } })
+  validates(:note, length: { maximum: -> { AdminConfig.post_flag_note_max_size } })
   validate(:validate_note_required_for_reason)
   before_save(:update_post)
   after_create(:create_post_event)

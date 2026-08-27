@@ -10,14 +10,14 @@ class SessionLoaderTest < ActiveSupport::TestCase
 
     context(".safe_mode?") do
       should("return true if the config has safe mode enabled") do
-        Config.any_instance.stubs(:safe_mode).returns(true)
+        AdminConfig.any_instance.stubs(:safe_mode).returns(true)
         SessionLoader.new(@request).load
 
         assert_predicate(CurrentUser, :safe_mode?) # rubocop:disable YiffSpace/CurrentOutsideOfRequests
       end
 
       should("return false if the config has safe mode disabled") do
-        Config.any_instance.stubs(:safe_mode).returns(false)
+        AdminConfig.any_instance.stubs(:safe_mode).returns(false)
         SessionLoader.new(@request).load
 
         assert_not(CurrentUser.safe_mode?) # rubocop:disable YiffSpace/CurrentOutsideOfRequests

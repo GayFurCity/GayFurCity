@@ -189,7 +189,7 @@ module BulkUpdateRequests
         end
 
         context("access control") do
-          setup { Config.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
+          setup { AdminConfig.any_instance.stubs(:bur_entry_limit).returns({ User::Levels::ANONYMOUS => 1 }) }
 
           asserts do
             access.gte(User::Levels::OWNER).patch do |user|

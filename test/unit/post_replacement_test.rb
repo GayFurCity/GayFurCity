@@ -15,14 +15,14 @@ class PostReplacementTest < ActiveSupport::TestCase
 
   context("User Limits:") do
     should("fail on too many per post in one day") do
-      Config.any_instance.stubs(:post_replacement_per_day_limit).returns(-1)
+      AdminConfig.any_instance.stubs(:post_replacement_per_day_limit).returns(-1)
       @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
 
       assert_equal(["Creator has already suggested too many replacements for this post today"], @replacement.errors.full_messages)
     end
 
     should("fail on too many per post total") do
-      Config.any_instance.stubs(:post_replacement_per_post_limit).returns(-1)
+      AdminConfig.any_instance.stubs(:post_replacement_per_post_limit).returns(-1)
       @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
 
       assert_equal(["Creator already has too many pending replacements for this post"], @replacement.errors.full_messages)
@@ -79,8 +79,8 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
 
     should("not allow files that are too large") do
-      zero = Config.instance.max_file_sizes.transform_values { 0 }
-      Config.any_instance.stubs(:max_file_sizes).returns(zero)
+      zero = AdminConfig.instance.max_file_sizes.transform_values { 0 }
+      AdminConfig.any_instance.stubs(:max_file_sizes).returns(zero)
       @replacement = @post.replacements.create(attributes_for(:png_replacement).merge(creator: @user))
 
       assert_equal("failed", @replacement.media_asset.status)
@@ -88,8 +88,8 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
 
     should("not allow an apng that is too large") do
-      zero = Config.instance.max_file_sizes.transform_values { 0 }
-      Config.any_instance.stubs(:max_file_sizes).returns(zero)
+      zero = AdminConfig.instance.max_file_sizes.transform_values { 0 }
+      AdminConfig.any_instance.stubs(:max_file_sizes).returns(zero)
       @replacement = @post.replacements.create(attributes_for(:apng_replacement).merge(creator: @user))
 
       assert_equal("failed", @replacement.media_asset.status)
@@ -230,7 +230,7 @@ class PostReplacementTest < ActiveSupport::TestCase
     end
 
     should("not crash generating variants if image cropping is disabled, and not claim a crop was made") do
-      Config.any_instance.stubs(:enable_image_cropping?).returns(false)
+      AdminConfig.any_instance.stubs(:enable_image_cropping?).returns(false)
       assert_nothing_raised do
         @replacement.approve!(@user, penalize_current_uploader: true)
       end
@@ -245,7 +245,7 @@ class PostReplacementTest < ActiveSupport::TestCase
 
       assert_predicate(@post, :has_crop?, "sanity check: post should have a crop variant from approving with cropping enabled")
 
-      Config.any_instance.stubs(:enable_image_cropping?).returns(false)
+      AdminConfig.any_instance.stubs(:enable_image_cropping?).returns(false)
 
       assert_nothing_raised do
         @post.crop_file_url(@user)

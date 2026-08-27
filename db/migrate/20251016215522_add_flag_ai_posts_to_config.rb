@@ -5,6 +5,6 @@ class AddFlagAiPostsToConfig < ExtendedMigration[7.1]
     add_column(:config, :flag_ai_posts, :boolean, null: false, default: true)
     add_column(:config, :tag_ai_posts, :boolean, null: false, default: true)
     add_column(:config, :ai_confidence_threshold, :integer, null: false, default: 50)
-    Config.delete_cache
+    AdminConfig.delete_cache
   end
 end

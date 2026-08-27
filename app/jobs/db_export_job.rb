@@ -8,7 +8,7 @@ class DbExportJob < ApplicationJob
   end.freeze
 
   def perform
-    return unless Config.db_exports_enabled?
+    return unless AdminConfig.db_exports_enabled?
 
     date = Date.current
     EXPORTS.each do |name, query|

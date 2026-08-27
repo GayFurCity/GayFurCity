@@ -8,8 +8,8 @@
   <%= f.input(:email, input_html: { size: 50 }) %>
   <%= f.input(:email_verified, as: :select, collection: [%w[No false], %w[Yes true]]) %>
   <%= f.input(:enable_privacy_mode, as: :select, collection: [%w[No false], %w[Yes true]]) %>
-  <%= f.input(:profile_about, as: :dtext, label: "About", limit: Config.instance.user_about_max_size, allow_color: true) %>
-  <%= f.input(:profile_artinfo, as: :dtext, label: "Commission Info", limit: Config.instance.user_about_max_size, allow_color: true) %>
+  <%= f.input(:profile_about, as: :dtext, label: "About", limit: AdminConfig.instance.user_about_max_size, allow_color: true) %>
+  <%= f.input(:profile_artinfo, as: :dtext, label: "Commission Info", limit: AdminConfig.instance.user_about_max_size, allow_color: true) %>
   <%= f.input(:base_upload_limit) %>
   <%= f.input(:level, collection: user_levels_for_select(current: @user.level)) %>
   <%= f.input(:unrestricted_uploads, collection: [%w[Yes true], %w[No false]], label: "Unrestricted Uploads") %>

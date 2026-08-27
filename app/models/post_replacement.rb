@@ -117,11 +117,11 @@ class PostReplacement < ApplicationRecord
     # Janitor bypass replacement limits
     return true if creator.is_janitor?
 
-    if post.replacements.for_creator(creator_id).where.gt(created_at: 1.day.ago).count > Config.instance.post_replacement_per_day_limit
+    if post.replacements.for_creator(creator_id).where.gt(created_at: 1.day.ago).count > AdminConfig.instance.post_replacement_per_day_limit
       errors.add(:creator, "has already suggested too many replacements for this post today")
       throw(:abort)
     end
-    if post.replacements.pending.for_creator(creator_id).count > Config.instance.post_replacement_per_post_limit
+    if post.replacements.pending.for_creator(creator_id).count > AdminConfig.instance.post_replacement_per_post_limit
       errors.add(:creator, "already has too many pending replacements for this post")
       throw(:abort)
     end

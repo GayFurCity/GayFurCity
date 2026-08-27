@@ -1,7 +1,7 @@
 <% content_for(:secondary_links) do %>
   <%= subnav_link_to("Listing", upload_whitelists_path) %>
   <%= subnav_link_to_if(policy(UploadWhitelist).create?, "New", new_upload_whitelist_path) %>
-  <% topic = ForumTopic.find_by(id: Config.instance.upload_whitelists_forum_topic) %>
-  <%= subnav_link_to_if(topic.present? && policy(topic).show?, "Requests", forum_topic_path(id: Config.instance.upload_whitelists_forum_topic)) %>
+  <% topic = ForumTopic.find_by(id: AdminConfig.instance.upload_whitelists_forum_topic) %>
+  <%= subnav_link_to_if(topic.present? && policy(topic).show?, "Requests", forum_topic_path(id: AdminConfig.instance.upload_whitelists_forum_topic)) %>
   <%= subnav_link_to("Help", help_page_path(id: "upload_whitelist")) %>
 <% end %>

@@ -10,7 +10,7 @@ module Users
       @user = user
       if user.email.present?
         headers["List-Unsubscribe"] = "<#{Routes.users_email_notification_url(user_id: @user.id, sig: email_sig(@user, :unsubscribe), host: GayFurCity.config.hostname, only_path: false)}>"
-        mail(to: user.email, subject: "#{Config.instance.app_name} login reminder")
+        mail(to: user.email, subject: "#{AdminConfig.instance.app_name} login reminder")
       end
     end
   end

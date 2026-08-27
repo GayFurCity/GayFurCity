@@ -1,4 +1,4 @@
-<% "#{@post_set.humanized_tag_string} - #{Config.instance.app_name}".tap do |title| %>
+<% "#{@post_set.humanized_tag_string} - #{AdminConfig.instance.app_name}".tap do |title| %>
   <%= tag.meta(name: "og:title", content: title) %>
   <%= tag.meta(name: "twitter:title", content: title) %>
 <% end %>
@@ -11,11 +11,11 @@
 
 <%= tag.meta(name: "canonical", content: posts_url(tags: params[:tags], host: GayFurCity.config.hostname, protocol: "https")) %>
 
-<% Config.instance.app_description.tap do |desc| %>
+<% AdminConfig.instance.app_description.tap do |desc| %>
   <%= tag.meta(name: "description", content: desc) %>
   <%= tag.meta(name: "og:description", content: desc) %>
   <%= tag.meta(name: "twitter:description", content: desc) %>
 <% end %>
 
 <%= tag.meta(name: "og:type", content: "website") %>
-<%= tag.meta(name: "og:site", content: Config.instance.app_name) %>
+<%= tag.meta(name: "og:site", content: AdminConfig.instance.app_name) %>

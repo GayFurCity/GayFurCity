@@ -10,11 +10,11 @@ class FileValidator
 
   def validate(max_file_sizes: nil, min_width: nil, max_width: nil, min_height: nil, max_height: nil)
     # default arguments are evaluated when the method is defined
-    max_file_sizes ||= Config.max_file_sizes.transform_values { |v| v * 1.megabyte }
-    min_width ||= Config.image_width[:min]
-    max_width ||= Config.image_width[:max]
-    min_height ||= Config.image_height[:min]
-    max_height ||= Config.image_height[:max]
+    max_file_sizes ||= AdminConfig.max_file_sizes.transform_values { |v| v * 1.megabyte }
+    min_width ||= AdminConfig.image_width[:min]
+    max_width ||= AdminConfig.image_width[:max]
+    min_height ||= AdminConfig.image_height[:min]
+    max_height ||= AdminConfig.image_height[:max]
     validate_file_ext(max_file_sizes)
     validate_file_size(max_file_sizes)
     validate_file_integrity
@@ -58,8 +58,8 @@ class FileValidator
   def validate_resolution(min_width, max_width, min_height, max_height)
     resolution = record.image_width.to_i * record.image_height.to_i
 
-    if resolution > Config.instance.max_image_resolution * 1_000_000
-      record.errors.add(:base, "image resolution is too large (resolution: #{(resolution / 1_000_000.0).round(1)} megapixels (#{record.image_width}x#{record.image_height}); max: #{Config.instance.max_image_resolution} megapixels)")
+    if resolution > AdminConfig.instance.max_image_resolution * 1_000_000
+      record.errors.add(:base, "image resolution is too large (resolution: #{(resolution / 1_000_000.0).round(1)} megapixels (#{record.image_width}x#{record.image_height}); max: #{AdminConfig.instance.max_image_resolution} megapixels)")
     elsif record.image_width < min_width
       record.errors.add(:image_width, "is too small (width: #{record.image_width}; min width: #{min_width})")
     elsif record.image_width > max_width
@@ -72,8 +72,8 @@ class FileValidator
   end
 
   def validate_duration(video)
-    if video.duration > Config.instance.max_video_duration
-      record.errors.add(:base, "video must not be longer than #{Config.instance.max_video_duration / 1.minute} minutes")
+    if video.duration > AdminConfig.instance.max_video_duration
+      record.errors.add(:base, "video must not be longer than #{AdminConfig.instance.max_video_duration / 1.minute} minutes")
     end
   end
 

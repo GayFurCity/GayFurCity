@@ -12,7 +12,7 @@ class Ban < ApplicationRecord
   resolvable(:destroyer)
   validate(:user_is_inferior)
   validates(:reason, :duration, presence: true)
-  validates(:reason, length: { minimum: 1, maximum: -> { Config.instance.user_feedback_max_size } })
+  validates(:reason, length: { minimum: 1, maximum: -> { AdminConfig.instance.user_feedback_max_size } })
 
   scope(:unexpired, -> { where(expires_at: nil).or(where.gt(expires_at: Time.now)) })
   scope(:expired, -> { where.not(expires_at: nil).or(where.lte(expires_at: Time.now)) })

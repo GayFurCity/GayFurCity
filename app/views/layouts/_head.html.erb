@@ -6,7 +6,7 @@
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#222222">
 <meta name="RATING" content="RTA-5042-1996-1400-1577-RTA" />
-<link rel="top" title="<%= Config.instance.app_name %>" href="/">
+<link rel="top" title="<%= AdminConfig.instance.app_name %>" href="/">
 <%= csrf_meta_tag %>
 <% unless disable_mobile_mode? %>
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -52,8 +52,8 @@
 {
   "@context": "http://schema.org",
   "@type": "WebSite",
-  "name": "<%= Config.instance.app_name %>",
-  "alternateName": "<%= Config.instance.app_description %>",
+  "name": "<%= AdminConfig.instance.app_name %>",
+  "alternateName": "<%= AdminConfig.instance.app_description %>",
   "url" : "<%= root_url %>"
 }
 </script>

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ConfigPolicy < ApplicationPolicy
+class AdminConfigPolicy < ApplicationPolicy
   def show?
     user.is_moderator?
   end
@@ -9,7 +9,11 @@ class ConfigPolicy < ApplicationPolicy
     user.is_owner?
   end
 
+  def clear_cache?
+    user.is_owner?
+  end
+
   def permitted_attributes_for_update
-    Config.settable_columns(user).map(&:name).map(&:to_sym)
+    AdminConfig.settable_columns(user).map(&:name).map(&:to_sym)
   end
 end

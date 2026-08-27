@@ -45,7 +45,7 @@ class PostPresenter < Presenter
 
     locals[:tooltip] = "Rating: #{post.rating}\nID: #{post.id}\nDate: #{post.created_at}\nStatus: #{post.status}\nScore: #{post.score}\n\n#{post.tag_string}"
 
-    locals[:cropped_url] = if Config.instance.enable_image_cropping? && options[:show_cropped] && post.has_crop? && !CurrentUser.user.disable_cropped_thumbnails?
+    locals[:cropped_url] = if AdminConfig.instance.enable_image_cropping? && options[:show_cropped] && post.has_crop? && !CurrentUser.user.disable_cropped_thumbnails?
                              post.crop_file_url(CurrentUser.user)
                            elsif post.has_preview?
                              post.preview_file_url(CurrentUser.user)
@@ -53,9 +53,9 @@ class PostPresenter < Presenter
                              post.file_url(CurrentUser.user)
                            end
 
-    locals[:cropped_url] = Config.instance.deleted_preview_url if post.deleteblocked?(CurrentUser.user)
+    locals[:cropped_url] = AdminConfig.instance.deleted_preview_url if post.deleteblocked?(CurrentUser.user)
     locals[:preview_url] = if post.deleteblocked?(CurrentUser.user)
-                             Config.instance.deleted_preview_url
+                             AdminConfig.instance.deleted_preview_url
                            elsif post.has_preview?
                              post.preview_file_url(CurrentUser.user)
                            else

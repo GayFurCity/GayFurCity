@@ -206,7 +206,7 @@ module ApplicationHelper
     return "" unless post_id
     deferred_post_ids.add(post_id)
     tag.div(class: "post-thumb placeholder", id: "tp-#{post_id}", data: { id: post_id }) do
-      tag.img(class: "thumb-img placeholder", src: Config.instance.placeholder_preview_url, height: 150, width: 150)
+      tag.img(class: "thumb-img placeholder", src: AdminConfig.instance.placeholder_preview_url, height: 150, width: 150)
     end
   end
 

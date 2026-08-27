@@ -21,6 +21,6 @@
   <% if @artist.is_note_locked?(CurrentUser.user) %>
     <p>Artist is note locked. Notes cannot be edited.</p>
   <% end %>
-  <%= f.input(:notes, as: :dtext, limit: Config.instance.wiki_page_max_size, disabled: @artist.is_note_locked?(CurrentUser.user), allow_color: true) %>
+  <%= f.input(:notes, as: :dtext, limit: AdminConfig.instance.wiki_page_max_size, disabled: @artist.is_note_locked?(CurrentUser.user), allow_color: true) %>
   <%= f.button(:submit, "Submit") %>
 <% end %>

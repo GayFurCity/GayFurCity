@@ -110,8 +110,8 @@ module MediaAssets
         end
 
         should("not allow files that are too large") do
-          Config.any_instance.stubs(:max_file_size).returns(0)
-          Config.any_instance.stubs(:max_file_sizes).returns({ "jpg" => 0 })
+          AdminConfig.any_instance.stubs(:max_file_size).returns(0)
+          AdminConfig.any_instance.stubs(:max_file_sizes).returns({ "jpg" => 0 })
           put_auth(append_upload_media_asset_path(@media_asset), @user, params: { upload_media_asset: { chunk_id: 1, data: file_fixture_upload(@combined) }, format: :json })
 
           assert_response(:unprocessable_entity)
@@ -174,7 +174,7 @@ module MediaAssets
         end
 
         should("create a post when paired with an upload") do
-          Config.any_instance.stubs(:enable_autotagging).returns(false)
+          AdminConfig.any_instance.stubs(:enable_autotagging).returns(false)
           @media_asset.create_upload!(rating: "e", tag_string: "tagme", uploader: @user, uploader_ip_addr: "127.0.0.1")
           @media_asset.append_chunk!(1, @combined.open)
 

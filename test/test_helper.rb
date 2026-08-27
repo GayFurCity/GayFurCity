@@ -140,7 +140,7 @@ class ActiveSupport::TestCase # rubocop:disable Style/ClassAndModuleChildren
   setup do
     host = "example.com"
     Socket.stubs(:gethostname).returns(host)
-    Config.any_instance.stubs(:enable_sock_puppet_validation).returns(false)
+    AdminConfig.any_instance.stubs(:enable_sock_puppet_validation).returns(false)
     GayFurCity.config.stubs(:disable_throttles).returns(true)
     GayFurCity.config.stubs(:reports_enabled).returns(false)
     GayFurCity.config.stubs(:telemetry_enabled).returns(false)
@@ -159,9 +159,9 @@ class ActiveSupport::TestCase # rubocop:disable Style/ClassAndModuleChildren
     storage_manager = StorageManager::Local.new(base_dir: self.class.storage_root)
     GayFurCity.config.stubs(:storage_manager_instance).returns(storage_manager)
     GayFurCity.config.stubs(:backup_storage_manager_instance).returns(StorageManager::Null.new)
-    Config.any_instance.stubs(:flag_ai_posts).returns(false)
-    Config.any_instance.stubs(:tag_ai_posts).returns(false)
-    Config.any_instance.stubs(:enable_email_verification).returns(false)
+    AdminConfig.any_instance.stubs(:flag_ai_posts).returns(false)
+    AdminConfig.any_instance.stubs(:tag_ai_posts).returns(false)
+    AdminConfig.any_instance.stubs(:enable_email_verification).returns(false)
   end
 
   teardown do
@@ -219,7 +219,7 @@ if defined?(ActiveRecord::TestDatabases)
   # database row, so it's safe as-is.
   #
   # Rails.cache (memory_store in test) is likewise a single in-process object inherited unchanged
-  # by every worker - e.g. a cached Config.instance from the primary process's seeding would
+  # by every worker - e.g. a cached AdminConfig.instance from the primary process's seeding would
   # otherwise leak into a worker's first test, before that test's own teardown (which clears the
   # cache) gets a chance to run.
   module ActiveRecord

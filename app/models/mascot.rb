@@ -47,7 +47,7 @@ class Mascot < ApplicationRecord
 
   def self.active_for_user(user)
     mascots = Cache.fetch("active_mascots", expires_in: 1.second) do
-      query = Mascot.where(active: true).where("? = ANY(available_on)", Config.instance.app_name).with_assets
+      query = Mascot.where(active: true).where("? = ANY(available_on)", AdminConfig.instance.app_name).with_assets
       mascots = query.map do |mascot|
         mascot.slice(:id, :background_color, :artist_url, :artist_name, :hide_anonymous).merge(background_url: mascot.file_url(user: user))
       end

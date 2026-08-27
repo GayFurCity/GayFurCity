@@ -5,7 +5,7 @@ class PostDisapproval < ApplicationRecord
   belongs_to(:post)
   validates(:post_id, uniqueness: { scope: %i[user_id], message: "have already hidden this post" })
   validates(:reason, inclusion: { in: %w[borderline_quality borderline_relevancy other] })
-  validates(:message, length: { maximum: -> { Config.instance.disapproval_message_max_size } })
+  validates(:message, length: { maximum: -> { AdminConfig.instance.disapproval_message_max_size } })
 
   scope(:with_message, -> { where.not(message: [nil, ""]) })
   scope(:without_message, -> { where(message: [nil, ""]) })

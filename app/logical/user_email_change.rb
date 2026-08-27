@@ -24,12 +24,12 @@ class UserEmailChange
     else
       user.validate_email_format = true
       user.email = new_email
-      user.email_verified = false if Config.instance.enable_email_verification
+      user.email_verified = false if AdminConfig.instance.enable_email_verification
       user.save
 
       if user.errors.empty?
         RateLimiter.hit("email:#{user.id}", 24.hours)
-        if Config.instance.enable_email_verification
+        if AdminConfig.instance.enable_email_verification
           Users::EmailConfirmationMailer.confirmation(user).deliver_now
         end
       end

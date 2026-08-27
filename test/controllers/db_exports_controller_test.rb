@@ -7,7 +7,7 @@ class DbExportsControllerTest < ActionDispatch::IntegrationTest
     context("index action") do
       context("when disabled") do
         setup do
-          Config.any_instance.stubs(:db_exports_enabled).returns(false)
+          AdminConfig.any_instance.stubs(:db_exports_enabled).returns(false)
         end
 
         should("respond with 501") do
@@ -19,7 +19,7 @@ class DbExportsControllerTest < ActionDispatch::IntegrationTest
 
       context("when enabled") do
         setup do
-          Config.any_instance.stubs(:db_exports_enabled).returns(true)
+          AdminConfig.any_instance.stubs(:db_exports_enabled).returns(true)
         end
 
         should("render for anonymous users") do

@@ -111,8 +111,8 @@ module MediaAssets
         end
 
         should("not allow files that are too large") do
-          Config.any_instance.stubs(:max_file_size).returns(0)
-          Config.any_instance.stubs(:max_file_sizes).returns({ "jpg" => 0 })
+          AdminConfig.any_instance.stubs(:max_file_size).returns(0)
+          AdminConfig.any_instance.stubs(:max_file_sizes).returns({ "jpg" => 0 })
           put_auth(append_post_replacement_media_asset_path(@media_asset), @user, params: { post_replacement_media_asset: { chunk_id: 1, data: file_fixture_upload(@combined) }, format: :json })
 
           assert_response(:unprocessable_entity)

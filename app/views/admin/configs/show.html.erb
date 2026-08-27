@@ -1,7 +1,7 @@
 <%= form_for(@config, url: admin_config_path, method: :patch) do %>
   <table class="autofit striped">
-    <% DynamicConfig.categories.each do |name| %>
-      <% fields = DynamicConfig.fields.select { |f| f.category == name } %>
+    <% AdminConfig::Fields.categories.each do |name| %>
+      <% fields = AdminConfig::Fields.fields.select { |f| f.category == name } %>
       <% bypass = fields.any?(&:bypass?) %>
       <thead>
       <tr>
@@ -73,6 +73,8 @@
   </table>
 <% end %>
 
+<%= render(partial: "secondary_links") %>
+
 <% content_for(:page_title) do %>
-  Config
+  Admin Config
 <% end %>

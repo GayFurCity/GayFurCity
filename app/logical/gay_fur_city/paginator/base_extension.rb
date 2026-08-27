@@ -55,15 +55,15 @@ module GayFurCity
 
       def max_numbered_pages
         if @paginator_options[:max_count]
-          [::Config.instance.max_numbered_pages, @paginator_options[:max_count] / records_per_page].min
+          [::AdminConfig.instance.max_numbered_pages, @paginator_options[:max_count] / records_per_page].min
         else
-          ::Config.instance.max_numbered_pages
+          ::AdminConfig.instance.max_numbered_pages
         end
       end
 
       def records_per_page
-        limit = @paginator_options.try(:[], :limit) || ::Config.instance.records_per_page
-        limit.to_i.clamp(0, ::Config.instance.max_per_page)
+        limit = @paginator_options.try(:[], :limit) || ::AdminConfig.instance.records_per_page
+        limit.to_i.clamp(0, ::AdminConfig.instance.max_per_page)
       end
 
       # When paginating large tables, we want to avoid doing an expensive count query

@@ -36,7 +36,7 @@ class UserPolicy < ApplicationPolicy
   def permitted_attributes_for_update
     attr = super + %i[enable_hover_zoom_form forum_unread_form] + [{ upload_notifications: [] }]
     attr += %i[profile_about profile_artinfo avatar_id] if unbanned? # Prevent editing when banned
-    attr += %i[enable_compact_uploader] if record.post_active_count >= Config.instance.compact_uploader_minimum_posts
+    attr += %i[enable_compact_uploader] if record.post_active_count >= AdminConfig.instance.compact_uploader_minimum_posts
     attr
   end
 

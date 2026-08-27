@@ -5,7 +5,7 @@
     <ul class="link-page">
       <li>» <%= link_to("Login", new_session_path) %></li>
 
-      <% if Config.instance.enable_signups %>
+      <% if AdminConfig.instance.enable_signups %>
         <li>» <%= link_to("Sign up", new_user_path) %></li>
       <% else %>
         <li>Signups are disabled</li>
@@ -14,7 +14,7 @@
       <li>» <%= link_to("Reset password", new_users_password_reset_path) %></li>
       <li>» <%= link_to("Login reminder", new_users_login_reminder_path) %></li>
 
-      <% if Config.instance.enable_email_verification %>
+      <% if AdminConfig.instance.enable_email_verification %>
         <li>» <%= link_to("Resend activation email", resend_confirmation_email_path) %></li>
       <% end %>
     </ul>
@@ -135,7 +135,7 @@
       <li>» <%= link_to("Change password", edit_user_password_path(CurrentUser.user)) %></li>
       <li>» <%= link_to("Manage API Access", user_api_keys_path(CurrentUser.user)) %></li>
       <li>» <%= link_to("Change username", new_user_name_change_request_path) %></li>
-      <% if Config.instance.enable_email_verification && !CurrentUser.user.is_verified? %>
+      <% if AdminConfig.instance.enable_email_verification && !CurrentUser.user.is_verified? %>
         <li>» <%= link_to("Resend activation email", resend_confirmation_email_path) %></li>
       <% end %>
       <li>» <%= link_to("Clear favorites", clear_favorites_path) %></li>

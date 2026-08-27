@@ -34,7 +34,7 @@ class WikiPage < ApplicationRecord
   validates(:title, tag_name: true, if: :title_changed?)
   validates(:body, presence: { unless: -> { parent.present? } })
   validates(:title, length: { minimum: 1, maximum: 100 })
-  validates(:body, length: { maximum: -> { Config.instance.wiki_page_max_size } })
+  validates(:body, length: { maximum: -> { AdminConfig.instance.wiki_page_max_size } })
   validates(:protection_level, inclusion: { in: User::Levels.hash.values }, if: -> { protection_level.present? })
   validate(:validate_name_not_restricted, on: :create)
   validate(:user_not_limited)

@@ -36,7 +36,7 @@ class UserApproval < ApplicationRecord
 
       update(status: "approved", updater: approver)
       user.update(level: User::Levels::MEMBER)
-      text = WikiPage.safe_wiki(Config.instance.user_approved_wiki_page).body.gsub("%USER_NAME%", updater_name).gsub("%USER_ID%", updater_id.to_s)
+      text = WikiPage.safe_wiki(AdminConfig.instance.user_approved_wiki_page).body.gsub("%USER_NAME%", updater_name).gsub("%USER_ID%", updater_id.to_s)
       Dmail.create_automated(to: user, title: "Your account has been approved", body: text)
       ModAction.log!(updater, :user_approve, self, user_id: user_id)
     end
@@ -47,7 +47,7 @@ class UserApproval < ApplicationRecord
 
       update(status: "rejected", updater: rejector)
       user.update(level: User::Levels::REJECTED)
-      text = WikiPage.safe_wiki(Config.instance.user_rejected_wiki_page).body.gsub("%USER_NAME%", updater_name).gsub("%USER_ID%", updater_id.to_s)
+      text = WikiPage.safe_wiki(AdminConfig.instance.user_rejected_wiki_page).body.gsub("%USER_NAME%", updater_name).gsub("%USER_ID%", updater_id.to_s)
       Dmail.create_automated(to: user, title: "Your account has been rejected", body: text)
       ModAction.log!(updater, :user_reject, self, user_id: user_id)
     end

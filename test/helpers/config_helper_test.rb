@@ -10,7 +10,7 @@ class ConfigHelperTest < ActionView::TestCase
     # actually be saved as true (see app/helpers/config_helper.rb).
     should("render the hidden fallback before the checkbox in the markup") do
       owner = create(:owner_user)
-      config = Config.instance
+      config = AdminConfig.instance
 
       html = CurrentUser.scoped(owner) { boolean_config_field(config, :db_exports_enabled) } # rubocop:disable YiffSpace/CurrentOutsideOfRequests
 
@@ -28,7 +28,7 @@ class ConfigHelperTest < ActionView::TestCase
     # sends "false", so it can never actually be turned on through the UI.
     should("render the checkbox's value as a fixed true sentinel regardless of the field's current value") do
       owner = create(:owner_user)
-      config = Config.instance
+      config = AdminConfig.instance
       config.update_column(:db_exports_enabled, false)
 
       html = CurrentUser.scoped(owner) { boolean_config_field(config, :db_exports_enabled) } # rubocop:disable YiffSpace/CurrentOutsideOfRequests

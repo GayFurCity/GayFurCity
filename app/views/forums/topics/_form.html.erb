@@ -10,7 +10,7 @@
     </div>
 
     <%= f.simple_fields_for(:original_post) do |pf| %>
-      <%= pf.input(:body, as: :dtext, limit: Config.instance.forum_post_max_size) %>
+      <%= pf.input(:body, as: :dtext, limit: AdminConfig.instance.forum_post_max_size) %>
       <% if policy(forum_topic.original_post).can_use_attribute?(:allow_voting, forum_topic.persisted? ? :update : :create) %>
         <%= pf.input(:allow_voting, label: "Voting", hint: "Enables voting on the post. This should be used sparingly, and cannot be disabled once enabled.") %>
         <% end %>

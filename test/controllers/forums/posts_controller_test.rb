@@ -300,8 +300,8 @@ module Forums
 
         should("not create a new forum post if topic is stale") do
           create(:forum_post, topic: @forum_topic, creator: @mod) # if the topic doesn't have any posts it will never be stale
-          Config.any_instance.stubs(:enable_stale_forum_topics).returns(true)
-          Config.any_instance.stubs(:forum_topic_stale_window).returns(60)
+          AdminConfig.any_instance.stubs(:enable_stale_forum_topics).returns(true)
+          AdminConfig.any_instance.stubs(:forum_topic_stale_window).returns(60)
 
           travel_to(1.year.from_now) do
             assert_no_difference("ForumPost.count") do
@@ -314,8 +314,8 @@ module Forums
         end
 
         should("work even if the topic is stale if it has no posts") do
-          Config.any_instance.stubs(:enable_stale_forum_topics).returns(true)
-          Config.any_instance.stubs(:forum_topic_stale_window).returns(60)
+          AdminConfig.any_instance.stubs(:enable_stale_forum_topics).returns(true)
+          AdminConfig.any_instance.stubs(:forum_topic_stale_window).returns(60)
 
           travel_to(1.year.from_now) do
             assert_difference("ForumPost.count", 1) do
@@ -328,8 +328,8 @@ module Forums
 
         should("still create a new forum post if topic is stale for moderators") do
           create(:forum_post, topic: @forum_topic, creator: @mod) # if the topic doesn't have any posts it will never be stale
-          Config.any_instance.stubs(:enable_stale_forum_topics).returns(true)
-          Config.any_instance.stubs(:forum_topic_stale_window).returns(60)
+          AdminConfig.any_instance.stubs(:enable_stale_forum_topics).returns(true)
+          AdminConfig.any_instance.stubs(:forum_topic_stale_window).returns(60)
 
           travel_to(1.year.from_now) do
             assert_difference("ForumPost.count", 1) do

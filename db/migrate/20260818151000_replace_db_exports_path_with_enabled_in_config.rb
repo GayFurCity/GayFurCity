@@ -8,6 +8,6 @@ class ReplaceDbExportsPathWithEnabledInConfig < ExtendedMigration[7.1]
     remove_column(:config, :db_exports_path, :string, default: "/db_exports")
     add_column(:config, :db_exports_enabled, :boolean, null: false, default: false)
 
-    Config.delete_cache
+    AdminConfig.delete_cache
   end
 end

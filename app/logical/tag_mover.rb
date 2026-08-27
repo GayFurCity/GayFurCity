@@ -46,9 +46,9 @@ class TagMover
   end
 
   def tag_category_update
-    if !old_tag.is_locked? && old_tag.general? && !new_tag.general? && old_tag.post_count < Config.instance.alias_category_change_cutoff
+    if !old_tag.is_locked? && old_tag.general? && !new_tag.general? && old_tag.post_count < AdminConfig.instance.alias_category_change_cutoff
       return [old_tag, new_tag.category]
-    elsif !new_tag.is_locked? && new_tag.general? && !old_tag.general? && new_tag.post_count < Config.instance.alias_category_change_cutoff
+    elsif !new_tag.is_locked? && new_tag.general? && !old_tag.general? && new_tag.post_count < AdminConfig.instance.alias_category_change_cutoff
       return [new_tag, old_tag.category]
     end
     [nil, nil]

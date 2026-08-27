@@ -7,6 +7,6 @@ class AddAnonymousHardTagLimitToConfig < ExtendedMigration[8.1]
   def change
     add_column(:config, :anonymous_hard_tag_limit, :integer, null: false, default: 40)
 
-    Config.delete_cache
+    AdminConfig.delete_cache
   end
 end

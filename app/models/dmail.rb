@@ -5,7 +5,7 @@ class Dmail < ApplicationRecord
   normalizes(:body, with: ->(body) { body.gsub("\r\n", "\n") })
   validates(:title, :body, presence: { on: :create })
   validates(:title, length: { minimum: 1, maximum: 250 })
-  validates(:body, length: { minimum: 1, maximum: -> { Config.instance.dmail_max_size } })
+  validates(:body, length: { minimum: 1, maximum: -> { AdminConfig.instance.dmail_max_size } })
   validate(:recipient_accepts_dmails, on: :create)
   validate(:user_not_limited, on: :create)
   validate(:user_can_send_to, on: :create)

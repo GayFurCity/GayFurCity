@@ -8,7 +8,7 @@ class UserFeedback < ApplicationRecord
   soft_deletable
   normalizes(:body, with: ->(body) { body.gsub("\r\n", "\n") })
   validates(:body, :category, presence: true)
-  validates(:body, length: { minimum: 1, maximum: -> { Config.instance.user_feedback_max_size } })
+  validates(:body, length: { minimum: 1, maximum: -> { AdminConfig.instance.user_feedback_max_size } })
   validate(:creator_is_moderator, on: :create)
   validate(:user_is_not_creator)
   after_destroy(:create_staff_note_on_destroy)

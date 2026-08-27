@@ -55,19 +55,19 @@ class Takedown < ApplicationRecord
       return if creator&.is_admin?
 
       if IpBan.is_banned?(creator_ip_addr.to_s)
-        errors.add(:base, "Something went wrong. Please email us at #{Config.instance.takedown_email} instead")
+        errors.add(:base, "Something went wrong. Please email us at #{AdminConfig.instance.takedown_email} instead")
         return
       end
 
       takedowns_ip = Takedown.where(creator_ip_addr: creator_ip_addr, created_at: 1.day.ago..)
       if takedowns_ip.count > 5
-        errors.add(:base, "You have created too many takedowns. Please email us at #{Config.instance.takedown_email} or try again later")
+        errors.add(:base, "You have created too many takedowns. Please email us at #{AdminConfig.instance.takedown_email} or try again later")
         return
       end
 
       takedowns_user = Takedown.where(creator_id: creator_id, created_at: 1.day.ago..)
       if creator_id && takedowns_user.count > 5
-        errors.add(:base, "You have created too many takedowns. Please email us at #{Config.instance.takedown_email} or try again later")
+        errors.add(:base, "You have created too many takedowns. Please email us at #{AdminConfig.instance.takedown_email} or try again later")
       end
     end
 

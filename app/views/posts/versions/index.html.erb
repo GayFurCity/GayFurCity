@@ -2,7 +2,7 @@
 
 <h1>Changes</h1>
 
-<% if Config.user?(:show_tag_scripting, CurrentUser.user) %>
+<% if AdminConfig.user?(:show_tag_scripting, CurrentUser.user) %>
   <div>
     <div class="input">
       <label>Tag Script</label>

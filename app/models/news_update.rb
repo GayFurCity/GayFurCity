@@ -5,7 +5,7 @@ class NewsUpdate < ApplicationRecord
   belongs_to_user(:updater, ip: true)
   resolvable(:destroyer)
 
-  validates(:message, length: { minimum: 1, maximum: -> { Config.instance.news_update_max_size } })
+  validates(:message, length: { minimum: 1, maximum: -> { AdminConfig.instance.news_update_max_size } })
 
   after_destroy(:invalidate_cache)
   after_save(:invalidate_cache)

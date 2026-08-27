@@ -14,7 +14,7 @@
       This means you are able to upload a maximum of <span style='font-weight:bold'><%= CurrentUser.upload_limit %></span> unapproved posts at a time.
       Once a moderator approves some of your posts, you can upload more.<br />
       You cannot upload anything within the first week of registration.<br />
-      If your limit ends up negative due to a large number of deleted posts, please contact <%= Config.instance.contact_email %> to have it corrected.
+      If your limit ends up negative due to a large number of deleted posts, please contact <%= AdminConfig.instance.contact_email %> to have it corrected.
     </p>
   <% end %>
 

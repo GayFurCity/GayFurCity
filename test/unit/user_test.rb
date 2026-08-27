@@ -42,14 +42,14 @@ class UserTest < ActiveSupport::TestCase
 
     should("limit comment votes") do
       # allow creating one more comment than votes so creating a vote can fail later on
-      Config.any_instance.stubs(:comment_vote_limit).returns(1)
-      Config.any_instance.stubs(:comment_limit).returns(Config.instance.comment_vote_limit + 1)
+      AdminConfig.any_instance.stubs(:comment_vote_limit).returns(1)
+      AdminConfig.any_instance.stubs(:comment_limit).returns(AdminConfig.instance.comment_vote_limit + 1)
 
       assert_equal(:REJ_NEWBIE, @user.can_comment_vote_with_reason)
       @user.update_column(:created_at, 1.year.ago)
       user2 = create(:user, created_at: 1.year.ago)
 
-      comments = create_list(:comment, Config.instance.comment_vote_limit, creator: user2)
+      comments = create_list(:comment, AdminConfig.instance.comment_vote_limit, creator: user2)
       comments.each { |c| VoteManager::Comments.vote!(comment: c, user: @user, score: -1, ip_addr: "127.0.0.1") }
 
       assert_equal(:REJ_LIMITED, @user.can_comment_vote_with_reason)
@@ -65,7 +65,7 @@ class UserTest < ActiveSupport::TestCase
     end
 
     should("limit comments") do
-      Config.any_instance.stubs(:comment_limit).returns(2)
+      AdminConfig.any_instance.stubs(:comment_limit).returns(2)
 
       assert_equal(:REJ_NEWBIE, @user.can_comment_with_reason)
       @user.update_column(:level, User::Levels::TRUSTED)
@@ -75,7 +75,7 @@ class UserTest < ActiveSupport::TestCase
       @user.update_column(:created_at, 1.year.ago)
 
       assert(@user.can_comment_with_reason)
-      create_list(:comment, Config.instance.comment_limit, creator: @user)
+      create_list(:comment, AdminConfig.instance.comment_limit, creator: @user)
 
       assert_equal(:REJ_LIMITED, @user.can_comment_with_reason)
     end
@@ -85,7 +85,7 @@ class UserTest < ActiveSupport::TestCase
       @user.update_column(:created_at, 1.year.ago)
       topic = create(:forum_topic, creator: @user)
       # Creating a topic automatically creates a post
-      (Config.instance.comment_limit - 1).times do
+      (AdminConfig.instance.comment_limit - 1).times do
         create(:forum_post, topic_id: topic.id, creator: @user)
       end
 
@@ -133,8 +133,8 @@ class UserTest < ActiveSupport::TestCase
     end
 
     context("name") do
-      should("be #{Config.instance.anonymous_user_name} given an invalid user id") do
-        assert_equal(Config.instance.anonymous_user_name, User.id_to_name(-1))
+      should("be #{AdminConfig.instance.anonymous_user_name} given an invalid user id") do
+        assert_equal(AdminConfig.instance.anonymous_user_name, User.id_to_name(-1))
       end
 
       should("not contain whitespace") do
@@ -260,7 +260,7 @@ class UserTest < ActiveSupport::TestCase
     context("that might be a sock puppet") do
       setup do
         @user = create(:user, last_ip_addr: "127.0.0.2")
-        Config.any_instance.stubs(:enable_sock_puppet_validation).returns(true)
+        AdminConfig.any_instance.stubs(:enable_sock_puppet_validation).returns(true)
       end
 
       should("not validate") do

@@ -405,7 +405,9 @@ Rails.application.routes.draw do
   end
   resources(:stats, only: %i[index])
   resource(:status, only: %i[show])
-  resource(:system, only: %i[show])
+  resource(:system, only: %i[show]) do
+    get(:dbsize, on: :collection)
+  end
   resources(:tags, constraints: id_name_constraint, only: %i[index show edit update]) do
     collection do
       get(:preview)

@@ -178,7 +178,7 @@ module TestHelpers
         factory = :"#{level_name.downcase.tr(' ', '_')}_user"
         should("#{desc} #{level_name}") do
           user = create(factory)
-          ApplicationRecord.transaction do
+          ActiveRecord::Base.transaction do
             instance_exec(user, &setup) if setup
             instance_exec(user, &exec)
 

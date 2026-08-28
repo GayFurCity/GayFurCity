@@ -1,0 +1,36 @@
+<h1>System Info: DB Size</h1>
+
+<% render(partial: "secondary_links") %>
+
+<br>
+<% if @info.skipped.any? %>
+  <h3>Skipped</h3>
+  <ul>
+    <% @info.skipped.each do |(name, reason)| %>
+      <li>- <b><%= name %></b>: <code><%= reason %></code></li>
+    <% end %>
+  </ul>
+<% end %>
+<br>
+
+<table class="striped">
+  <% @info.sorted_results.keys.each do |name| %>
+    <thead>
+    <tr><th colspan="6" style="text-align: center; font-size: 150%"><%= name %></th></tr>
+    <tr><th>Table</th><th>Size</th><th>Table</th><th>Size</th><th>Table</th><th>Size</th></tr>
+    </thead>
+    <tbody>
+    <% @info.sorted_results[name].in_groups(3).transpose.each do |set| %>
+      <tr>
+        <% set.each do |row| %>
+          <% if row.nil? %>
+          <td></td><td></td>
+          <% else %>
+            <td><%= [row.schema, row.table].compact.join(".") %></td><td><%= row.pretty_size %></td>
+          <% end %>
+        <% end %>
+      </tr>
+    <% end %>
+    </tbody>
+  <% end %>
+</table>

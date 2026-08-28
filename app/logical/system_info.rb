@@ -69,11 +69,11 @@ class SystemInfo
     @redis ||= begin
       latency = time { Cache.redis.ping }
       current_db = Cache.redis._client.db.to_s
-      info = Cache.redis.info
+      info = Redis::Commands::HashifyInfo.call(Cache.redis._client.call_v(%w[INFO]))
       version = info["redis_version"]
       connected_clients = info["connected_clients"].to_i
       clients_per_db = Cache.redis._client.call_v(%w[CLIENT LIST]).split("\n").map { |l| l.match(/db=(\d+)/)[1] }.tally
-      keys_per_db = Cache.redis.info("KEYSPACE").to_h { |k, v| [k[2..], v.match(/keys=(\d+)/)[1].to_i] }
+      keys_per_db = Redis::Commands::HashifyInfo.call(Cache.redis._client.call_v(%w[INFO KEYSPACE])).to_h { |k, v| [k[2..], v.match(/keys=(\d+)/)[1].to_i] }
       OpenHash.from(latency: latency, current_db: current_db, version: version, connected_clients: connected_clients, clients_per_db: clients_per_db, keys_per_db: keys_per_db, databases: keys_per_db.keys)
     end
   end

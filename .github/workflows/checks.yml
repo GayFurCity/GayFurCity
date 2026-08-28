@@ -63,6 +63,7 @@ jobs:
   rubocop:
     runs-on: ubuntu-22.04
     needs: docker-build
+    if: ${{ !contains(github.event.head_commit.message, '[skip rubocop]') }}
 
     steps:
       - name: Checkout Repository
@@ -78,6 +79,7 @@ jobs:
   eslint:
     runs-on: ubuntu-22.04
     needs: docker-build
+    if: ${{ !contains(github.event.head_commit.message, '[skip lint]') }}
 
     steps:
       - name: Checkout Repository
@@ -93,6 +95,7 @@ jobs:
   tests:
     runs-on: ubuntu-22.04
     needs: docker-build
+    if: ${{ !contains(github.event.head_commit.message, '[skip tests]') }}
     permissions:
       contents: read
       checks: write
@@ -132,6 +135,7 @@ jobs:
   dtext-tests:
     runs-on: ubuntu-22.04
     needs: docker-build
+    if: ${{ !contains(github.event.head_commit.message, '[skip dtext]') }}
 
     steps:
       - name: Checkout Repository

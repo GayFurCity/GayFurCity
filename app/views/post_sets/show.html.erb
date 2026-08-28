@@ -18,6 +18,15 @@
 Created: <%= time_ago_in_words_tagged(@post_set.created_at) %> |
 Updated: <%= time_ago_in_words_tagged(@post_set.updated_at) %>
 <br/><br/>
+
+<% if @post_set.is_indexing? %>
+  <div class="indexing-notice">
+    Recently added or removed posts are still being reindexed and may not yet appear correctly in search results.
+    <% if policy(@post_set).clear_indexing? %>
+      | <%= link_to("Clear notice", clear_indexing_post_set_path(@post_set), method: :put, data: { confirm: "Clear the indexing notice? Only do this if it appears stuck." }) %>
+    <% end %>
+  </div>
+<% end %>
 <% if @post_set.description.blank? %>
   <div class="set-description">No description.</div>
 <% else %>

@@ -39,6 +39,8 @@ class PostSetTest < ActiveSupport::TestCase
       end
 
       should("synchronize the posts with the set") do
+        perform_enqueued_jobs(only: PostSetSyncJob)
+
         assert_equal(@posts.map(&:id), @set.post_ids)
 
         @posts.each(&:reload)
@@ -198,6 +200,10 @@ class PostSetTest < ActiveSupport::TestCase
         should("add the set to the post") { assert_equal("set:#{@set.id}", @p1.pool_string) }
         should("increment the post count") { assert_equal(1, @set.post_count) }
 
+        should("not mark the set as indexing (single-post adds via #add! sync inline)") do
+          assert_not(@set.is_indexing?)
+        end
+
         should("not double add the post on repeated calls") do
           @set.add!(@p1, @user)
 
@@ -226,8 +232,21 @@ class PostSetTest < ActiveSupport::TestCase
         should("add the posts") { assert_equal([@p1.id, @p2.id], @set.post_ids) }
 
         should("synchronize the posts") do
+          perform_enqueued_jobs(only: PostSetSyncJob)
+
           assert_equal("set:#{@set.id}", @p1.reload.pool_string)
           assert_equal("set:#{@set.id}", @p2.reload.pool_string)
+        end
+
+        should("mark the set as indexing") do
+          assert_predicate(@set, :is_indexing?)
+        end
+
+        should("clear is_indexing once the reindex batch finishes") do
+          perform_enqueued_jobs(only: PostSetSyncJob)
+          perform_enqueued_jobs(only: PostSetIndexingFinishedJob)
+
+          assert_not(@set.reload.is_indexing?)
         end
 
         should("ignore ids that don't correspond to real posts") do
@@ -247,7 +266,23 @@ class PostSetTest < ActiveSupport::TestCase
         end
 
         should("remove the post") { assert_equal([@p2.id], @set.post_ids) }
-        should("synchronize the post") { assert_equal("", @p1.reload.pool_string) }
+
+        should("synchronize the post") do
+          perform_enqueued_jobs(only: PostSetSyncJob)
+
+          assert_equal("", @p1.reload.pool_string)
+        end
+
+        should("mark the set as indexing") do
+          assert_predicate(@set, :is_indexing?)
+        end
+
+        should("clear is_indexing once the reindex batch finishes") do
+          perform_enqueued_jobs(only: PostSetSyncJob)
+          perform_enqueued_jobs(only: PostSetIndexingFinishedJob)
+
+          assert_not(@set.reload.is_indexing?)
+        end
       end
 
       context("post navigation") do

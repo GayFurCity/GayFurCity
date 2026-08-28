@@ -3,6 +3,15 @@
   <% if @pool.is_ongoing? %><span class="hint">ongoing</span><% end %>
 </h2>
 
+<% if @pool.is_indexing? %>
+  <div class="indexing-notice">
+    Recently added or removed posts are still being reindexed and may not yet appear correctly in search results.
+    <% if policy(@pool).clear_indexing? %>
+      | <%= link_to("Clear notice", clear_indexing_pool_path(@pool), method: :put, data: { confirm: "Clear the indexing notice? Only do this if it appears stuck." }) %>
+    <% end %>
+  </div>
+<% end %>
+
 <div id="description" class="dtext-container">
   <%= format_text(@pool.description) %>
 </div>

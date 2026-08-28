@@ -79,6 +79,7 @@ class Pool < ApplicationRecord
     def query_dsl
       super
         .field(:is_ongoing)
+        .field(:is_indexing)
         .field(:category)
         .field(:name_matches, :name, normalize: Pool.method(:normalize_name))
         .field(:description_matches, :description)
@@ -265,16 +266,13 @@ class Pool < ApplicationRecord
     added = post_ids - post_ids_before
     removed = post_ids_before - post_ids
 
-    Post.where(id: added).find_each do |post|
-      post.add_pool!(self, updater)
-      post.save
+    if added.any? || removed.any?
+      # Syncing posts can be slow, so it's done in PoolSyncJob instead of inline here.
+      update_columns(is_indexing: true)
+      PoolSyncJob.perform_later(id, updater, added_ids: added, removed_ids: removed)
+    else
+      update_artists!
     end
-
-    Post.where(id: removed).find_each do |post|
-      post.remove_pool!(self, updater)
-      post.save
-    end
-    update_artists!
   end
 
   def synchronize!

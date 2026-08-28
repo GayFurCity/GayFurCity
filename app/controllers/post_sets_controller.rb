@@ -99,6 +99,15 @@ class PostSetsController < ApplicationController
     respond_with(@post_set, status: 200)
   end
 
+  def clear_indexing
+    @post_set = authorize(PostSet.find(params[:id]))
+    @post_set.update_column(:is_indexing, false)
+    notice("Indexing notice cleared")
+    respond_with(@post_set, status: 200) do |format|
+      format.html { redirect_back_or_to(post_set_path(@post_set)) }
+    end
+  end
+
   private
 
   def update_posts_params

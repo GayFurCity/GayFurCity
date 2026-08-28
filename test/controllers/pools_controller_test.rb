@@ -40,11 +40,13 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
           @admin = create(:admin_user)
           @wiki = create(:wiki_page, title: "bar")
           @post = create(:post, tag_string: "artist:baz")
-          @pool = create(:pool, creator: @creator, creator_ip_addr: "127.0.0.2", name: "foo", description: "[[bar]] qux", category: "series", is_ongoing: true, post_ids: [@post.id])
+          @pool = with_inline_jobs { create(:pool, creator: @creator, creator_ip_addr: "127.0.0.2", name: "foo", description: "[[bar]] qux", category: "series", is_ongoing: true, post_ids: [@post.id]) }
+          @pool.reload
         end
 
         asserts do
           search(:is_ongoing, "true").records { [@pool] }
+          search(:is_indexing, "false").records { [@pool] }
           search(:category, "series").records { [@pool] }
           search(:name_matches, "foo").records { [@pool] }
           search(:description_matches, "qux").records { [@pool] }
@@ -65,6 +67,19 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         get(pool_path(@pool))
 
         assert_response(:success)
+      end
+
+      should("not show the indexing notice when the pool isn't indexing") do
+        get(pool_path(@pool))
+
+        assert_select(".indexing-notice", false)
+      end
+
+      should("show the indexing notice while the pool is indexing") do
+        @pool.update_column(:is_indexing, true)
+        get(pool_path(@pool))
+
+        assert_select(".indexing-notice")
       end
 
       context("access control") do
@@ -260,6 +275,32 @@ class PoolsControllerTest < ActionDispatch::IntegrationTest
         asserts do
           access.gte(User::Levels::MEMBER).put { revert_pool_path(@pool) }.params { { version_id: @pool.versions.last.id } }.success(:redirect)
           access.gte(User::Levels::MEMBER).json.put { revert_pool_path(@pool) }.params { { version_id: @pool.versions.last.id } }
+        end
+      end
+    end
+
+    context("clear_indexing action") do
+      setup { @admin = create(:admin_user) }
+
+      should("clear the indexing flag") do
+        @pool.update_column(:is_indexing, true)
+        put_auth(clear_indexing_pool_path(@pool), @admin)
+
+        assert_not(@pool.reload.is_indexing?)
+      end
+
+      should("not allow non-admins to clear it") do
+        @pool.update_column(:is_indexing, true)
+        put_auth(clear_indexing_pool_path(@pool), @user, params: { format: :json })
+
+        assert_response(:forbidden)
+        assert_predicate(@pool.reload, :is_indexing?)
+      end
+
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).put { clear_indexing_pool_path(@pool) }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.put { clear_indexing_pool_path(@pool) }
         end
       end
     end

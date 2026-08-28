@@ -54,6 +54,10 @@ class PostSetPolicy < ApplicationPolicy
     post_edit_access?(record)
   end
 
+  def clear_indexing?
+    user.is_admin?
+  end
+
   def add_maintainer?
     settings_edit_access?(record)
   end
@@ -63,7 +67,7 @@ class PostSetPolicy < ApplicationPolicy
   end
 
   def permitted_search_params
-    params = super + %i[name shortname creator_id creator_name post_id maintainer_id] + nested_search_params(creator: User, updater: User)
+    params = super + %i[name shortname creator_id creator_name post_id maintainer_id is_indexing] + nested_search_params(creator: User, updater: User)
     params << :is_public if user.is_moderator?
     params
   end

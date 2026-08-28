@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_26_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_28_225454) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -900,6 +900,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_120000) do
     t.bigint "creator_id", null: false
     t.inet "creator_ip_addr", null: false
     t.text "description", default: "", null: false
+    t.boolean "is_indexing", default: false, null: false
     t.boolean "is_ongoing", default: true, null: false
     t.string "name", null: false
     t.bigint "post_ids", default: [], null: false, array: true
@@ -1085,6 +1086,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_120000) do
     t.bigint "creator_id", null: false
     t.inet "creator_ip_addr", null: false
     t.text "description", default: "", null: false
+    t.boolean "is_indexing", default: false, null: false
     t.boolean "is_public", default: false, null: false
     t.string "name", null: false
     t.integer "post_count", default: 0, null: false

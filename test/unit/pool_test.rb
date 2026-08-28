@@ -49,6 +49,8 @@ class PoolTest < ActiveSupport::TestCase
       end
 
       should("synchronize the posts with the pool") do
+        perform_enqueued_jobs(only: PoolSyncJob)
+
         assert_equal(@posts.map(&:id), @pool.post_ids)
 
         @posts.each(&:reload)
@@ -85,6 +87,7 @@ class PoolTest < ActiveSupport::TestCase
 
         version = @pool.versions[1]
         @pool.revert_to!(version, @user.resolvable("1.2.3.8"))
+        perform_enqueued_jobs(only: PoolSyncJob)
         @pool.reload
       end
 
@@ -149,6 +152,10 @@ class PoolTest < ActiveSupport::TestCase
 
         should("increment the post count") do
           assert_equal(1, @pool.post_count)
+        end
+
+        should("not mark the pool as indexing (single-post adds via #add! sync inline)") do
+          assert_not(@pool.is_indexing?)
         end
 
         should("not allow adding invalid posts") do
@@ -343,6 +350,8 @@ class PoolTest < ActiveSupport::TestCase
         end
 
         should("update the posts") do
+          perform_enqueued_jobs(only: PoolSyncJob)
+
           @p1.reload
           @p2.reload
           @p3.reload
@@ -350,6 +359,17 @@ class PoolTest < ActiveSupport::TestCase
           assert_equal("", @p1.pool_string)
           assert_equal("pool:#{@pool.id}", @p2.pool_string)
           assert_equal("", @p3.pool_string)
+        end
+
+        should("mark the pool as indexing") do
+          assert_predicate(@pool, :is_indexing?)
+        end
+
+        should("clear is_indexing once the reindex batch finishes") do
+          perform_enqueued_jobs(only: PoolSyncJob)
+          perform_enqueued_jobs(only: PoolIndexingFinishedJob)
+
+          assert_not(@pool.reload.is_indexing?)
         end
       end
 
@@ -404,12 +424,14 @@ class PoolTest < ActiveSupport::TestCase
       should("update when a post is added/removed (via post_ids=)") do
         @post2 = create(:post, tag_string: "artist:baz")
         @pool.update_with(@user, post_ids: [@post.id, @post2.id])
+        perform_enqueued_jobs(only: PoolSyncJob)
 
-        assert_same_elements(%w[foo baz], @pool.artist_names)
+        assert_same_elements(%w[foo baz], @pool.reload.artist_names)
 
         @pool.update_with(@user, post_ids: [@post2.id])
+        perform_enqueued_jobs(only: PoolSyncJob)
 
-        assert_same_elements(%w[baz], @pool.artist_names)
+        assert_same_elements(%w[baz], @pool.reload.artist_names)
       end
     end
   end

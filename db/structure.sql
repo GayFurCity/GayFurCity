@@ -1811,7 +1811,8 @@ CREATE TABLE public.pools (
     artist_names character varying[] DEFAULT '{}'::character varying[] NOT NULL,
     cover_post_id bigint,
     creator_ip_addr inet NOT NULL,
-    category character varying DEFAULT 'series'::character varying NOT NULL
+    category character varying DEFAULT 'series'::character varying NOT NULL,
+    is_indexing boolean DEFAULT false NOT NULL
 );
 
 
@@ -2231,7 +2232,8 @@ CREATE TABLE public.post_sets (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     updater_id bigint NOT NULL,
-    updater_ip_addr inet NOT NULL
+    updater_ip_addr inet NOT NULL,
+    is_indexing boolean DEFAULT false NOT NULL
 );
 
 
@@ -8448,6 +8450,7 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260828225454'),
 ('20260826120000'),
 ('20260821015609'),
 ('20260821014427'),

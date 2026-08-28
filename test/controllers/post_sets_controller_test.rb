@@ -59,6 +59,7 @@ class PostSetsControllerTest < ActionDispatch::IntegrationTest
           search(:name, "search_set_foo").records { [@search_set] }
           search(:shortname, "search_set_bar").records { [@search_set] }
           search(:is_public, "true").records { [@search_set] }.user { @admin }
+          search(:is_indexing, "true").records { [@search_set] }
           search(:creator_id).value { @creator.id }.records { [@search_set] }
           search(:creator_name).value { @creator.name }.records { [@search_set] }
           search(:post_id).value { @searched_post.id }.records { [@search_set] }
@@ -87,6 +88,19 @@ class PostSetsControllerTest < ActionDispatch::IntegrationTest
         get_auth(post_set_path(private_set), create(:user), params: { format: :json })
 
         assert_response(:forbidden)
+      end
+
+      should("not show the indexing notice when the set isn't indexing") do
+        get(post_set_path(@set))
+
+        assert_select(".indexing-notice", false)
+      end
+
+      should("show the indexing notice while the set is indexing") do
+        @set.update_column(:is_indexing, true)
+        get(post_set_path(@set))
+
+        assert_select(".indexing-notice")
       end
 
       context("access control") do
@@ -373,6 +387,30 @@ class PostSetsControllerTest < ActionDispatch::IntegrationTest
         asserts do
           access.gte(User::Levels::ADMIN).post { remove_posts_post_set_path(@set) }.params({ post_ids: [] }).success(:redirect)
           access.gte(User::Levels::ADMIN).json.post { remove_posts_post_set_path(@set) }.params({ post_ids: [] })
+        end
+      end
+    end
+
+    context("clear_indexing action") do
+      should("clear the indexing flag") do
+        @set.update_column(:is_indexing, true)
+        put_auth(clear_indexing_post_set_path(@set), @admin)
+
+        assert_not(@set.reload.is_indexing?)
+      end
+
+      should("not allow non-admins to clear it") do
+        @set.update_column(:is_indexing, true)
+        put_auth(clear_indexing_post_set_path(@set), @user, params: { format: :json })
+
+        assert_response(:forbidden)
+        assert_predicate(@set.reload, :is_indexing?)
+      end
+
+      context("access control") do
+        asserts do
+          access.gte(User::Levels::ADMIN).put { clear_indexing_post_set_path(@set) }.success(:redirect)
+          access.gte(User::Levels::ADMIN).json.put { clear_indexing_post_set_path(@set) }
         end
       end
     end

@@ -260,18 +260,11 @@ class PostSet < ApplicationRecord
       post_ids_before = post_ids_before_last_save || post_ids_was
       added = post_ids - post_ids_before
       removed = post_ids_before - post_ids
+      return if added.empty? && removed.empty?
 
-      added_posts = Post.where(id: added)
-      added_posts.find_each do |post|
-        post.add_set!(self, updater, force: true)
-        post.save
-      end
-
-      removed_posts = Post.where(id: removed)
-      removed_posts.find_each do |post|
-        post.remove_set!(self, updater)
-        post.save
-      end
+      # Syncing posts can be slow, so it's done in PostSetSyncJob instead of inline here.
+      update_columns(is_indexing: true)
+      PostSetSyncJob.perform_later(id, updater, added_ids: added, removed_ids: removed)
     end
 
     def synchronize!
@@ -310,6 +303,7 @@ class PostSet < ApplicationRecord
         .field(:shortname)
         .field(:post_count)
         .field(:is_public)
+        .field(:is_indexing)
         .field(:creator_ip_addr)
         .field(:updater_ip_addr)
         .association(:creator)

@@ -293,6 +293,7 @@ Rails.application.routes.draw do
     resource(:order, only: %i[edit], controller: "pools/orders")
     member do
       put(:revert)
+      put(:clear_indexing)
     end
     collection do
       get(:gallery)
@@ -513,6 +514,7 @@ Rails.application.routes.draw do
       post(:update_posts)
       post(:add_posts)
       post(:remove_posts)
+      put(:clear_indexing)
     end
   end
   resource(:email, only: %i[]) do

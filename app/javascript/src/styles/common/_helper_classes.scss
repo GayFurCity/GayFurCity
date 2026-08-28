@@ -48,6 +48,14 @@
   margin-bottom: 0.5rem;
 }
 
+.indexing-notice {
+  margin-bottom: 1em;
+  padding: $padding-050 $base-padding;
+  background-color: $indexing-notice-color;
+  border: 1px solid themed("color-section-lighten-10");
+  width: fit-content;
+}
+
 .button {
   display: inline-block;
   box-sizing: border-box;

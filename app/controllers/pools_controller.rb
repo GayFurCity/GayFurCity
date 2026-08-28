@@ -69,6 +69,15 @@ class PoolsController < ApplicationController
     respond_with(@pool, &:js)
   end
 
+  def clear_indexing
+    @pool = authorize(Pool.find(params[:id]))
+    @pool.update_column(:is_indexing, false)
+    notice("Indexing notice cleared")
+    respond_with(@pool, status: 200) do |format|
+      format.html { redirect_back_or_to(pool_path(@pool)) }
+    end
+  end
+
   def ensure_lockdown_disabled
     access_denied if Security::Lockdown.pools_disabled? && !CurrentUser.user.is_staff?
   end

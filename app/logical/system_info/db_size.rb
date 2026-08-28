@@ -1,8 +1,10 @@
-require "pg"
+# frozen_string_literal: true
+
+require("pg")
 
 class SystemInfo
   class DbSize
-    class Row < Struct.new(:schema, :table, :size)
+    Row = Struct.new(:schema, :table, :size) do
       def pretty_size
         Helpers.number_to_human_size(size)
       end
@@ -16,7 +18,7 @@ class SystemInfo
     end
 
     def sorted_results
-      @sorted_results ||= results.sort_by { |_k, v| -v.first.size }.to_h { |k, v| [k, v.sort_by(&:size).reverse ]}
+      @sorted_results ||= results.sort_by { |_k, v| -v.first.size }.to_h { |k, v| [k, v.sort_by(&:size).reverse] }
     end
 
     def connect(database)

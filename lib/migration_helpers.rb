@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module MigrationHelpers
-  DEFAULT_ID = User.system.id
   DEFAULT_IP = "127.0.0.1"
 
   def add_ip_addr(table, name, null: false)
@@ -13,12 +12,12 @@ module MigrationHelpers
 
   def add_user_column(table, column, null: false)
     useroptions = { null: null }
-    useroptions[:default] = DEFAULT_ID unless null
+    useroptions[:default] = default_id unless null
     ipoptions = { null: null }
     ipoptions[:default] = DEFAULT_IP unless null
     add_reference_with_type(table, column, foreign_key: { to_table: :users }, **useroptions)
     add_column(table, :"#{column}_ip_addr", :inet, **ipoptions)
-    change_column_default(table, :"#{column}_id", from: DEFAULT_ID, to: nil) unless null
+    change_column_default(table, :"#{column}_id", from: default_id, to: nil) unless null
     change_column_default(table, :"#{column}_ip_addr", from: DEFAULT_IP, to: nil) unless null
   end
 
@@ -142,5 +141,16 @@ module MigrationHelpers
         dir.down { execute(update_change_seq_sql(columns, add: remove, remove: add)) }
       end
     end
+  end
+
+  private
+
+  # Deliberately lazy (not a module-level constant) - `include(MigrationHelpers)` runs for every
+  # migration via ExtendedMigration.[], so a constant here would eagerly load User/AdminConfig
+  # while merely *defining* a migration class, before its `change` method (and any schema changes
+  # it makes) has actually run. That bit us when a migration renaming AdminConfig's own table ran:
+  # the eager load tried to query the not-yet-renamed table before the rename in `change` executed.
+  def default_id
+    User.system.id
   end
 end

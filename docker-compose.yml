@@ -396,7 +396,7 @@ services:
   # Discord integration
 
   discordbot:
-    image: ghcr.io/gayfurcity/discordbot:6ea993036367c5ff55b865018300032c37d16e4d
+    image: ghcr.io/gayfurcity/discordbot:d5c3b2899ac4e9e96536e2079568133c91682f4c
     environment:
       DISCORD_TOKEN: ${DISCORDBOT_DISCORD_TOKEN-}
       DISCORD_ID: ${DISCORDBOT_DISCORD_ID-}

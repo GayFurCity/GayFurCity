@@ -6,7 +6,7 @@ class UserEventPolicy < ApplicationPolicy
   end
 
   def permitted_search_params
-    attr = super + %i[category user_id user_name user_ip_addr user_agent] + nested_search_params(user: User)
+    attr = super + %i[category user_id user_name ip_addr user_agent] + nested_search_params(user: User)
     attr += %i[session_id] if user.is_admin?
     attr
   end

@@ -231,5 +231,13 @@ class BulkUpdateRequestTest < ActiveSupport::TestCase
         assert_equal([@bur1.id], BulkUpdateRequest.search({ user_name: @admin.name, approver_name: @admin.name, status: "approved" }, @admin).map(&:id))
       end
     end
+
+    context("without a forum topic") do
+      should("maintain its reason") do
+        @bur = create(:bulk_update_request, reason: "xxx", skip_forum: true)
+
+        assert_equal("xxx", @bur.reload.reason)
+      end
+    end
   end
 end

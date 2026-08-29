@@ -563,7 +563,8 @@ CREATE TABLE public.bulk_update_requests (
     creator_ip_addr inet DEFAULT '127.0.0.1'::inet NOT NULL,
     updater_id bigint NOT NULL,
     updater_ip_addr inet NOT NULL,
-    undo_data jsonb DEFAULT '[]'::jsonb NOT NULL
+    undo_data jsonb DEFAULT '[]'::jsonb NOT NULL,
+    reason text
 );
 
 
@@ -8450,6 +8451,7 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260829100158'),
 ('20260828225454'),
 ('20260826120000'),
 ('20260821015609'),

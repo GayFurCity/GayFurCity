@@ -9,7 +9,7 @@ class BulkUpdateRequest < ApplicationRecord
     self.status = version.status
     self.title = version.title
   end
-  attr_accessor(:reason, :skip_forum, :should_validate)
+  attr_accessor(:skip_forum, :should_validate)
   attr_writer(:context)
 
   belongs_to(:forum_topic, optional: true)

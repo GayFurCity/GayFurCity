@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_28_225454) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_29_100158) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -320,6 +320,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_28_225454) do
     t.inet "creator_ip_addr", default: "127.0.0.1", null: false
     t.bigint "forum_post_id"
     t.bigint "forum_topic_id"
+    t.text "reason"
     t.text "script", null: false
     t.string "status", default: "pending", null: false
     t.text "title", default: "", null: false

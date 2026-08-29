@@ -39,6 +39,7 @@ class ModAction < ApplicationRecord
     prompt old_prompt title
     artist_name
     post_id
+    message old_message
   ].freeze
 
   store_accessor(:values, *VALUES)
@@ -643,6 +644,20 @@ class ModAction < ApplicationRecord
     avoid_posting_update:                       {
       text: ->(mod, _user) { "Updated avoid posting ##{mod.subject_id} for [[#{mod.artist_name}]]" },
       json: %i[artist_name],
+    },
+
+    ### News Updates ###
+    news_create:                                {
+      text: ->(mod, _user) { %(Created "news update ##{mod.subject_id}":[#{url.news_updates_path(search: { id: mod.subject_id })}]\n[section=Message]#{mod.message}[/section]) },
+      json: %i[message],
+    },
+    news_delete:                                {
+      text: ->(mod, _user) { %(Deleted "news update ##{mod.subject_id}":[#{url.news_updates_path(search: { id: mod.subject_id })}]\n[section=Message]#{mod.message}[/section]) },
+      json: %i[message],
+    },
+    news_update:                                {
+      text: ->(mod, _user) { %(Updated "news update ##{mod.subject_id}":[#{url.news_updates_path(search: { id: mod.subject_id })}]\n[section=Old Message]#{mod.old_message}[/section]\n[section=New Message]#{mod.message}[/section]) },
+      json: %i[message old_message],
     },
   }.freeze
 

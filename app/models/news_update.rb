@@ -10,6 +10,11 @@ class NewsUpdate < ApplicationRecord
   after_destroy(:invalidate_cache)
   after_save(:invalidate_cache)
 
+  modactions(:news)
+    .add(:create, :creator, on: :create) { { message: message } }
+    .add(:update, :updater, on: :update) { { message: message, old_message: message_before_last_save } }
+    .add(:delete, :destroyer, on: :destroy) { { message: message } }
+
   def self.recent
     Cache.fetch("recent_news", expires_in: 1.day) do
       order(id: :desc).first

@@ -2476,6 +2476,63 @@ class PostTest < ActiveSupport::TestCase
     should("not error for values beyond Integer.MAX_VALUE") do
       assert_tag_match([], "id:1234567890987654321")
     end
+
+    context("() tag groups") do
+      should("require every tag in a ( a b ) group to match") do
+        post1 = create(:post, tag_string: "solo duo")
+        create(:post, tag_string: "solo")
+
+        assert_tag_match([post1], "( solo duo )")
+      end
+
+      should("forbid every tag in a -( a b ) group from all matching at once") do
+        post1 = create(:post, tag_string: "solo")
+        post2 = create(:post, tag_string: "duo")
+        create(:post, tag_string: "solo duo")
+
+        assert_tag_match([post2, post1], "-( solo duo )")
+      end
+
+      should("match if any tag in a ~( a b ) group matches") do
+        post1 = create(:post, tag_string: "solo")
+        post2 = create(:post, tag_string: "duo")
+        create(:post, tag_string: "trio")
+
+        assert_tag_match([post2, post1], "~( solo ) ~( duo )")
+      end
+
+      should("allow metatags inside a () group") do
+        post1 = create(:post, tag_string: "solo", rating: "s")
+        create(:post, tag_string: "solo", rating: "e")
+
+        assert_tag_match([post1], "( rating:s solo )")
+      end
+
+      should("combine a () group with tags outside it") do
+        post1 = create(:post, tag_string: "solo duo trio")
+        create(:post, tag_string: "solo duo")
+
+        assert_tag_match([post1], "trio ( solo duo )")
+      end
+
+      should("not mistake a tag's own literal parentheses for a group") do
+        create(:tag, name: "fluffy_(oc)", category: TagCategory.character)
+        post1 = create(:post, tag_string: "fluffy_(oc)")
+        create(:post, tag_string: "solo")
+
+        assert_tag_match([post1], "fluffy_(oc)")
+      end
+
+      should("support arbitrarily nested () groups") do
+        post1 = create(:post, tag_string: "solo duo")
+        post2 = create(:post, tag_string: "solo trio")
+        create(:post, tag_string: "solo")
+
+        # ~ inside the nested group makes each of its own tags optional (OR) - ~( duo trio )
+        # would instead mean the *whole* (duo trio) (AND'd) group is optional relative to solo.
+        assert_tag_match([post2, post1], "( solo ( ~duo ~trio ) )")
+      end
+    end
   end
 
   context("Voting:") do

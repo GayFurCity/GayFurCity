@@ -13811,7 +13811,7 @@ paths:
         404:
           $ref: "#/components/responses/NotFound"
   # Wiki Pages
-  /wiki_pages.json:
+  /wiki.json:
     get:
       summary: Search Wiki Pages
       tags:
@@ -13900,7 +13900,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         422:
           $ref: "#/components/responses/ExpectedError"
-  /wiki_pages/{id}.json:
+  /wiki/{id}.json:
     get:
       summary: Get Wiki Page
       tags:
@@ -13984,7 +13984,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         404:
           $ref: "#/components/responses/NotFound"
-  /wiki_pages/{id}/merge.json:
+  /wiki/{id}/merge.json:
     post:
       summary: Merge Wiki Page
       tags:
@@ -14051,7 +14051,7 @@ paths:
         422:
           $ref: "#/components/responses/ExpectedError"
   # Wiki Page Versions
-  /wiki_pages/versions.json:
+  /wiki/versions.json:
     get:
       summary: Search Wiki Page Versions
       tags:
@@ -14101,7 +14101,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/WikiPageVersion"
-  /wiki_pages/versions/{id}.json:
+  /wiki/versions/{id}.json:
     get:
       summary: Get Wiki Page Version
       tags:

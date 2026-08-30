@@ -14,6 +14,7 @@ $(function () {
     fields: JSON.parse(mount.dataset.fields || "[]"),
     initialGeneralTags: mount.dataset.generalTags || "",
     initialGroups: JSON.parse(mount.dataset.groups || "[]"),
+    initialBoolGroups: JSON.parse(mount.dataset.boolGroups || "[]"),
     initialValues: JSON.parse(mount.dataset.values || "{}"),
     initialModes: JSON.parse(mount.dataset.modes || "{}"),
   };

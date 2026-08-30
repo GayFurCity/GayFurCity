@@ -68,6 +68,20 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
         assert_redirected_to(posts_path(tags: "{fluffy_(oc) blue_eyes}"))
       end
 
+      should("build a () tag group from a form submission on submit") do
+        post(search_posts_path, params: { search: { bool_groups: { "0" => { tags: "male duo", mode: "must_not" } } } })
+
+        assert_redirected_to(posts_path(tags: "-(male duo)"))
+      end
+
+      should("build a () tag group whose tags arrive as the one-element array a real [] field name submits") do
+        # The builder's hidden input is named "search[bool_groups][0][tags][]" - a real browser
+        # form submits that as an array, not the plain string a script might pass directly.
+        post(search_posts_path, params: { search: { bool_groups: { "0" => { tags: ["rating:s solo"], mode: "must" } } } })
+
+        assert_redirected_to(posts_path(tags: "(rating:s solo)"))
+      end
+
       should("negate a field according to its _mode param") do
         post(search_posts_path, params: { search: { score: ">100", score_mode: "must_not" } })
 
@@ -85,6 +99,22 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
           assert_empty(json["character_groups"])
           assert_equal({ "value" => "s", "mode" => "must" }, json["fields"]["rating"])
           assert_equal({ "value" => ">100", "mode" => "must_not" }, json["fields"]["score"])
+        end
+
+        should("include a parsed () tag group in the json response") do
+          get(search_posts_path(format: :json), params: { tags: "solo -( male duo )" })
+
+          json = response.parsed_body
+
+          assert_equal([{ "tags" => "male duo", "mode" => "must_not", "fields" => {} }], json["bool_groups"])
+        end
+
+        should("include a () tag group's own extracted metatag fields in the json response") do
+          get(search_posts_path(format: :json), params: { tags: "solo -( male chartags:>0 )" })
+
+          json = response.parsed_body
+
+          assert_equal([{ "tags" => "male", "mode" => "must_not", "fields" => { "chartags" => { "value" => ">0", "mode" => "must" } } }], json["bool_groups"])
         end
 
         should("merge a field given more than once into one array-valued entry") do

@@ -378,8 +378,8 @@ inline := |*
   'implication #'i id                          => { append_id_link("implication", "tag-implication", "/tags/implications/", { a1, a2 }); };
   'mod action #'i id                           => { append_id_link("mod action", "mod-action", "/mod_actions/", { a1, a2 }); };
   'record #'i id                               => { append_id_link("record", "user-feedback", "/users/feedbacks/", { a1, a2 }); };
-  'wiki'i ' 'i? 'page'i? ' #'i id              => { append_id_link("wiki", "wiki-page", "/wiki_pages/", { a1, a2 }); };
-  'wiki'i ' 'i? 'page 'i? 'changes'i? ' #'i id => { append_id_link("wiki changes", "wiki-page-changes-for", "/wiki_pages/versions?search[wiki_page_id]=", { a1, a2 }); };
+  'wiki'i ' 'i? 'page'i? ' #'i id              => { append_id_link("wiki", "wiki-page", "/wiki/", { a1, a2 }); };
+  'wiki'i ' 'i? 'page 'i? 'changes'i? ' #'i id => { append_id_link("wiki changes", "wiki-page-changes-for", "/wiki/versions?search[wiki_page_id]=", { a1, a2 }); };
   'set #'i id                                  => { append_id_link("set", "set", "/post_sets/", { a1, a2 }); };
   'ticket #'i id                               => { append_id_link("ticket", "ticket", "/tickets/", { a1, a2 }); };
   'take'i ' 'i? 'down 'i 'request 'i? '#'i id  => { append_id_link("takedown", "takedown", "/takedowns/", { a1, a2 }); };
@@ -1082,11 +1082,11 @@ void StateMachine::append_internal_url(const DText::URL& url) {
       } else if (controller == "post_sets" && query.empty()) {
         // https://danbooru.donmai.us/post_sets/1234?page=2
         return append_id_link("set", "set", "/post_sets/", id);
-      } else if (controller == "wiki_pages" && fragment.empty()) {
-        // http://danbooru.donmai.us/wiki_pages/10933#dtext-self-upload
-        return append_id_link("wiki", "wiki-page", "/wiki_pages/", id);
+      } else if ((controller == "wiki" || controller == "wiki_pages") && fragment.empty()) {
+        // http://danbooru.donmai.us/wiki/10933#dtext-self-upload
+        return append_id_link("wiki", "wiki-page", "/wiki/", id);
       }
-    } else if (controller == "wiki_pages" && fragment.empty()) {
+    } else if ((controller == "wiki" || controller == "wiki_pages") && fragment.empty()) {
       return append_wiki_link({}, id, {}, id, {});
     }
   } else if (path_components.size() >= 3) {
@@ -1213,9 +1213,9 @@ void StateMachine::append_wiki_link(const std::string_view prefix, const std::st
 
   append("<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"");
   if (std::all_of(normalized_tag.cbegin(), normalized_tag.cend(), ::isdigit)) {
-  append_relative_url("/wiki_pages/");
+  append_relative_url("/wiki/");
   } else {
-  append_relative_url("/wiki_pages/show_or_new?title=");
+  append_relative_url("/wiki/show_or_new?title=");
   }
   append_uri_escaped(normalized_tag);
 

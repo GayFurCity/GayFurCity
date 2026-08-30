@@ -316,7 +316,7 @@ Autocomplete.get_href = function(item) {
   case "artist":
     return "/artists/" + item.id;
   case "wiki_page":
-    return "/wiki_pages/" + item.id;
+    return "/wiki/" + item.id;
   case "tag":
   default:
     return "/posts?tags=" + encodeURIComponent(item.value);
@@ -478,7 +478,7 @@ Autocomplete.artist_source = function(term, resp) {
 
 Autocomplete.wiki_source = function(term, resp) {
   return $.ajax({
-    url: "/wiki_pages.json",
+    url: "/wiki.json",
     data: {
       "search[title]": term + "*",
       "search[hide_deleted]": "Yes",

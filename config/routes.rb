@@ -484,7 +484,9 @@ Rails.application.routes.draw do
       get(:info)
     end
   end
-  resources(:wiki_pages, constraints: id_name_constraint) do
+  get("/wiki_pages", to: redirect { |_params, req| "/wiki#{req.query_string.present? ? "?#{req.query_string}" : ''}" }, as: nil)
+  get("/wiki_pages/*path", to: redirect { |params, req| "/wiki/#{params[:path]}#{req.query_string.present? ? "?#{req.query_string}" : ''}" }, as: nil)
+  resources(:wiki_pages, path: "wiki", constraints: id_name_constraint) do
     member do
       put(:revert)
       resource(:merge, controller: "wiki_pages/merges", as: "merge_wiki_page", only: %i[show create])

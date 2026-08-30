@@ -27,47 +27,51 @@
       <button type="button" class="builder-remove-piece" title="Remove" @click="removeGroup(gIndex)">&times;</button>
     </div>
 
-    <div v-for="piece in activeFields" :key="piece.key" class="post-search-field builder-piece">
-      <label :for="`search_${piece.key}`">{{ piece.name }}</label>
-      <div class="post-search-field-controls">
-        <select v-if="piece.type === 'select'" :id="`search_${piece.key}`" :name="`search[${piece.metatag}][]`" v-model="piece.value">
-          <option value=""></option>
-          <option v-for="opt in piece.options" :key="opt[1]" :value="opt[1]">{{ opt[0] }}</option>
-        </select>
-        <select v-else-if="piece.type === 'boolean'" :id="`search_${piece.key}`" :name="`search[${piece.metatag}][]`" v-model="piece.value">
-          <option value="">Any</option>
-          <option value="true">Yes</option>
-          <option value="false">No</option>
-        </select>
-        <template v-else-if="piece.type === 'range'">
-          <input v-if="piece.rangeOp === 'range'" type="text" v-model="piece.rangeMin" class="post-search-range-min" placeholder="min">
-          <select v-model="piece.rangeOp" class="post-search-range-op">
-            <option value="eq">=</option>
-            <option value="gt">&gt;</option>
-            <option value="gte">&gt;=</option>
-            <option value="lt">&lt;</option>
-            <option value="lte">&lt;=</option>
-            <option value="range">..</option>
+    <div v-for="(group, gIndex) in boolGroups" :key="group.key" class="character-group-card bool-group-card builder-piece">
+      <div class="bool-group-card-row">
+        <div class="character-group-card-fields">
+          <label :for="`search_bool_group_${gIndex}`">Tag Group - tags combined as a single AND/OR/NOT unit</label>
+          <textarea :id="`search_bool_group_${gIndex}`" v-model="group.tags" rows="2" class="tag-textarea"
+                    placeholder="e.g. solo duo" data-autocomplete="tag-query" :spellcheck="false"></textarea>
+          <select :name="`search[bool_groups][${gIndex}][mode]`" v-model="group.mode">
+            <option value="must">Must</option>
+            <option value="must_not">Must Not</option>
+            <option value="should">Optional</option>
           </select>
-          <input type="text" :id="`search_${piece.key}`" v-model="piece.rangeValue" :placeholder="piece.rangeOp === 'range' ? 'max' : ''">
-          <input type="hidden" :name="`search[${piece.metatag}][]`" :value="buildFieldValue(piece)">
-        </template>
-        <input v-else type="text" :id="`search_${piece.key}`" :name="`search[${piece.metatag}][]`" v-model="piece.value"
-               :data-autocomplete="autocompleteFor(piece.metatag)" :spellcheck="false">
-        <select v-if="piece.negatable" :name="`search[${piece.metatag}_mode][]`" v-model="piece.mode" class="post-search-field-mode">
-          <option value="must">Must</option>
-          <option value="must_not">Must Not</option>
-          <option value="should">Optional</option>
-        </select>
-        <button type="button" class="builder-remove-piece" title="Remove" @click="removeField(piece.key)">&times;</button>
+          <!-- The submitted value - group.tags plus a rendered token per metatag piece below,
+               composed client-side the same way previewTags composes the overall search. -->
+          <input type="hidden" :name="`search[bool_groups][${gIndex}][tags][]`" :value="composedBoolGroupTags(group)">
+        </div>
+        <button type="button" class="builder-remove-piece" title="Remove" @click="removeBoolGroup(gIndex)">&times;</button>
       </div>
-      <div v-if="piece.hint" class="hint">{{ piece.hint }}</div>
+
+      <div v-if="group.fields.length" class="bool-group-fields">
+        <PostSearchFieldPiece v-for="piece in group.fields" :key="piece.key" :piece="piece"
+                              @remove="removeGroupField(group, piece.key)" />
+      </div>
+
+      <div class="post-search-add-piece bool-group-add-piece">
+        <select v-model="group.pickerValue">
+          <option value="">+ Add a metatag...</option>
+          <optgroup v-for="cat in categoriesWithFields" :key="cat" :label="cat">
+            <option v-for="f in fieldsByCategory[cat]" :key="f.metatag" :value="f.metatag">{{ f.name }}</option>
+          </optgroup>
+        </select>
+        <button type="button" :disabled="!group.pickerValue" @click="addGroupField(group)">Add</button>
+      </div>
     </div>
+
+    <template v-for="piece in activeFields" :key="piece.key">
+      <PostSearchFieldPiece :piece="piece" @remove="removeField(piece.key)" />
+      <input type="hidden" :name="`search[${piece.metatag}][]`" :value="buildFieldValue(piece)">
+      <input v-if="piece.negatable" type="hidden" :name="`search[${piece.metatag}_mode][]`" :value="piece.mode">
+    </template>
 
     <div class="post-search-add-piece">
       <select v-model="pickerValue">
         <option value="">+ Add a search option...</option>
         <option value="__character_group__">Character Group</option>
+        <option value="__bool_group__">Tag Group</option>
         <optgroup v-for="cat in categoriesWithFields" :key="cat" :label="cat">
           <option v-for="f in fieldsByCategory[cat]" :key="f.metatag" :value="f.metatag">{{ f.name }}</option>
         </optgroup>
@@ -80,38 +84,42 @@
 <script>
   import Autocomplete from "./autocomplete.js.erb";
   import { nextTick } from "vue";
-
-  let nextKey = 0;
+  import PostSearchFieldPiece from "./post_search_field_piece.vue";
+  import { genKey, toPiece, piecesFromValues, buildFieldValue, fieldToken } from "./post_search_field_utils";
 
   export default {
+    components: { PostSearchFieldPiece },
     props: {
       fields: { type: Array, required: true },
       initialGeneralTags: { type: String, default: "" },
       initialGroups: { type: Array, default: () => [] },
+      initialBoolGroups: { type: Array, default: () => [] },
       initialValues: { type: Object, default: () => ({}) },
       initialModes: { type: Object, default: () => ({}) },
     },
     data() {
-      // A field's initial value/mode is a plain scalar for a single occurrence, or an array
-      // once the same metatag showed up more than once in the search being edited (see
-      // PostSearch::FormParser) - either way, one piece per value.
-      const activeFields = [];
-      Object.keys(this.initialValues).forEach((metatag) => {
-        const values = Array.isArray(this.initialValues[metatag]) ? this.initialValues[metatag] : [this.initialValues[metatag]];
-        const modes = Array.isArray(this.initialModes[metatag]) ? this.initialModes[metatag] : [this.initialModes[metatag]];
-        values.forEach((value, i) => activeFields.push(this.toPiece(metatag, value, modes[i])));
-      });
       return {
         generalTags: this.initialGeneralTags,
-        characterGroups: this.initialGroups.map((g) => ({ key: nextKey++, tags: g.tags || "", mode: g.mode || "must" })),
-        activeFields,
+        characterGroups: this.initialGroups.map((g) => ({ key: genKey(), tags: g.tags || "", mode: g.mode || "must" })),
+        // A group's saved tags text isn't re-parsed back apart on its own - PostSearch::
+        // FormParser already splits any metatag it recognizes out of a group's text into that
+        // group's own field_values/field_modes (the same way it does for the top-level
+        // search), so its plain remainder is what round-trips into group.tags here.
+        boolGroups: this.initialBoolGroups.map((g) => ({
+          key: genKey(),
+          tags: g.tags || "",
+          mode: g.mode || "must",
+          fields: piecesFromValues(this.fields, g.field_values, g.field_modes),
+          pickerValue: "",
+        })),
+        activeFields: piecesFromValues(this.fields, this.initialValues, this.initialModes),
         pickerValue: "",
       };
     },
     computed: {
       // Mirrors PostSearch::QueryBuilder#build (same token order: general tags, then
-      // character groups, then fields) so this always shows exactly what submitting the
-      // form will actually search for.
+      // character groups, then () tag groups, then fields) so this always shows exactly what
+      // submitting the form will actually search for.
       previewTags() {
         const tokens = this.generalTags.trim().split(/\s+/).filter(Boolean);
 
@@ -123,24 +131,26 @@
           tokens.push(`${prefix}{${names.join(" ")}}`);
         });
 
-        this.activeFields.forEach((field) => {
-          const value = this.buildFieldValue(field);
-          if (!value)
+        this.boolGroups.forEach((group) => {
+          const tags = this.composedBoolGroupTags(group);
+          if (!tags)
             return;
-          if (field.type === "boolean") {
-            tokens.push(`${field.metatag}:${value}`);
-          } else {
-            const prefix = field.negatable ? ({ must_not: "-", should: "~" }[field.mode] || "") : "";
-            const quoted = value.includes(" ") ? `"${value}"` : value;
-            tokens.push(`${prefix}${field.metatag}:${quoted}`);
-          }
+          const prefix = { must_not: "-", should: "~" }[group.mode] || "";
+          tokens.push(`${prefix}(${tags})`);
+        });
+
+        this.activeFields.forEach((field) => {
+          const token = fieldToken(field);
+          if (token)
+            tokens.push(token);
         });
 
         return tokens.join(" ");
       },
       // Every field stays pickable even once added - many metatags can be given more than
       // once (e.g. "locked:rating locked:status" requires both), so adding a field a second
-      // time just adds another piece for it instead of being blocked.
+      // time just adds another piece for it instead of being blocked. Shared by the top-level
+      // picker and every () tag group's own nested picker.
       fieldsByCategory() {
         const byCategory = {};
         this.fields.forEach((f) => {
@@ -156,74 +166,52 @@
       this.initAutocomplete();
     },
     methods: {
-      toPiece(metatag, value, mode) {
-        const definition = this.fields.find((f) => f.metatag === metatag) || {};
-        const piece = { ...definition, key: nextKey++, value: value || "", mode: mode || "must" };
-        if (definition.type === "range")
-          Object.assign(piece, this.parseRangeValue(value || ""));
-        return piece;
-      },
-      // Same operator syntax as ParseValue.range (see app/logical/post_search/fields.rb) -
-      // splits a raw metatag value like ">100" or "50..100" into the pieces the operator
-      // selector/inputs need, for pre-filling a range field from an existing search.
-      parseRangeValue(raw) {
-        const empty = { rangeOp: "eq", rangeMin: "", rangeValue: "" };
-        if (!raw)
-          return empty;
-        if (raw.startsWith("<="))
-          return { rangeOp: "lte", rangeMin: "", rangeValue: raw.slice(2) };
-        if (raw.startsWith("<"))
-          return { rangeOp: "lt", rangeMin: "", rangeValue: raw.slice(1) };
-        if (raw.startsWith(">="))
-          return { rangeOp: "gte", rangeMin: "", rangeValue: raw.slice(2) };
-        if (raw.startsWith(">"))
-          return { rangeOp: "gt", rangeMin: "", rangeValue: raw.slice(1) };
-        // Covers "min..max", and also the bare "min.." / "..max" forms (an empty side just
-        // round-trips as an empty box, rather than being silently rewritten into >=/<= -
-        // both mean the same thing server-side, but editing shouldn't change what you typed.
-        if (raw.includes("..")) {
-          const [min, max] = raw.split("..");
-          return { rangeOp: "range", rangeMin: min, rangeValue: max };
-        }
-        return { rangeOp: "eq", rangeMin: "", rangeValue: raw };
-      },
-      // The reverse of parseRangeValue - also doubles as the plain-field case (just the
-      // trimmed value), since both feed into the same tags-string token construction.
-      buildFieldValue(piece) {
-        if (piece.type !== "range")
-          return (piece.value || "").trim();
-
-        const min = (piece.rangeMin || "").trim();
-        const value = (piece.rangeValue || "").trim();
-        if (piece.rangeOp === "range") {
-          return min || value ? `${min}..${value}` : "";
-        }
-        if (!value)
-          return "";
-        const prefixes = { gt: ">", gte: ">=", lt: "<", lte: "<=", eq: "" };
-        return `${prefixes[piece.rangeOp] || ""}${value}`;
+      buildFieldValue,
+      // A () group's own submitted text: its free-typed tags plus a rendered token for each
+      // metatag piece added to it. group.tags is kept as one raw chunk rather than
+      // split/rejoined - it can itself contain a nested () group or a quoted metatag value,
+      // either of which whitespace-splitting would tear apart.
+      composedBoolGroupTags(group) {
+        const parts = [];
+        const rawTags = group.tags.trim();
+        if (rawTags)
+          parts.push(rawTags);
+        group.fields.forEach((piece) => {
+          const token = fieldToken(piece);
+          if (token)
+            parts.push(token);
+        });
+        return parts.join(" ");
       },
       addPiece() {
         if (this.pickerValue === "__character_group__") {
-          this.characterGroups.push({ key: nextKey++, tags: "", mode: "must" });
+          this.characterGroups.push({ key: genKey(), tags: "", mode: "must" });
+        } else if (this.pickerValue === "__bool_group__") {
+          this.boolGroups.push({ key: genKey(), tags: "", mode: "must", fields: [], pickerValue: "" });
         } else if (this.pickerValue) {
-          this.activeFields.push(this.toPiece(this.pickerValue, "", "must"));
+          this.activeFields.push(toPiece(this.fields, this.pickerValue, "", "must"));
         }
         this.pickerValue = "";
+        nextTick(() => this.initAutocomplete());
+      },
+      addGroupField(group) {
+        if (!group.pickerValue)
+          return;
+        group.fields.push(toPiece(this.fields, group.pickerValue, "", "must"));
+        group.pickerValue = "";
         nextTick(() => this.initAutocomplete());
       },
       removeField(key) {
         this.activeFields = this.activeFields.filter((f) => f.key !== key);
       },
+      removeGroupField(group, key) {
+        group.fields = group.fields.filter((f) => f.key !== key);
+      },
       removeGroup(index) {
         this.characterGroups.splice(index, 1);
       },
-      autocompleteFor(metatag) {
-        if (["user", "approver", "disapprover", "commenter", "noter", "noteupdater", "favoritedby", "upvote", "downvote", "voted", "flagger", "deletedby"].includes(metatag))
-          return "user";
-        if (metatag === "pool")
-          return "pool";
-        return null;
+      removeBoolGroup(index) {
+        this.boolGroups.splice(index, 1);
       },
       initAutocomplete() {
         if (Autocomplete.initialize_tag_autocomplete)

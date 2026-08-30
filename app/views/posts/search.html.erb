@@ -2,7 +2,7 @@
   <h1>Advanced Search</h1>
   <p>
     General tags work the same as the normal search bar. Use "+ Add a search option" below to add
-    specific fields (rating, score, dates, character groups, etc) one at a time as you need them.
+    specific fields (rating, score, dates, character groups, tag groups, etc) one at a time as you need them.
     <%= link_to("(search help)", help_page_path(id: "cheatsheet")) %>
   </p>
 
@@ -11,6 +11,7 @@
          data-fields="<%= PostSearch::Fields.fields.map(&:to_h).to_json %>"
          data-general-tags="<%= @search_form.general_tags %>"
          data-groups="<%= @search_form.character_groups.to_json %>"
+         data-bool-groups="<%= @search_form.bool_groups.to_json %>"
          data-values="<%= @search_form.field_values.to_json %>"
          data-modes="<%= @search_form.field_modes.to_json %>"></div>
 

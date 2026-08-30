@@ -282,7 +282,7 @@ module ApplicationHelper
              %r{^/moderator}
 
            when "wiki_pages", "wiki_pages/versions"
-             %r{^/wiki_pages}
+             %r{^/wiki}
 
            when "forums", "forums/topics", "forums/posts"
              %r{^/forums}

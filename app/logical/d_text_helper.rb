@@ -63,7 +63,7 @@ module DTextHelper
       if path.include?("show_or_new")
         name = parsed.query_values["title"]
       else
-        name = path[%r{\A/wiki_pages/((?:(?!show_or_new).)*)\z}i, 1]
+        name = path[%r{\A/wiki/((?:(?!show_or_new).)*)\z}i, 1]
       end
       name = CGI.unescape(name)
       name = WikiPage.normalize_title(name)
@@ -114,9 +114,9 @@ module DTextHelper
 
     titles = fragment.css("a.dtext-wiki-link").map do |node|
       if node["href"].include?("show_or_new")
-        title = node["href"][%r{\A/wiki_pages/show_or_new\?title=(.*)\z}i, 1]
+        title = node["href"][%r{\A/wiki/show_or_new\?title=(.*)\z}i, 1]
       else
-        title = node["href"][%r{\A/wiki_pages/(.*)\z}i, 1]
+        title = node["href"][%r{\A/wiki/(.*)\z}i, 1]
       end
       title = CGI.unescape(title)
       title = WikiPage.normalize_title(title)

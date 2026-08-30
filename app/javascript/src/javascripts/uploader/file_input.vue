@@ -46,7 +46,7 @@
     <div class="linkinput-wrapper" v-if="!disableURLUpload">
       <div class="box-section background-red" v-if="badDirectURL">
         The direct URL entered has the following problem: {{ directURLProblem }}<br>
-        You should review <a href="/wiki_pages/howto:sites_and_sources">the sourcing guide</a>.
+        You should review <a href="/wiki/howto:sites_and_sources">the sourcing guide</a>.
       </div>
       <label class="linkinput">
         <span class="linkinput-or">{{!disableFileUpload ? "OR" : "URL" }}</span>

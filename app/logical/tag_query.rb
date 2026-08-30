@@ -3,10 +3,53 @@
 class TagQuery
   class CountExceededError < StandardError; end
 
+  # (a b c) / -(a b c) / ~(a b c): a parenthesized tag group, recursively parsed as its own
+  # TagQuery and combined into the outer search as a single unit (respectively: all of its
+  # tags/metatags must match, none of them may match, or at least one of them must match) - see
+  # #add_bool_group. Nesting is capped so a maliciously deep "(((...)))" can't blow the regex
+  # stack or produce an unbounded number of nested ES bool queries.
+  GROUP_DEPTH_LIMIT = 3
+
   METATAG_SEARCH_TYPE = {
     "-" => :must_not,
     "~" => :should,
   }.freeze
+
+  # A quoted metatag value, e.g. description:"a (b) c" - matched as one atomic unit (both here
+  # and at the top of TagQuery.scan) so nothing inside the quotes, parens included, is ever
+  # independently reconsidered as a group delimiter or split apart.
+  QUOTED_METATAG_REGEX = /[-~]?\w*?:".*?"/
+
+  # Matches a single balanced (possibly nested) parenthesized group, prefix included - spacing
+  # just inside the parens is optional, so both "(a b)" and "( a b )" (and "-"/"~" variants,
+  # nested arbitrarily) are recognized. The named group calls itself recursively (\g<paren_group>)
+  # so inner real groups are consumed as part of the outer match instead of splitting it - named
+  # rather than \g<0> so this still works once combined with other patterns in TagQuery.scan's
+  # TOKEN_REGEX. Kept as one token by TagQuery.scan the same way {}-groups are, so the later
+  # whitespace split doesn't tear it apart.
+  #
+  # A "(" only starts a group here if it's preceded by whitespace/start-of-string - tag names
+  # routinely contain literal, unspaced parentheses as a disambiguator (e.g. "fluffy_(oc)"),
+  # which fails that check and so is never mistaken for a group on its own. One of those can
+  # still end up *inside* a real group's content though (e.g. "( solo fluffy_(oc) )") - the
+  # `\([^()]*\)` branch consumes such a parenthetical whole, opaquely, so its own closing paren
+  # can't be mistaken for the real group's. QUOTED_METATAG_REGEX is included the same way, so a
+  # quoted value's own parens (or a stray unbalanced quote) can't confuse the group boundary either.
+  GROUP_REGEX = /
+    (?<paren_group>
+      (?<=\A|\s)[-~]?\(
+        (?:
+          \g<paren_group>
+          |
+          #{QUOTED_METATAG_REGEX}
+          |
+          \([^()]*\)
+          |
+          [^()]
+        )*
+      \)(?=\s|\z)
+    )
+  /x
 
   COUNT_METATAGS = %w[
     comment_count
@@ -53,14 +96,18 @@ class TagQuery
   ] + COUNT_METATAGS + TagCategory.short_name_list.flat_map { |str| %W[#{str}tags #{str}tags_asc] }
 
   delegate(:[], :include?, to: :@q)
-  attr_reader(:q, :user, :resolve_aliases)
+  attr_reader(:q, :user, :resolve_aliases, :tag_count)
 
-  def initialize(query, user, resolve_aliases: true, free_tags_count: 0)
+  def initialize(query, user, resolve_aliases: true, free_tags_count: 0, depth: 0)
     if user.is_anonymous?
       hard_limit = AdminConfig.instance.anonymous_hard_tag_limit
       if query.to_s.split.size > hard_limit
         raise(CountExceededError, "Your query exceeds the limit.")
       end
+    end
+
+    if depth > GROUP_DEPTH_LIMIT
+      raise(CountExceededError, "You cannot nest tag groups more than #{GROUP_DEPTH_LIMIT} levels deep")
     end
 
     @q = {
@@ -73,9 +120,15 @@ class TagQuery
         must:     [],
         must_not: [],
       },
+      groups:     {
+        must:     [],
+        must_not: [],
+        should:   [],
+      },
     }
     @user = user
     @resolve_aliases = resolve_aliases
+    @depth = depth
     @tag_count = 0
 
     parse_query(query)
@@ -92,16 +145,19 @@ class TagQuery
     tags.sort.uniq.join(" ")
   end
 
+  # A single combined pass (rather than three separate ones) so each kind of token is matched
+  # as one atomic unit in the right context: a quoted metatag's own parens (or a stray brace)
+  # never get mistaken for a {} or () group delimiter, whether it's standalone or sitting inside
+  # a real () group (GROUP_REGEX embeds this same quoted-metatag pattern for that reason) - and,
+  # symmetrically, a real group is never torn apart by treating its interior text as loose quotes.
+  TOKEN_REGEX = Regexp.union(QUOTED_METATAG_REGEX, /-?\{[^{}]*\}/, GROUP_REGEX)
+
   def self.scan(query)
     tagstr = query.to_s.unicode_normalize(:nfc).strip
     quote_delimited = []
-    tagstr = tagstr.gsub(/[-~]?\w*?:".*?"/) do |match|
-      quote_delimited << match
-      ""
-    end
     # {a b c} / -{a b c}: require (or forbid) tags all being in the same character group.
     # Kept as one token here so the later whitespace split doesn't tear the group apart.
-    tagstr = tagstr.gsub(/-?\{[^{}]*\}/) do |match|
+    tagstr = tagstr.gsub(TOKEN_REGEX) do |match|
       quote_delimited << match
       ""
     end
@@ -150,6 +206,11 @@ class TagQuery
     TagQuery.scan(query).each do |token| # rubocop:disable Metrics/BlockLength
       if token =~ /\A(-?)\{(.*)\}\z/
         add_tag_group(Regexp.last_match(1) == "-" ? :must_not : :must, Regexp.last_match(2).downcase.split)
+        next
+      end
+
+      if (match = token.match(/\A([-~]?)\((.*)\)\z/m))
+        add_bool_group(METATAG_SEARCH_TYPE.fetch(match[1], :must), match[2])
         next
       end
 
@@ -417,6 +478,19 @@ class TagQuery
 
     @tag_count += names.count { |n| !GayFurCity.config.is_unlimited_tag?(n) }
     q[:tag_groups][type] << names
+  end
+
+  # (a b c) / -(a b c) / ~(a b c): recursively parses the group's contents as its own TagQuery
+  # (so it gets the full run of metatags, wildcards, {} groups, and further nested () groups)
+  # and stores that subquery to be combined as a single unit - see
+  # ElasticPostQueryBuilder#add_group_search_relation. The subquery's own tag_count is folded
+  # into this one so a query can't dodge the tag-count limit by hiding tags inside a group.
+  def add_bool_group(type, subquery_string)
+    return if subquery_string.blank?
+
+    subquery = TagQuery.new(subquery_string, user, resolve_aliases: resolve_aliases, depth: @depth + 1)
+    @tag_count += subquery.tag_count
+    q[:groups][type] << subquery
   end
 
   def add_tag(tag)

@@ -13,7 +13,7 @@ module PostSearch
     end
 
     def build
-      (general_tag_tokens + character_group_tokens + field_tokens).join(" ")
+      (general_tag_tokens + character_group_tokens + bool_group_tokens + field_tokens).join(" ")
     end
 
     private
@@ -32,6 +32,26 @@ module PostSearch
 
         prefix = g[:mode].to_s == "must_not" ? "-" : ""
         "#{prefix}{#{names.join(' ')}}"
+      end
+    end
+
+    # (a b) / -(a b) / ~(a b): the group's own tag text is kept as a raw string rather than
+    # split/rejoined like character_group_tokens does, so a group richer than the simple
+    # textarea UI edits for (nested groups, metatags) still round-trips intact. The form field
+    # is named "...[tags][]" (a real submission arrives as a one-element array because of that
+    # trailing [], same as character_groups) - Array(...).first unwraps it back to the single
+    # string it always actually is, without the flat_map/split that would tear a nested group
+    # or quoted metatag value apart.
+    def bool_group_tokens
+      groups = @params[:bool_groups]
+      groups = groups.respond_to?(:values) ? groups.values : Array(groups)
+
+      groups.filter_map do |g|
+        tags = Array(g[:tags]).first.to_s.strip
+        next if tags.blank?
+
+        prefix = { "must_not" => "-", "should" => "~" }[g[:mode].to_s] || ""
+        "#{prefix}(#{tags})"
       end
     end
 

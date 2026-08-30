@@ -7,10 +7,17 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     status: :status_locked,
   }.freeze
 
-  def initialize(query_string, user, resolve_aliases: true, free_tags_count: 0, enable_safe_mode: user.enable_safe_mode?, always_show_deleted: false)
-    super(TagQuery.new(query_string, user, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count), user)
+  # query may be a raw tags string, or an already-parsed TagQuery - the latter is how a ()
+  # group's subquery (already a TagQuery, produced by TagQuery#add_bool_group) gets turned into
+  # its own nested query in #group_bool_query, without re-parsing it from a string.
+  def initialize(query, user, resolve_aliases: true, free_tags_count: 0, enable_safe_mode: user.enable_safe_mode?, always_show_deleted: false)
+    query = TagQuery.new(query, user, resolve_aliases: resolve_aliases, free_tags_count: free_tags_count) unless query.is_a?(TagQuery)
+    # These must be set before super, not after - super's ElasticQueryBuilder#initialize calls
+    # #build itself, which reads both via hide_deleted_posts?/etc, so assigning them afterward
+    # was a no-op (always_show_deleted/enable_safe_mode had no effect on the built query).
     @enable_safe_mode = enable_safe_mode
     @always_show_deleted = always_show_deleted
+    super(query, user)
   end
 
   def model_class
@@ -40,6 +47,23 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         },
       },
     }
+  end
+
+  # (a b c) / -(a b c) / ~(a b c): builds each group's subquery into its own nested bool
+  # clause (must/must_not/should placed the same way a bare term would be), so the group is
+  # satisfied (or excluded, or optional) as a single unit rather than flattening its terms into
+  # the outer query.
+  def add_group_search_relation(groups)
+    must.concat(groups[:must].map { |subquery| group_bool_query(subquery) })
+    must_not.concat(groups[:must_not].map { |subquery| group_bool_query(subquery) })
+    should.concat(groups[:should].map { |subquery| group_bool_query(subquery) })
+  end
+
+  def group_bool_query(subquery)
+    builder = ElasticPostQueryBuilder.new(subquery, user, enable_safe_mode: false, always_show_deleted: true)
+    bool = { must: builder.must, must_not: builder.must_not, should: builder.should }
+    bool[:minimum_should_match] = 1 if builder.should.any?
+    { bool: bool }
   end
 
   def hide_deleted_posts?
@@ -215,6 +239,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
 
     add_tag_string_search_relation(q[:tags])
     add_character_group_search_relation(q[:tag_groups])
+    add_group_search_relation(q[:groups])
 
     case q[:order]
     when "id", "id_asc"

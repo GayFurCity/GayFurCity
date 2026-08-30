@@ -123,6 +123,42 @@
     }
   }
 
+  // A () tag group can grow a nested add-a-metatag row of its own, so unlike a plain field or
+  // character group card it stacks its row (tags/mode/remove) above that instead of laying
+  // everything out in one flex row.
+  .bool-group-card.builder-piece {
+    flex-direction: column;
+    align-items: stretch;
+
+    .bool-group-card-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5em;
+    }
+
+    .bool-group-fields {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5em;
+      margin-top: 0.5em;
+
+      .post-search-field.builder-piece {
+        flex: 1 1 auto;
+        min-width: 10em;
+      }
+    }
+
+    .bool-group-add-piece {
+      margin-top: 0.5em;
+      padding-top: 0.5em;
+      border-top: 1px solid themed("color-section-lighten-10");
+
+      select {
+        max-width: none;
+      }
+    }
+  }
+
   .builder-remove-piece {
     flex: 0 0 auto;
   }

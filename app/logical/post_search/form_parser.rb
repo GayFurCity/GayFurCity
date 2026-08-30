@@ -7,15 +7,25 @@
 # round-tripping through the form never silently drops part of the original query.
 module PostSearch
   class FormParser
-    Result = Struct.new(:general_tags, :character_groups, :field_values, :field_modes, keyword_init: true) do
+    Result = Struct.new(:general_tags, :character_groups, :bool_groups, :field_values, :field_modes, keyword_init: true) do
       # A friendlier shape for the GET .json response than the raw struct - merges
       # field_values/field_modes (parallel hashes keyed by metatag) into one fields hash, so a
-      # consumer doesn't have to zip the two together by key itself.
+      # consumer doesn't have to zip the two together by key itself. Each bool_groups entry gets
+      # the same treatment for its own nested field_values/field_modes.
       def as_json(*)
-        fields = field_values.each_with_object({}) do |(metatag, value), hash|
-          hash[metatag] = { value: value, mode: field_modes[metatag] }.compact
+        { general_tags: general_tags, character_groups: character_groups, bool_groups: bool_groups.map { |g| bool_group_as_json(g) }, fields: fields_as_json(field_values, field_modes) }
+      end
+
+      private
+
+      def fields_as_json(values, modes)
+        values.each_with_object({}) do |(metatag, value), hash|
+          hash[metatag] = { value: value, mode: modes[metatag] }.compact
         end
-        { general_tags: general_tags, character_groups: character_groups, fields: fields }
+      end
+
+      def bool_group_as_json(group)
+        { tags: group[:tags], mode: group[:mode], fields: fields_as_json(group[:field_values], group[:field_modes]) }
       end
     end
 
@@ -38,15 +48,49 @@ module PostSearch
     end
 
     def parse
+      scanned = scan(@tags_string, extract_bool_groups: true)
+
+      bool_groups = scanned[:bool_groups].map do |mode, inner_text|
+        inner = scan(inner_text, extract_bool_groups: false)
+        { tags: inner[:general].join(" "), mode: mode, field_values: inner[:values], field_modes: inner[:modes] }
+      end
+
+      Result.new(
+        general_tags:     scanned[:general].join(" "),
+        character_groups: scanned[:character_groups],
+        bool_groups:      bool_groups,
+        field_values:     scanned[:values],
+        field_modes:      scanned[:modes],
+      )
+    end
+
+    private
+
+    # Shared token-classification loop, used both for the top-level tags string and recursively
+    # for each () group's own inner text (extract_bool_groups: false there - a group nested
+    # inside another group isn't broken down further, just kept as raw text in :general, since
+    # the search builder's Tag Group piece doesn't support editing a nested group structurally).
+    def scan(text, extract_bool_groups:)
       general = []
-      groups = []
+      character_groups = []
+      bool_group_tokens = []
       values = {}
       modes = {}
 
-      TagQuery.scan(@tags_string).each do |token|
+      TagQuery.scan(text).each do |token|
         if token =~ /\A(-?)\{(.*)\}\z/
           names = Regexp.last_match(2).split
-          groups << { tags: names.join(" "), mode: Regexp.last_match(1) == "-" ? "must_not" : "must" } if names.any?
+          character_groups << { tags: names.join(" "), mode: Regexp.last_match(1) == "-" ? "must_not" : "must" } if names.any?
+          next
+        end
+
+        if (match = token.match(/\A([-~]?)\((.*)\)\z/m))
+          if extract_bool_groups
+            inner = match[2].strip
+            bool_group_tokens << [MODE_PREFIXES[match[1]] || "must", inner] if inner.present?
+          else
+            general << token
+          end
           next
         end
 
@@ -70,10 +114,8 @@ module PostSearch
         end
       end
 
-      Result.new(general_tags: general.join(" "), character_groups: groups, field_values: values, field_modes: modes)
+      { general: general, character_groups: character_groups, bool_groups: bool_group_tokens, values: values, modes: modes }
     end
-
-    private
 
     # Many metatags can be given more than once (e.g. "locked:rating locked:status" requires
     # both) - the first occurrence stays a plain scalar (so a single-value search round-trips

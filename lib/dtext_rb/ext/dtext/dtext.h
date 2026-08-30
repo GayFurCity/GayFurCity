@@ -207,6 +207,8 @@ public:
   void append_section(const std::string_view summary, bool initially_open);
   void append_topic(const std::string_view id);
   void append_wiki_link(const std::string_view prefix, const std::string_view tag, const std::string_view anchor, const std::string_view title, const std::string_view suffix);
+  void append_artist_link(const std::string_view prefix, const std::string_view name, const std::string_view title, const std::string_view suffix);
+  void append_character_link(const std::string_view prefix, const std::string_view name, const std::string_view title, const std::string_view suffix);
   void append_internal_anchor_link(const std::string_view prefix, const std::string_view anchor, const std::string_view title, const std::string_view suffix); 
   void append_paged_link(const char *title, const std::string_view id, const char *tag, const char *href, const char *param, const std::string_view page);
   void append_dmail_key_link(const std::string_view dmail_id, const std::string_view dmail_key);

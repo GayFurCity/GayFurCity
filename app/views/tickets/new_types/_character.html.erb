@@ -1,0 +1,7 @@
+<h4>You are reporting the following character:</h4>
+<div class="page"><%= link_to(@ticket.model.pretty_name, @ticket.model) %></div>
+<span class="date"><%= time_ago_in_words_tagged(@ticket.model.created_at) %></span>
+<br><br>
+<div class="dtext-container">
+  <%= format_text(@character.notes) %>
+</div>

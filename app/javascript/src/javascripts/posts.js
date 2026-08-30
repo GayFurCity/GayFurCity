@@ -170,6 +170,7 @@ Post.initialize_collapse = function () {
   // Toggles the sibling .character-group-content directly (not by shared category class
   // like above) - multiple character groups can each have their own e.g. .general-tag-list.
   $("#tag-list").on("click", ".character-group-header", function (e) {
+    if ($(e.target).closest("a").length) return;
     $(this).next(".character-group-content").toggle();
     $(this).toggleClass("hidden-category");
     e.preventDefault();

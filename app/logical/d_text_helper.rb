@@ -7,7 +7,7 @@ module DTextHelper
     return nil if text.nil?
     *data, topics = preprocess([text])
     text = replace_topics(text, topics)
-    hash = DText.parse(text, **)
+    hash = DText.parse(text, **default_options, **)
     hash[:dtext] = postprocess(hash[:dtext], *data)
     hash
   end
@@ -17,10 +17,23 @@ module DTextHelper
     *data, topics = preprocess(texts)
     texts.to_h do |text|
       text = replace_topics(text, topics)
-      hash = DText.parse(text, **)
+      hash = DText.parse(text, **default_options, **)
       hash[:dtext] = postprocess(hash[:dtext], *data)
       [text, hash]
     end
+  end
+
+  # Lets pasted absolute URLs pointing at this site (e.g. a copy-pasted
+  # "https://gayfur.city/artists/123") get recognized and shortened the same
+  # way a typed "artist #123" would be, instead of falling back to a plain
+  # external link. Callers can still override either key explicitly.
+  #
+  # dtext's domain matcher never includes a port (it stops at the first `:`), so a
+  # `domain` config with a port (e.g. dev's "localhost:4000") has to be stripped down
+  # to just the host or it'll never match.
+  def default_options
+    domain = GayFurCity.config.domain.to_s.sub(/:\d+\z/, "")
+    { domain: domain, internal_domains: [domain] }
   end
 
   def format_text(text, **)
@@ -109,7 +122,7 @@ module DTextHelper
 
   def parse_wiki_titles(text)
     return [] if text.blank?
-    DText.parse(text) => { dtext: html }
+    DText.parse(text, **default_options) => { dtext: html }
     fragment = parse_html(html)
 
     titles = fragment.css("a.dtext-wiki-link").map do |node|
@@ -128,7 +141,7 @@ module DTextHelper
 
   def parse_external_links(text)
     return [] if text.blank?
-    DText.parse(text) => { dtext: html }
+    DText.parse(text, **default_options) => { dtext: html }
     fragment = parse_html(html)
 
     links = fragment.css("a.dtext-external-link").pluck("href")

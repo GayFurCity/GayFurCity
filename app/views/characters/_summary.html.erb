@@ -1,0 +1,26 @@
+<%# locals: (character:) -%>
+<ul>
+  <% if character.owner_user_id && character.owner_user %>
+    <li><strong>Owner</strong> <%= link_to_user(character.owner_user) %></li>
+  <% end %>
+
+  <% rendered_attribute_values = bulk_dtext_ragel(character.custom_attributes.pluck("value"), inline: true) %>
+  <% character.custom_attributes.each do |attr| %>
+    <li><strong><%= h(attr["name"]) %></strong> <%= rendered_attribute_values[attr["value"]] %></li>
+  <% end %>
+
+  <% if character.urls.present? %>
+    <li><strong>URLs</strong></li>
+    <ul>
+      <% character.sorted_urls.each do |url| %>
+        <li>
+          <% if url.is_active? %>
+            <%= decorated_link_to(h(url.to_s), h(url)) %>
+          <% else %>
+            <del><%= favicon_for_link(url.url) %> <%= h(url.url) %></del>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</ul>

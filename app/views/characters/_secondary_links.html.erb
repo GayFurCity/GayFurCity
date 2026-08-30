@@ -1,0 +1,19 @@
+<% content_for(:secondary_links) do %>
+  <li><%= render("characters/quick_search") %></li>
+  <%= subnav_link_to("Listing", characters_path) %>
+  <%= subnav_link_to_if(policy(Character).create?, "New", new_character_path) %>
+  <%= subnav_link_to("Recent changes", character_versions_path) %>
+  <%= subnav_link_to("URLs", character_urls_path) %>
+  <% if @character && !@character.new_record? %>
+    <li>|</li>
+    <%= subnav_link_to("Posts (#{@character.tag.try(:post_count).to_i})", posts_path(tags: @character.name)) %>
+    <% if @character.tag.present? %>
+      <%= subnav_link_to("Followers (#{@character.tag.follower_count})", followers_tag_path(@character.tag)) %>
+    <% end %>
+    <%= subnav_link_to("Show", character_path(@character)) %>
+    <%= subnav_link_to_if(policy(@character).edit?, "Edit", edit_character_path(@character), data: { shortcut: "e" }) %>
+    <%= subnav_link_to_if(TicketPolicy.new(CurrentUser.user, @character).create?, "Report", model_new_ticket_path(model: @character)) %>
+    <%= subnav_link_to("History", character_versions_path(search: { character_id: @character.id })) %>
+    <%= subnav_link_to_if(policy(@character).destroy?, "Delete", character_path(@character), method: :delete, data: { confirm: "Are you sure you want to delete this character?" }) %>
+  <% end %>
+<% end %>

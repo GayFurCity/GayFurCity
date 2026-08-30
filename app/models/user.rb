@@ -811,6 +811,7 @@ class User < ApplicationRecord
     end
 
     create_user_throttle(:artist_edit, :artist_edit_limit, ArtistVersion, :for_updater, :updated_at, 3.days)
+    create_user_throttle(:character_edit, :character_edit_limit, CharacterVersion, :for_updater, :updated_at, 3.days)
     create_user_throttle(:post_edit, :post_edit_limit, PostVersion, :for_updater, :updated_at, 3.days)
     create_user_throttle(:post_appeal, :post_appeal_limit, PostAppeal, :for_creator, :created_at, 3.days)
     create_user_throttle(:wiki_edit, :wiki_edit_limit, WikiPageVersion, :for_updater, :updated_at, 3.days)
@@ -983,6 +984,10 @@ class User < ApplicationRecord
       artist_update_count
     end
 
+    def character_version_count
+      character_update_count
+    end
+
     def pool_version_count
       pool_update_count
     end
@@ -1026,6 +1031,7 @@ class User < ApplicationRecord
           pool_update_count:                PoolVersion.for_updater(id).count,
           set_count:                        PostSet.owned_by(self).count,
           artist_update_count:              ArtistVersion.for_updater(id).count,
+          character_update_count:           CharacterVersion.for_updater(id).count,
           own_post_replaced_count:          PostReplacement.for_uploader_on_approve(id).count,
           own_post_replaced_penalize_count: PostReplacement.penalized.for_uploader_on_approve(id).count,
           post_replacement_rejected_count:  post_replacements.rejected.count,

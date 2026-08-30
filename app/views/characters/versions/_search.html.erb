@@ -1,0 +1,7 @@
+<%= form_search(path: character_versions_path, policy: policy(CharacterVersion)) do |f| %>
+  <%= f.user(:updater) %>
+  <%= f.input(:character_name, label: "Character Name", autocomplete: "character") %>
+  <%= f.input(:character_id, label: "Character ID", hide_unless_value: true) %>
+  <%= f.input(:ip_addr, label: "IP Address") %>
+  <%= f.input(:order, collection: [%w[Name name], %w[Updated id_desc]]) %>
+<% end %>

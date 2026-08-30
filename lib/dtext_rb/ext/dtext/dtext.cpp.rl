@@ -372,6 +372,8 @@ inline := |*
   'user #'i id                                 => { append_id_link("user", "user", "/users/", { a1, a2 }); };
   'artist #'i id                               => { append_id_link("artist", "artist", "/artists/", { a1, a2 }); };
   'artist changes #'i id                       => { append_id_link("artist changes", "artist-changes-for", "/artists/versions?search[artist_id]=", { a1, a2 }); };
+  'character #'i id                            => { append_id_link("character", "character", "/characters/", { a1, a2 }); };
+  'character changes #'i id                    => { append_id_link("character changes", "character-changes-for", "/characters/versions?search[character_id]=", { a1, a2 }); };
   'ban #'i id                                  => { append_id_link("ban", "ban", "/bans/", { a1, a2 }); };
   'bur #'i id                                  => { append_id_link("BUR", "bulk-update-request", "/bulk_update_requests/", { a1, a2 }); };
   'alias #'i id                                => { append_id_link("alias", "tag-alias", "/tags/aliases/", { a1, a2 }); };
@@ -1077,6 +1079,8 @@ void StateMachine::append_internal_url(const DText::URL& url) {
         return append_id_link("user", "user", "/users/", id);
       } else if (controller == "artists") {
         return append_id_link("artist", "artist", "/artists/", id);
+      } else if (controller == "characters") {
+        return append_id_link("character", "character", "/characters/", id);
       } else if (controller == "notes") {
         return append_id_link("note", "note", "/notes/", id);
       } else if (controller == "post_sets" && query.empty()) {
@@ -1190,6 +1194,24 @@ void StateMachine::append_topic(const std::string_view id) {
 }
 
 void StateMachine::append_wiki_link(const std::string_view prefix, const std::string_view tag, const std::string_view anchor, const std::string_view title, const std::string_view suffix) {
+  // basic_wiki_link passes {b1, b2} (the raw tag) as both tag and title - identical span - so a
+  // basic (non-aliased) [[~name]]/[[!name]] still has its leading marker in `title` and needs it
+  // stripped too; aliased_wiki_link passes a genuinely different span ({d1, d2}) that should be
+  // left untouched.
+  bool title_is_tag = title.data() == tag.data() && title.size() == tag.size();
+
+  // [[~name]], [[~name|display]] -> link to the artist's show_or_new page.
+  if (!tag.empty() && tag[0] == '~') {
+    append_artist_link(prefix, tag.substr(1), title_is_tag ? tag.substr(1) : title, suffix);
+    return;
+  }
+
+  // [[!name]], [[!name|display]] -> link to the character's show_or_new page.
+  if (!tag.empty() && tag[0] == '!') {
+    append_character_link(prefix, tag.substr(1), title_is_tag ? tag.substr(1) : title, suffix);
+    return;
+  }
+
   auto normalized_tag = std::string(tag);
   auto title_string = std::string(title);
 
@@ -1231,6 +1253,70 @@ void StateMachine::append_wiki_link(const std::string_view prefix, const std::st
   append("</a>");
 
   wiki_pages.insert(std::string(tag));
+
+  clear_matches();
+}
+
+void StateMachine::append_artist_link(const std::string_view prefix, const std::string_view name, const std::string_view title, const std::string_view suffix) {
+  auto normalized_name = std::string(name);
+  auto title_string = std::string(title);
+
+  std::transform(normalized_name.cbegin(), normalized_name.cend(), normalized_name.begin(), [](unsigned char c) { return c == ' ' ? '_' : ascii_tolower(c); });
+
+  if (title_string.empty()) {
+    std::regex_replace(std::back_inserter(title_string), name.cbegin(), name.cend(), tag_qualifier_regex, "");
+  }
+
+  if (!prefix.empty()) {
+    title_string.insert(0, prefix);
+  }
+
+  if (!suffix.empty()) {
+    title_string.append(suffix);
+  }
+
+  append("<a rel=\"nofollow\" class=\"dtext-link dtext-artist-link\" href=\"");
+  if (std::all_of(normalized_name.cbegin(), normalized_name.cend(), ::isdigit)) {
+  append_relative_url("/artists/");
+  } else {
+  append_relative_url("/artists/show_or_new?name=");
+  }
+  append_uri_escaped(normalized_name);
+  append("\">");
+  append_html_escaped(title_string);
+  append("</a>");
+
+  clear_matches();
+}
+
+void StateMachine::append_character_link(const std::string_view prefix, const std::string_view name, const std::string_view title, const std::string_view suffix) {
+  auto normalized_name = std::string(name);
+  auto title_string = std::string(title);
+
+  std::transform(normalized_name.cbegin(), normalized_name.cend(), normalized_name.begin(), [](unsigned char c) { return c == ' ' ? '_' : ascii_tolower(c); });
+
+  if (title_string.empty()) {
+    std::regex_replace(std::back_inserter(title_string), name.cbegin(), name.cend(), tag_qualifier_regex, "");
+  }
+
+  if (!prefix.empty()) {
+    title_string.insert(0, prefix);
+  }
+
+  if (!suffix.empty()) {
+    title_string.append(suffix);
+  }
+
+  append("<a rel=\"nofollow\" class=\"dtext-link dtext-character-link\" href=\"");
+  if (std::all_of(normalized_name.cbegin(), normalized_name.cend(), ::isdigit)) {
+  append_relative_url("/characters/");
+  } else {
+  append_relative_url("/characters/show_or_new?name=");
+  }
+  append_uri_escaped(normalized_name);
+  append("\">");
+  append_html_escaped(title_string);
+  append("</a>");
 
   clear_matches();
 }

@@ -142,7 +142,7 @@ GEM
       ruby2_keywords
     drb (2.2.3)
     dry-initializer (3.2.0)
-    dtext_rb (1.15.9)
+    dtext_rb (1.15.10)
     elastic-transport (8.4.0)
       faraday (< 3)
       multi_json

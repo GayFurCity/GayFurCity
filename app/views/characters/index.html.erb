@@ -1,0 +1,15 @@
+<%= render("search") %>
+
+<%= table_for(@characters) do |t| %>
+  <% t.column("Name", width: "100%") do |character| %>
+    <%= link_to(h(character.name), character_path(character)) %>
+  <% end %>
+<% end %>
+
+<%= numbered_paginator(@characters) %>
+
+<%= render("secondary_links") %>
+
+<% content_for(:page_title) do %>
+  Characters
+<% end %>

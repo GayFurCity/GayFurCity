@@ -165,6 +165,10 @@ class UserPresenter < ApplicationPresenter
     link_to(user.artist_version_count, Routes.artist_versions_path(search: { updater_id: user.id }))
   end
 
+  def character_version_count
+    link_to(user.character_version_count, Routes.character_versions_path(search: { updater_id: user.id }))
+  end
+
   def forum_post_count
     link_to(user.forum_post_count, Routes.forum_posts_path(search: { creator_id: user.id }))
   end

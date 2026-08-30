@@ -111,6 +111,7 @@ class AdminConfig
       add_number_field(:dmail_restricted_day_limit, name: "Restricted Daily DMail Limit Limit")
       add_number_field(:tag_suggestion_limit, name: "Hourly Alias/Implication Suggestion Limit")
       add_number_field(:artist_edit_limit, name: "Hourly Artist Edit Limit")
+      add_number_field(:character_edit_limit, name: "Hourly Character Edit Limit")
       add_number_field(:wiki_edit_limit, name: "Hourly Wiki Edit Limit")
       add_number_field(:note_edit_limit, name: "Hourly Note Edit Limit")
       add_number_field(:post_edit_limit, name: "Hourly Post Edit Limit")

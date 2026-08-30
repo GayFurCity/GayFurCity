@@ -86,6 +86,32 @@ class ModAction < ApplicationRecord
       json: %i[user_id],
     },
 
+    ### Character ###
+    character_lock:                             {
+      text: ->(mod, _user) { "Locked character ##{mod.subject_id}" },
+      json: %i[],
+    },
+    character_delete:                           {
+      text: ->(mod, _user) { "Deleted character ##{mod.subject_id} (#{mod.name})" },
+      json: %i[name],
+    },
+    character_rename:                           {
+      text: ->(mod, _user) { "Renamed character ##{mod.subject_id} (\"#{mod.old_name}\":#{url.show_or_new_characters_path(name: mod.old_name)} -> \"#{mod.new_name}\":#{url.show_or_new_characters_path(name: mod.new_name)})" },
+      json: %i[old_name new_name],
+    },
+    character_unlock:                           {
+      text: ->(mod, _user) { "Unlocked character ##{mod.subject_id}" },
+      json: %i[],
+    },
+    character_owner_link:                       {
+      text: ->(mod, user) { "Set #{user} as owner of character ##{mod.subject_id}" },
+      json: %i[user_id],
+    },
+    character_owner_unlink:                     {
+      text: ->(mod, user) { "Removed #{user} as owner of character ##{mod.subject_id}" },
+      json: %i[user_id],
+    },
+
     ### Ban ###
     ban_create:                                 {
       text: ->(mod, user) do

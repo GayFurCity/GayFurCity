@@ -1,0 +1,31 @@
+<%= render(partial: "search") %>
+
+<%= table_for(@character_urls) do |t| %>
+  <% t.column(:id, name: "ID") %>
+  <% t.column("Character name") do |url| %>
+    <%= link_to(url.character.name, url.character) %>
+  <% end %>
+  <% t.column("URL") do |url| %>
+    <%= external_link_to(url.url) %>
+  <% end %>
+  <% t.column("Normalized URL") do |url| %>
+    <%= external_link_to(url.normalized_url) %>
+  <% end %>
+  <% t.column("Active?") do |url| %>
+    <%= url.is_active.to_s %>
+  <% end %>
+  <% t.column("Created") do |url| %>
+    <%= compact_time(url.created_at) %>
+  <% end %>
+  <% t.column("Updated") do |url| %>
+    <%= compact_time(url.updated_at) %>
+  <% end %>
+<% end %>
+
+<%= numbered_paginator(@character_urls) %>
+
+<%= render("characters/secondary_links") %>
+
+<% content_for(:page_title) do %>
+  Character URLs
+<% end %>

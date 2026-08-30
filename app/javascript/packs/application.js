@@ -55,6 +55,7 @@ export { default as PostReplacementRejection } from "../src/javascripts/post_rep
 export { default as PostReplacementRejectionReasons } from "../src/javascripts/post_replacement_rejection_reasons.js";
 export { default as PostVersions } from "../src/javascripts/post_versions.js";
 export { default as RecordBuilder } from "../src/javascripts/record_builder.js";
+export { default as CharacterAttributes } from "../src/javascripts/character_attributes.js";
 export { default as Replacer } from "../src/javascripts/replacer.js";
 export { default as Rules } from "../src/javascripts/rules.js";
 export { default as Shortcuts } from "../src/javascripts/shortcuts.js";

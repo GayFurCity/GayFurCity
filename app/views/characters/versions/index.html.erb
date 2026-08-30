@@ -1,0 +1,49 @@
+<h1>Character History</h1>
+
+<%= table_for(@character_versions, class: "striped autofit") do |t| %>
+  <% t.column("Name") do |version| %>
+    <%= link_to(version.name, character_path(version.character_id)) %>
+    <%= link_to("»", character_versions_path(search: { character_id: version.character_id })) %>
+  <% end %>
+  <% t.column("URLs", td: { class: "col-expand" }) do |version| %>
+    <%= character_version_urls_diff(version) %>
+  <% end %>
+  <% t.column("Attributes", td: { class: "col-expand" }) do |version| %>
+    <% if version.custom_attributes_changed %>
+      <%= character_version_attributes_diff(version) %>
+    <% else %>
+      (No Changes)
+    <% end %>
+  <% end %>
+  <% t.column("Cover") do |version| %>
+    <% if version.cover_post_changed || version.cover_caption_changed %>
+      Changed
+    <% else %>
+      (No Changes)
+    <% end %>
+  <% end %>
+  <% t.column("Notes") do |version| %>
+    <% if version.notes_changed %>
+      <%= link_to("Note Changes", wiki_page_versions_path(search: version.character.present? ? { wiki_page_id: version.character.wiki_page } : { title: version.name })) %>
+    <% else %>
+      (No Changes)
+    <% end %>
+  <% end %>
+  <% t.column("Updated") do |version| %>
+    <%= link_to_user(version.updater) %>
+    <%= link_to("»", character_versions_path(search: { updater_name: version.updater_name })) %>
+    <p>
+      <%= compact_time(version.updated_at) %>
+      <% if policy(version).can_see_ip_addr? %>
+        (<%= link_to_ip(version.updater_ip_addr) %>)
+      <% end %>
+    </p>
+  <% end %>
+<% end %>
+
+<%= render("search") %>
+<%= numbered_paginator(@character_versions) %>
+
+<% content_for(:page_title) do %>
+  Character Versions
+<% end %>

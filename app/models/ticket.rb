@@ -44,6 +44,7 @@ class Ticket < ApplicationRecord
   # |    Type    |      Can Create     |    Details Visible   |
   # |:----------:|:-------------------:|:--------------------:|
   # |   Artist   |         Any         |  Janitor+ / Creator  |
+  # |  Character |         Any         |  Janitor+ / Creator  |
   # |   Comment  |       Visible       | Moderator+ / Creator |
   # |    Dmail   | Visible & Recipient | Moderator+ / Creator |
   # | Forum Post |       Visible       | Moderator+ / Creator |
@@ -59,10 +60,11 @@ class Ticket < ApplicationRecord
 
   # All procs are executed in context
   MODELS = {
-    types:        %w[Artist Comment Dmail ForumPost Pool Post PostReplacement PostSet Tag User WikiPage],
+    types:        %w[Artist Character Comment Dmail ForumPost Pool Post PostReplacement PostSet Tag User WikiPage],
     # If the ticket can be viewed
     view:         {
       Artist          => ->(user) { user.is_janitor? || user.is?(creator_id) },
+      Character       => ->(user) { user.is_janitor? || user.is?(creator_id) },
       Comment         => ->(user) { user.is_moderator? || user.is?(creator_id) },
       Dmail           => ->(user) { user.is_moderator? || user.is?(creator_id) },
       ForumPost       => ->(user) { user.is_moderator? || user.is?(creator_id) },
@@ -87,6 +89,7 @@ class Ticket < ApplicationRecord
     # The target name sent to the bot
     target:       {
       Artist          => -> { model&.name },
+      Character       => -> { model&.name },
       Dmail           => -> { model&.from&.name },
       Pool            => -> { model&.name },
       Post            => -> { model&.uploader&.name },

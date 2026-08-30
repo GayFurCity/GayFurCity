@@ -55,7 +55,7 @@ class TagSetPresenter < ApplicationPresenter
 
       label =
         if character_names.any?
-          character_names.map { |name| name.tr("_", " ") }.join(", ")
+          safe_join(character_names.map { |name| character_group_name_html(name) }, ", ")
         else
           unnamed_index += 1
           "Unnamed Character ##{unnamed_index}"
@@ -132,6 +132,14 @@ class TagSetPresenter < ApplicationPresenter
   # .character-group-header's click handler in posts.js. The wrapper is what makes the
   # collapse scoped to just this group instead of every same-named category section on the
   # page (category_sections_html reuses shared classes like "general-tag-list" per group).
+  # A character's plain display name, plus a small icon linking to their character page -
+  # the icon is excluded from the header's click-to-collapse toggle (see posts.js).
+  def character_group_name_html(name)
+    icon = h.tag.i(class: "fa-solid fa-arrow-up-right-from-square")
+    link = link_to(icon, r.show_or_new_characters_path(name: name), class: "character-group-link", title: "View character page")
+    safe_join([name.tr("_", " "), " ", link])
+  end
+
   def character_group_section_html(label, content_html, header_class: "character-group-header")
     h.tag.div(safe_join([
       h.tag.h2(label, class: header_class),

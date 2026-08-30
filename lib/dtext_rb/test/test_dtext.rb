@@ -367,6 +367,23 @@ class DTextTest < Minitest::Test
     assert_parse('<p><a rel="nofollow" class="dtext-link dtext-wiki-link" href="/wiki/show_or_new?title=http%3A%2F%2Fen.wikipedia.org%2Fwiki%2Fgolden_age_of_detective_fiction#description-of-the-genre">Knox Decalogue</a></p>', '[[http://en.wikipedia.org/wiki/Golden_Age_of_Detective_Fiction#Description_of_the_genre| Knox Decalogue]]') # XXX wrong
   end
 
+  def test_artist_wiki_links
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-artist-link" href="/artists/show_or_new?name=bkub">bkub</a></p>', '[[~bkub]]')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-artist-link" href="/artists/show_or_new?name=bkub">The Artist</a></p>', '[[~bkub|The Artist]]')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-artist-link" href="/artists/show_or_new?name=bkub_%28vtuber%29">bkub</a></p>', '[[~bkub (vtuber)|]]')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-artist-link" href="/artists/1234">1234</a></p>', '[[~1234]]')
+    assert_parse('<p>I like <a rel="nofollow" class="dtext-link dtext-artist-link" href="/artists/show_or_new?name=bkub">bkubs</a>.</p>', 'I like [[~bkub]]s.')
+  end
+
+  def test_character_wiki_links
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-character-link" href="/characters/show_or_new?name=fluffy">fluffy</a></p>', '[[!fluffy]]')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-character-link" href="/characters/show_or_new?name=fluffy">Fluffy</a></p>', '[[!fluffy|Fluffy]]')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-character-link" href="/characters/show_or_new?name=fluffy_%28oc%29">fluffy_(oc)</a></p>', '[[!fluffy_(oc)]]')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-character-link" href="/characters/show_or_new?name=fluffy_%28oc%29">fluffy</a></p>', '[[!fluffy (oc)|]]')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-character-link" href="/characters/5678">5678</a></p>', '[[!5678]]')
+    assert_parse('<p>I like <a rel="nofollow" class="dtext-link dtext-character-link" href="/characters/show_or_new?name=fluffy">fluffys</a>.</p>', 'I like [[!fluffy]]s.')
+  end
+
   def test_spoilers
     assert_parse("<p>this is <span class=\"spoiler\">an inline spoiler</span>.</p>", "this is [spoiler]an inline spoiler[/spoiler].")
     assert_parse("<p>this is <span class=\"spoiler\">an inline spoiler</span>.</p>", "this is [SPOILERS]an inline spoiler[/SPOILERS].")
@@ -755,6 +772,7 @@ class DTextTest < Minitest::Test
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-category-id-link" href="/forums/categories/1234">category #1234</a></p>', 'https://danbooru.donmai.us/forums/categories/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-user-id-link" href="/users/1234">user #1234</a></p>', 'https://danbooru.donmai.us/users/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-artist-id-link" href="/artists/1234">artist #1234</a></p>', 'https://danbooru.donmai.us/artists/1234', internal_domains: %w[danbooru.donmai.us])
+    assert_parse('<p><a class="dtext-link dtext-id-link dtext-character-id-link" href="/characters/1234">character #1234</a></p>', 'https://danbooru.donmai.us/characters/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-note-id-link" href="/notes/1234">note #1234</a></p>', 'https://danbooru.donmai.us/notes/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-set-id-link" href="/post_sets/1234">set #1234</a></p>', 'https://danbooru.donmai.us/post_sets/1234', internal_domains: %w[danbooru.donmai.us])
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-wiki-page-id-link" href="/wiki/1234">wiki #1234</a></p>', 'https://danbooru.donmai.us/wiki_pages/1234', internal_domains: %w[danbooru.donmai.us])
@@ -1421,6 +1439,9 @@ class DTextTest < Minitest::Test
     assert_parse_id_link("dtext-pool-id-link", "/pools/1234", "pool #1234")
     assert_parse_id_link("dtext-user-id-link", "/users/1234", "user #1234")
     assert_parse_id_link("dtext-artist-id-link", "/artists/1234", "artist #1234")
+    assert_parse_id_link("dtext-artist-changes-for-id-link", "/artists/versions?search[artist_id]=1234", "artist changes #1234")
+    assert_parse_id_link("dtext-character-id-link", "/characters/1234", "character #1234")
+    assert_parse_id_link("dtext-character-changes-for-id-link", "/characters/versions?search[character_id]=1234", "character changes #1234")
     assert_parse_id_link("dtext-ban-id-link", "/bans/1234", "ban #1234")
     assert_parse_id_link("dtext-tag-alias-id-link", "/tags/aliases/1234", "alias #1234")
     assert_parse_id_link("dtext-tag-implication-id-link", "/tags/implications/1234", "implication #1234")

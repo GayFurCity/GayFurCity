@@ -21,6 +21,8 @@ class DiscordNotification
     case record
     when Artist
       embeds << { color: GREEN, title: "Artist Created", description: "Name: #{record.name}", url: r.artist_url(record), author: a(record.creator) }
+    when Character
+      embeds << { color: GREEN, title: "Character Created", description: "Name: #{record.name}", url: r.character_url(record), author: a(record.creator) }
     when Ban
       embeds << { color: RED, title: "Ban Created", description: "User: #{u(record.user)}", url: r.ban_url(record), author: a(record.creator) }
     when BulkUpdateRequest
@@ -146,6 +148,8 @@ class DiscordNotification
     case record
     when Artist
       embeds << { color: RED, title: "Artist Deleted", description: "Name: #{record.name}", url: r.artist_url(record), author: a(record.creator) }
+    when Character
+      embeds << { color: RED, title: "Character Deleted", description: "Name: #{record.name}", url: r.character_url(record), author: a(record.creator) }
     when Ban
       embeds << { color: GREEN, title: "Ban Deleted", description: "User: #{u(record.user)}", url: r.ban_url(record), author: a(record.creator) }
     when Comment
@@ -192,6 +196,13 @@ class DiscordNotification
         embeds << { color: RED, title: "Artist Unlocked", description: "Name: #{record.name}", url: r.artist_url(record), author: a(record.updater) }
       end
       embeds << { color: YELLOW, title: "Artist Updated", description: "Name: #{record.name}", url: r.artist_url(record), author: a(record.updater) }
+    when Character
+      if record.is_locked? && !record.is_locked_before_last_save
+        embeds << { color: GREEN, title: "Character Locked", description: "Name: #{record.name}", url: r.character_url(record), author: a(record.updater) }
+      elsif !record.is_locked? && record.is_locked_before_last_save
+        embeds << { color: RED, title: "Character Unlocked", description: "Name: #{record.name}", url: r.character_url(record), author: a(record.updater) }
+      end
+      embeds << { color: YELLOW, title: "Character Updated", description: "Name: #{record.name}", url: r.character_url(record), author: a(record.updater) }
     when Ban
       embeds << { color: YELLOW, title: "Ban Updated", description: "User: #{u(record.user)}", url: r.ban_url(record), author: a(record.creator) }
     when BulkUpdateRequest

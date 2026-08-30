@@ -1,0 +1,39 @@
+div#c-characters {
+  ul ul {
+    margin-left: 1em;
+  }
+
+  div.character-cover {
+    float: right;
+    margin: 0 0 1em 1em;
+    max-width: 150px;
+    text-align: center;
+
+    .character-cover-caption {
+      margin: 0.25em 0 0;
+      font-size: 0.9em;
+    }
+  }
+
+  div.recent-posts {
+    margin-top: 1em;
+    clear: right;
+
+    h1 {
+      font-size: $h2-size;
+      margin: 0;
+    }
+  }
+
+  #character-custom-attributes {
+    .character-attribute-row {
+      display: flex;
+      gap: 0.5em;
+      margin-bottom: 0.5em;
+
+      input {
+        flex: 1;
+      }
+    }
+  }
+}

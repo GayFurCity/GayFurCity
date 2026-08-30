@@ -388,6 +388,11 @@ div#c-posts {
       margin-top: 0.75em;
       padding-top: 0.5em;
       border-top: 1px solid themed("color-section-lighten-10");
+      color: themed("color-tag-character");
+
+      &.general-character-group-header {
+        color: inherit;
+      }
     }
 
     &:first-child h2.character-group-header {
@@ -786,6 +791,17 @@ section#tag-list {
   cursor: pointer;
   &.hidden-category::before {
     content: "► ";
+  }
+}
+
+.character-group-link {
+  margin-left: 0.25em;
+  font-size: 0.75em;
+  cursor: pointer;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
   }
 }
 

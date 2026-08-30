@@ -248,7 +248,9 @@ CREATE TABLE public.admin_config (
     anonymous_hard_tag_limit integer DEFAULT 40 CONSTRAINT config_anonymous_hard_tag_limit_not_null NOT NULL,
     post_set_create_limit integer DEFAULT 6 CONSTRAINT config_post_set_create_limit_not_null NOT NULL,
     post_set_create_limit_bypass integer DEFAULT 20 CONSTRAINT config_post_set_create_limit_bypass_not_null NOT NULL,
-    post_set_limit jsonb DEFAULT '{"4": 5, "10": 75, "15": 150, "40": -1}'::jsonb CONSTRAINT config_post_set_limit_not_null NOT NULL
+    post_set_limit jsonb DEFAULT '{"4": 5, "10": 75, "15": 150, "40": -1}'::jsonb CONSTRAINT config_post_set_limit_not_null NOT NULL,
+    character_edit_limit integer DEFAULT 25 NOT NULL,
+    character_edit_limit_bypass integer DEFAULT 15 NOT NULL
 );
 
 
@@ -640,6 +642,121 @@ CREATE SEQUENCE public.bulk_update_requests_id_seq
 --
 
 ALTER SEQUENCE public.bulk_update_requests_id_seq OWNED BY public.bulk_update_requests.id;
+
+
+--
+-- Name: character_urls; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.character_urls (
+    id bigint NOT NULL,
+    character_id bigint NOT NULL,
+    url text NOT NULL,
+    normalized_url text NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: character_urls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.character_urls_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: character_urls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.character_urls_id_seq OWNED BY public.character_urls.id;
+
+
+--
+-- Name: character_versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.character_versions (
+    id bigint NOT NULL,
+    character_id bigint NOT NULL,
+    name character varying NOT NULL,
+    urls text[] DEFAULT '{}'::text[] NOT NULL,
+    notes_changed boolean DEFAULT false NOT NULL,
+    cover_post_changed boolean DEFAULT false NOT NULL,
+    cover_caption_changed boolean DEFAULT false NOT NULL,
+    custom_attributes jsonb DEFAULT '[]'::jsonb NOT NULL,
+    custom_attributes_changed boolean DEFAULT false NOT NULL,
+    owner_user_id bigint,
+    updater_id bigint NOT NULL,
+    updater_ip_addr inet NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: character_versions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.character_versions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: character_versions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.character_versions_id_seq OWNED BY public.character_versions.id;
+
+
+--
+-- Name: characters; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.characters (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    is_locked boolean DEFAULT false NOT NULL,
+    owner_user_id bigint,
+    cover_post_id bigint,
+    cover_caption character varying,
+    custom_attributes jsonb DEFAULT '[]'::jsonb NOT NULL,
+    creator_id bigint NOT NULL,
+    creator_ip_addr inet NOT NULL,
+    updater_id bigint NOT NULL,
+    updater_ip_addr inet NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: characters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.characters_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: characters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.characters_id_seq OWNED BY public.characters.id;
 
 
 --
@@ -3490,7 +3607,8 @@ CREATE TABLE public.users (
     upload_notifications character varying[] DEFAULT '{}'::character varying[] NOT NULL,
     post_vote_count integer DEFAULT 0 NOT NULL,
     comment_vote_count integer DEFAULT 0 NOT NULL,
-    forum_post_vote_count integer DEFAULT 0 NOT NULL
+    forum_post_vote_count integer DEFAULT 0 NOT NULL,
+    character_update_count integer DEFAULT 0 NOT NULL
 );
 
 
@@ -3659,6 +3777,27 @@ ALTER TABLE ONLY public.bulk_update_request_versions ALTER COLUMN id SET DEFAULT
 --
 
 ALTER TABLE ONLY public.bulk_update_requests ALTER COLUMN id SET DEFAULT nextval('public.bulk_update_requests_id_seq'::regclass);
+
+
+--
+-- Name: character_urls id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.character_urls ALTER COLUMN id SET DEFAULT nextval('public.character_urls_id_seq'::regclass);
+
+
+--
+-- Name: character_versions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.character_versions ALTER COLUMN id SET DEFAULT nextval('public.character_versions_id_seq'::regclass);
+
+
+--
+-- Name: characters id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.characters ALTER COLUMN id SET DEFAULT nextval('public.characters_id_seq'::regclass);
 
 
 --
@@ -4251,6 +4390,30 @@ ALTER TABLE ONLY public.bulk_update_request_versions
 
 ALTER TABLE ONLY public.bulk_update_requests
     ADD CONSTRAINT bulk_update_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: character_urls character_urls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.character_urls
+    ADD CONSTRAINT character_urls_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: character_versions character_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.character_versions
+    ADD CONSTRAINT character_versions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: characters characters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.characters
+    ADD CONSTRAINT characters_pkey PRIMARY KEY (id);
 
 
 --
@@ -5122,6 +5285,118 @@ CREATE INDEX index_bulk_update_requests_on_forum_post_id ON public.bulk_update_r
 --
 
 CREATE INDEX index_bulk_update_requests_on_updater_id ON public.bulk_update_requests USING btree (updater_id);
+
+
+--
+-- Name: index_character_urls_on_character_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_character_urls_on_character_id ON public.character_urls USING btree (character_id);
+
+
+--
+-- Name: index_character_urls_on_character_id_and_url; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_character_urls_on_character_id_and_url ON public.character_urls USING btree (character_id, url);
+
+
+--
+-- Name: index_character_urls_on_normalized_url_pattern; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_character_urls_on_normalized_url_pattern ON public.character_urls USING btree (normalized_url text_pattern_ops);
+
+
+--
+-- Name: index_character_urls_on_normalized_url_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_character_urls_on_normalized_url_trgm ON public.character_urls USING gin (normalized_url public.gin_trgm_ops);
+
+
+--
+-- Name: index_character_urls_on_url_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_character_urls_on_url_trgm ON public.character_urls USING gin (url public.gin_trgm_ops);
+
+
+--
+-- Name: index_character_versions_on_character_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_character_versions_on_character_id ON public.character_versions USING btree (character_id);
+
+
+--
+-- Name: index_character_versions_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_character_versions_on_created_at ON public.character_versions USING btree (created_at);
+
+
+--
+-- Name: index_character_versions_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_character_versions_on_name ON public.character_versions USING btree (name);
+
+
+--
+-- Name: index_character_versions_on_owner_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_character_versions_on_owner_user_id ON public.character_versions USING btree (owner_user_id);
+
+
+--
+-- Name: index_character_versions_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_character_versions_on_updater_id ON public.character_versions USING btree (updater_id);
+
+
+--
+-- Name: index_character_versions_on_updater_ip_addr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_character_versions_on_updater_ip_addr ON public.character_versions USING btree (updater_ip_addr);
+
+
+--
+-- Name: index_characters_on_cover_post_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_characters_on_cover_post_id ON public.characters USING btree (cover_post_id);
+
+
+--
+-- Name: index_characters_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_characters_on_name ON public.characters USING btree (name);
+
+
+--
+-- Name: index_characters_on_name_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_characters_on_name_trgm ON public.characters USING gin (name public.gin_trgm_ops);
+
+
+--
+-- Name: index_characters_on_owner_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_characters_on_owner_user_id ON public.characters USING btree (owner_user_id);
+
+
+--
+-- Name: index_characters_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_characters_on_updater_id ON public.characters USING btree (updater_id);
 
 
 --
@@ -8508,6 +8783,9 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260830100200'),
+('20260830100100'),
+('20260830100000'),
 ('20260829120000'),
 ('20260829100158'),
 ('20260828225454'),
@@ -8684,7 +8962,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220203154846'),
 ('20220106081415');
 
-INSERT INTO "fixes" (id, index) VALUES
+INSERT INTO "fixes" (id, "index") VALUES
 (233, 2),
 (233, 1),
 (232, NULL),

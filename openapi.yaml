@@ -385,6 +385,139 @@ components:
             format: uri
         notes_changed:
           type: boolean
+    Character:
+      type: object
+      required:
+        - created_at
+        - creator_id
+        - id
+        - is_locked
+        - owner_user_id
+        - name
+        - notes
+        - cover_post_id
+        - cover_caption
+        - custom_attributes
+        - updated_at
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        creator_id:
+          type: number
+        id:
+          type: number
+        is_locked:
+          type: boolean
+        owner_user_id:
+          type: ["number", "null"]
+        name:
+          type: string
+        notes:
+          type: ["string", "null"]
+        cover_post_id:
+          type: ["number", "null"]
+        cover_caption:
+          type: ["string", "null"]
+        custom_attributes:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - value
+            properties:
+              name:
+                type: string
+              value:
+                type: string
+        updated_at:
+          type: string
+          format: date-time
+    CharacterURL:
+      type: object
+      required:
+        - character_id
+        - created_at
+        - id
+        - is_active
+        - updated_at
+        - url
+        - normalized_url
+      properties:
+        character_id:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+        id:
+          type: number
+        is_active:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+        url:
+          type: string
+          format: "uri"
+        normalized_url:
+          type: string
+          format: "uri"
+    CharacterVersion:
+      type: object
+      required:
+        - id
+        - character_id
+        - name
+        - updater_id
+        - created_at
+        - updated_at
+        - urls
+        - notes_changed
+        - cover_post_changed
+        - cover_caption_changed
+        - custom_attributes
+        - custom_attributes_changed
+      properties:
+        id:
+          type: number
+        character_id:
+          type: number
+        name:
+          type: string
+        updater_id:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        notes_changed:
+          type: boolean
+        cover_post_changed:
+          type: boolean
+        cover_caption_changed:
+          type: boolean
+        custom_attributes:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - value
+            properties:
+              name:
+                type: string
+              value:
+                type: string
+        custom_attributes_changed:
+          type: boolean
     AvoidPosting:
       type: object
       required:
@@ -4939,6 +5072,403 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         404:
           $ref: "#/components/responses/NotFound"
+  # Characters
+  /characters.json:
+    get:
+      summary: Search Characters
+      tags:
+        - Characters
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/id"
+        - name: search[order]
+          in: query
+          schema:
+            type: string
+            enum:
+              - id_asc
+              - id_desc
+              - updated_at
+              - name
+              - post_count
+        - name: search[name]
+          in: query
+          schema:
+            type: string
+        - name: search[any_name_matches]
+          in: query
+          schema:
+            type: string
+        - name: search[any_name_or_url_matches]
+          in: query
+          schema:
+            type: string
+        - name: search[url_matches]
+          in: query
+          schema:
+            type: string
+        - name: search[creator_name]
+          in: query
+          schema:
+            type: string
+        - name: search[creator_id]
+          in: query
+          schema:
+            type: string
+        - name: search[has_tag]
+          in: query
+          schema:
+            type: string
+        - name: search[is_owned]
+          in: query
+          schema:
+            type: string
+        - name: search[cover_post_id]
+          in: query
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: "#/components/schemas/Character"
+                    - type: object
+                      properties:
+                        urls:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/CharacterURL"
+    post:
+      summary: Create Character
+      tags:
+        - Characters
+      security:
+        - basicAuth: []
+      description: |
+        `urls` is silently truncated to 25 entries.
+        `notes` is silently truncated to the wiki page limit (250,000).
+        `cover_post_id` must reference a post tagged with this character's name.
+        `custom_attributes` is limited to 25 entries; names may not be "owner" or "user" (case-insensitive) and must be unique.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                url_string:
+                  type: string
+                notes:
+                  type: string
+                cover_post_id:
+                  type: ["number", "null"]
+                cover_caption:
+                  type: string
+                custom_attributes:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      value:
+                        type: string
+                owner_user_id:
+                  type: ["number", "null"]
+                  description: Only usable for Janitor+
+                is_locked:
+                  type: boolean
+                  description: Only usable for Janitor+
+      responses:
+        201:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Character"
+        403:
+          $ref: "#/components/responses/AccessDenied"
+        422:
+          $ref: "#/components/responses/ExpectedError"
+  /characters/{idOrName}.json:
+    get:
+      summary: Get Character
+      tags:
+        - Characters
+      parameters:
+        - name: idOrName
+          in: path
+          required: true
+          description: The ID or name of the character to get.
+          schema:
+            type: ["number", "string"]
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Character"
+                  - type: object
+                    properties:
+                      urls:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/CharacterURL"
+        404:
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Edit Character
+      tags:
+        - Characters
+      security:
+        - basicAuth: []
+      description: |
+        If a character is locked, you must be Janitor+ to edit them.
+        `urls` is silently truncated to 25 entries.
+        `notes` is silently truncated to the wiki page limit (250,000).
+        `cover_post_id` must reference a post tagged with this character's name.
+        `custom_attributes` is limited to 25 entries; names may not be "owner" or "user" (case-insensitive) and must be unique.
+      parameters:
+        - name: idOrName
+          in: path
+          required: true
+          description: The ID or name of the character to edit.
+          schema:
+            type: ["number", "string"]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Only usable for Janitor+
+                url_string:
+                  type: string
+                notes:
+                  type: string
+                cover_post_id:
+                  type: ["number", "null"]
+                cover_caption:
+                  type: string
+                custom_attributes:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      value:
+                        type: string
+                owner_user_id:
+                  type: ["number", "null"]
+                  description: Only usable for Janitor+
+                is_locked:
+                  type: boolean
+                  description: Only usable for Janitor+
+      responses:
+        204:
+          description: Success
+        403:
+          $ref: "#/components/responses/AccessDenied"
+        404:
+          $ref: "#/components/responses/NotFound"
+        422:
+          $ref: "#/components/responses/ExpectedError"
+    delete:
+      summary: Delete Character
+      tags:
+        - Characters
+      security:
+        - basicAuth: []
+      description: |
+        You must be an Admin or higher to delete a character.
+      parameters:
+        - name: idOrName
+          in: path
+          required: true
+          description: The ID or name of the character to edit.
+          schema:
+            type: ["number", "string"]
+      responses:
+        204:
+          description: Success
+        403:
+          $ref: "#/components/responses/AccessDenied"
+        404:
+          $ref: "#/components/responses/NotFound"
+  /characters/{idOrName}/revert.json:
+    put:
+      summary: Revert Character
+      tags:
+        - Characters
+      security:
+        - basicAuth: []
+      description: |
+        If a character is locked, you must be Janitor+ to revert them.
+      parameters:
+        - name: idOrName
+          in: path
+          required: true
+          description: The ID or name of the character to revert.
+          schema:
+            type: ["number", "string"]
+        - name: version_id
+          in: query
+          required: true
+          description: The version ID to revert to.
+          schema:
+            type: number
+      responses:
+        204:
+          description: Success
+        403:
+          $ref: "#/components/responses/AccessDenied"
+        404:
+          $ref: "#/components/responses/NotFound"
+        422:
+          $ref: "#/components/responses/ExpectedError"
+  # Character Versions
+  /characters/versions.json:
+    get:
+      summary: Search Character Versions
+      tags:
+        - Character Versions
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/id"
+        - $ref: "#/components/parameters/ip_addr"
+        - name: search[order]
+          in: query
+          description: The order of the results.
+          schema:
+            type: string
+            enum:
+              - id_asc
+              - id_desc
+              - name
+        - name: search[character_name]
+          in: query
+          description: The name of the character.
+          schema:
+            type: string
+        - name: search[character_id]
+          in: query
+          description: The id of the character.
+          schema:
+            type: string
+        - name: search[updater_name]
+          in: query
+          description: The name of the user that updated the character.
+          schema:
+            type: string
+        - name: search[updater_id]
+          in: query
+          description: The id of the user that updated the character.
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CharacterVersion"
+  # Character URLs
+  /characters/urls.json:
+    get:
+      summary: Search Character URLs
+      tags:
+        - Character URLs
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/id"
+        - name: search[order]
+          in: query
+          description: The order of the results.
+          schema:
+            type: string
+            enum:
+              - id
+              - id_asc
+              - id_desc
+              - character_id
+              - character_id_asc
+              - character_id_desc
+              - url
+              - url_asc
+              - url_desc
+              - normalized_url
+              - normalized_url_asc
+              - normalized_url_desc
+              - created_at
+              - created_at_asc
+              - created_at_desc
+              - updated_at
+              - updated_at_asc
+              - updated_at_desc
+        - name: search[character_name]
+          in: query
+          description: The name of the character.
+          schema:
+            type: string
+        - name: search[character_id]
+          in: query
+          description: The id of the character.
+          schema:
+            type: string
+        - name: search[is_active]
+          in: query
+          description: If the character url is active.
+          schema:
+            type: boolean
+        - name: search[url]
+          in: query
+          description: The url.
+          schema:
+            type: string
+        - name: search[normalized_url]
+          in: query
+          description: The normalized url. (http:, trailing `/`)
+          schema:
+            type: string
+        - name: search[url_matches]
+          in: query
+          description: Legacy name for `search[url]`.
+          deprecated: true
+          schema:
+            type: string
+        - name: search[normalized_url_matches]
+          in: query
+          description: Legacy name for `search[normalized_url]`.
+          deprecated: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CharacterURL"
   # Comments
   /comments.json:
     get:

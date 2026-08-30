@@ -1,0 +1,6 @@
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to("Listing", characters_path) %>
+  <%= subnav_link_to("New", new_character_path) %>
+  <%= subnav_link_to("Search", search_character_versions_path) %>
+<% end %>
+<%= latest_link(@character_versions) %>

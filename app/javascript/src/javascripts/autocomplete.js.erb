@@ -30,6 +30,7 @@ Autocomplete.initialize_all = function() {
 
   this.initialize_tag_autocomplete();
   this.initialize_artist_autocomplete($('[data-autocomplete="artist"]'));
+  this.initialize_character_autocomplete($('[data-autocomplete="character"]'));
   this.initialize_pool_autocomplete($('[data-autocomplete="pool"]'));
   this.initialize_user_autocomplete($('[data-autocomplete="user"]'));
   this.initialize_wiki_autocomplete($('[data-autocomplete="wiki-page"]'));
@@ -145,6 +146,17 @@ Autocomplete.initialize_artist_autocomplete = function($fields) {
     },
     source: function(req, resp) {
       Autocomplete.artist_source(req.term, resp);
+    }
+  });
+};
+
+Autocomplete.initialize_character_autocomplete = function($fields) {
+  $fields.autocomplete({
+    search: function() {
+      $(this).data("ui-autocomplete").menu.bindings = $();
+    },
+    source: function(req, resp) {
+      Autocomplete.character_source(req.term, resp);
     }
   });
 };
@@ -315,6 +327,8 @@ Autocomplete.get_href = function(item) {
     return "/pools/" + item.id;
   case "artist":
     return "/artists/" + item.id;
+  case "character":
+    return "/characters/" + item.id;
   case "wiki_page":
     return "/wiki/" + item.id;
   case "tag":
@@ -470,6 +484,30 @@ Autocomplete.artist_source = function(term, resp) {
           label: artist.name.replace(/_/g, " "),
           value: artist.name,
           category: Autocomplete.TAG_CATEGORIES.artist,
+        };
+      }));
+    }
+  });
+}
+
+Autocomplete.character_source = function(term, resp) {
+  return $.ajax({
+    url: "/characters.json",
+    data: {
+      "search[name]": term.trim().replace(/\s+/g, "_") + "*",
+      "search[order]": "post_count",
+      "limit": 10,
+      "expiry": 7
+    },
+    method: "get",
+    success: function(data) {
+      resp($.map(data, function(character) {
+        return {
+          id: character.id,
+          type: "character",
+          label: character.name.replace(/_/g, " "),
+          value: character.name,
+          category: Autocomplete.TAG_CATEGORIES.character,
         };
       }));
     }

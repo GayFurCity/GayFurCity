@@ -1,0 +1,10 @@
+<tr>
+  <td><span class="title">Reported Character</span></td>
+  <td>
+    <% if @ticket.model.present? %>
+      <%= link_to(@ticket.model.name, character_path(id: @ticket.model.id)) %>
+    <% else %>
+      <span class="text-error">Character has been deleted</span>
+    <% end %>
+  </td>
+</tr>

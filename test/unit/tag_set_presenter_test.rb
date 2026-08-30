@@ -39,6 +39,7 @@ class TagSetPresenterTest < ActiveSupport::TestCase
 
           assert_includes(html, "character-group-header")
           assert_includes(html, "chen")
+          assert_includes(html, %(href="/characters/show_or_new?name=chen"))
         end
       end
 

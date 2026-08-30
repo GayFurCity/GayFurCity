@@ -97,6 +97,14 @@ class DtextTest < ActiveSupport::TestCase
         assert_parse_id_link("artist changes #123", "artist changes #123", "dtext-artist-changes-for-id-link", u(artist_versions_path(search: { artist_id: 123 })))
       end
 
+      should("parse character #") do
+        assert_parse_id_link("character #123", "character #123", "dtext-character-id-link", u(character_path(id: 123)))
+      end
+
+      should("parse character changes #") do
+        assert_parse_id_link("character changes #123", "character changes #123", "dtext-character-changes-for-id-link", u(character_versions_path(search: { character_id: 123 })))
+      end
+
       should("parse ban #") do
         assert_parse_id_link("ban #123", "ban #123", "dtext-ban-id-link", u(ban_path(id: 123)))
       end
@@ -245,6 +253,42 @@ class DtextTest < ActiveSupport::TestCase
         should("parse with parentheses") do
           assert_parse_dtext(%(<p><a rel="nofollow" class="dtext-link dtext-wiki-link" href="/wiki/show_or_new?title=test_%28testing%29">test</a></p>), "[[test (testing)|]]")
         end
+      end
+    end
+
+    context("[[~]]") do
+      should("parse") do
+        assert_parse_dtext(%(<p><a rel="nofollow" class="dtext-link dtext-artist-link" href="/artists/show_or_new?name=bkub">bkub</a></p>), "[[~bkub]]")
+      end
+
+      should("parse masked") do
+        assert_parse_dtext(%(<p><a rel="nofollow" class="dtext-link dtext-artist-link" href="/artists/show_or_new?name=bkub">The Artist</a></p>), "[[~bkub|The Artist]]")
+      end
+
+      should("parse with parentheses") do
+        assert_parse_dtext(%(<p><a rel="nofollow" class="dtext-link dtext-artist-link" href="/artists/show_or_new?name=bkub_%28vtuber%29">bkub</a></p>), "[[~bkub (vtuber)|]]")
+      end
+
+      should("link to the artist by id when the name is numeric") do
+        assert_parse_dtext(%(<p><a rel="nofollow" class="dtext-link dtext-artist-link" href="/artists/1234">1234</a></p>), "[[~1234]]")
+      end
+    end
+
+    context("[[!]]") do
+      should("parse") do
+        assert_parse_dtext(%(<p><a rel="nofollow" class="dtext-link dtext-character-link" href="/characters/show_or_new?name=fluffy">fluffy</a></p>), "[[!fluffy]]")
+      end
+
+      should("parse masked") do
+        assert_parse_dtext(%(<p><a rel="nofollow" class="dtext-link dtext-character-link" href="/characters/show_or_new?name=fluffy">Fluffy</a></p>), "[[!fluffy|Fluffy]]")
+      end
+
+      should("parse with parentheses") do
+        assert_parse_dtext(%(<p><a rel="nofollow" class="dtext-link dtext-character-link" href="/characters/show_or_new?name=fluffy_%28oc%29">fluffy</a></p>), "[[!fluffy (oc)|]]")
+      end
+
+      should("link to the character by id when the name is numeric") do
+        assert_parse_dtext(%(<p><a rel="nofollow" class="dtext-link dtext-character-link" href="/characters/5678">5678</a></p>), "[[!5678]]")
       end
     end
 

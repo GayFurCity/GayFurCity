@@ -1,0 +1,15 @@
+<h1>Edit Character</h1>
+
+<% if @character.editable_by?(CurrentUser.user) %>
+  <%= render("form") %>
+
+<% elsif @character.is_locked? %>
+  <p>This character entry is locked and cannot be edited.</p>
+
+<% end %>
+
+<%= render("secondary_links") %>
+
+<% content_for(:page_title) do %>
+  Edit Character - <%= @character.name %>
+<% end %>

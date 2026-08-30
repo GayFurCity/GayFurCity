@@ -156,6 +156,18 @@ Rails.application.routes.draw do
       resources(:imports, controller: "bulk_update_requests/imports", as: "bulk_update_request_imports", only: %i[index show new create edit update])
     end
   end
+  resources(:characters, constraints: id_name_constraint) do
+    member do
+      put(:revert)
+    end
+    collection do
+      get(:show_or_new)
+      resources(:versions, only: %i[index], controller: "characters/versions", as: "character_versions") do
+        get(:search, on: :collection)
+      end
+      resources(:urls, only: %i[index], controller: "characters/urls", as: "character_urls")
+    end
+  end
   resources(:comments) do
     resource(:votes, controller: "comments/votes", only: %i[create destroy])
     resource(:edits, controller: "edit_histories", only: %i[show])
@@ -484,8 +496,8 @@ Rails.application.routes.draw do
       get(:info)
     end
   end
-  get("/wiki_pages", to: redirect { |_params, req| "/wiki#{req.query_string.present? ? "?#{req.query_string}" : ''}" }, as: nil)
-  get("/wiki_pages/*path", to: redirect { |params, req| "/wiki/#{params[:path]}#{req.query_string.present? ? "?#{req.query_string}" : ''}" }, as: nil)
+  get("/wiki_pages", to: redirect { |_params, req| "/wiki#{"?#{req.query_string}" if req.query_string.present?}" }, as: nil)
+  get("/wiki_pages/*path", to: redirect { |params, req| "/wiki/#{params[:path]}#{"?#{req.query_string}" if req.query_string.present?}" }, as: nil)
   resources(:wiki_pages, path: "wiki", constraints: id_name_constraint) do
     member do
       put(:revert)

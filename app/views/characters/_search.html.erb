@@ -1,0 +1,8 @@
+<%= form_search(path: characters_path) do |f| %>
+  <%= f.input(:any_name_matches, label: "Name", hint: "Use * for wildcard", autocomplete: "character") %>
+  <%= f.input(:url_matches, label: "URL", as: :string) %>
+  <%= f.user(:creator) %>
+  <%= f.input(:has_tag, label: "Has tag?", collection: [["Yes", true], ["No", false]], include_blank: true) %>
+  <%= f.input(:is_owned, label: "Owned?", collection: [["Yes", true], ["No", false]], include_blank: true) %>
+  <%= f.input(:order, collection: [["Recently created", "created_at"], ["Last updated", "updated_at"], ["Name", "name"], ["Post count", "post_count"]]) %>
+<% end %>

@@ -1,0 +1,38 @@
+<%= custom_form_for(@character) do |f| %>
+  <% if @character.new_record? %>
+    <%= f.input(:name, as: :string, autocomplete: "tag") %>
+  <% elsif can_use_attribute?(@character, :name) %>
+    <%= f.input(:name, autocomplete: "tag", hint: "Change to rename this character entry and its wiki page.") %>
+  <% else %>
+    <p><%= @character.name %></p>
+  <% end %>
+  <% if can_use_attributes?(@character, %i[owner_user_id is_locked]) %>
+    <%= f.input(:owner_user_id, label: "Owner") %>
+    <%= f.input(:is_locked, label: "Locked") %>
+  <% end %>
+  <%= f.input(:url_string, label: "URLs", as: :text, input_html: { size: "80x10", value: params.dig(:character, :url_string) || @character.urls.join("\n") }, hint: "You can prefix a URL with - to mark it as dead.") %>
+
+  <%= f.input(:cover_post_id, as: :string, label: "Cover Post ID", hint: "Shown in the top-right corner of the character's page. The post must be tagged with this character.") %>
+  <%= f.input(:cover_caption, label: "Cover Caption", hint: safe_join(["Shown under the cover image, separate from the wiki page. Formatted using ", link_to("DText", help_page_path(id: "dtext")), "."])) %>
+
+  <div class="input">
+    <label>Attributes</label>
+    <div id="character-custom-attributes">
+      <% @character.custom_attributes.each do |attr| %>
+        <div class="character-attribute-row">
+          <%= text_field_tag("character[custom_attributes][][name]", attr["name"], placeholder: "Name") %>
+          <%= text_field_tag("character[custom_attributes][][value]", attr["value"], placeholder: "Value") %>
+          <button type="button" class="remove-attribute-row">Remove</button>
+        </div>
+      <% end %>
+    </div>
+    <button type="button" id="add-attribute-row">Add Attribute</button>
+    <p class="hint">Up to 25 name/value pairs. Value is formatted using <%= link_to("DText", help_page_path(id: "dtext")) %>.</p>
+  </div>
+
+  <% if @character.is_note_locked?(CurrentUser.user) %>
+    <p>Character is note locked. Notes cannot be edited.</p>
+  <% end %>
+  <%= f.input(:notes, as: :dtext, limit: AdminConfig.instance.wiki_page_max_size, disabled: @character.is_note_locked?(CurrentUser.user), allow_color: true) %>
+  <%= f.button(:submit, "Submit") %>
+<% end %>

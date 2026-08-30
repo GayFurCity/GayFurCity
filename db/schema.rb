@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_29_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_30_100200) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -34,6 +34,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_120000) do
     t.jsonb "bur_entry_limit", default: {"10" => 50, "40" => -1}, null: false
     t.integer "bur_nuke", default: 40, null: false
     t.string "canonical_app_name", default: "GayFur City", null: false
+    t.integer "character_edit_limit", default: 25, null: false
+    t.integer "character_edit_limit_bypass", default: 15, null: false
     t.integer "comment_bump_threshold", default: 40, null: false
     t.integer "comment_limit", default: 15, null: false
     t.integer "comment_limit_bypass", default: 15, null: false
@@ -330,6 +332,62 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_120000) do
     t.inet "updater_ip_addr", null: false
     t.index ["forum_post_id"], name: "index_bulk_update_requests_on_forum_post_id"
     t.index ["updater_id"], name: "index_bulk_update_requests_on_updater_id"
+  end
+
+  create_table "character_urls", force: :cascade do |t|
+    t.bigint "character_id", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.boolean "is_active", default: true, null: false
+    t.text "normalized_url", null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.text "url", null: false
+    t.index ["character_id", "url"], name: "index_character_urls_on_character_id_and_url", unique: true
+    t.index ["character_id"], name: "index_character_urls_on_character_id"
+    t.index ["normalized_url"], name: "index_character_urls_on_normalized_url_pattern", opclass: :text_pattern_ops
+    t.index ["normalized_url"], name: "index_character_urls_on_normalized_url_trgm", opclass: :gin_trgm_ops, using: :gin
+    t.index ["url"], name: "index_character_urls_on_url_trgm", opclass: :gin_trgm_ops, using: :gin
+  end
+
+  create_table "character_versions", force: :cascade do |t|
+    t.bigint "character_id", null: false
+    t.boolean "cover_caption_changed", default: false, null: false
+    t.boolean "cover_post_changed", default: false, null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.jsonb "custom_attributes", default: [], null: false
+    t.boolean "custom_attributes_changed", default: false, null: false
+    t.string "name", null: false
+    t.boolean "notes_changed", default: false, null: false
+    t.bigint "owner_user_id"
+    t.datetime "updated_at", precision: nil, null: false
+    t.bigint "updater_id", null: false
+    t.inet "updater_ip_addr", null: false
+    t.text "urls", default: [], null: false, array: true
+    t.index ["character_id"], name: "index_character_versions_on_character_id"
+    t.index ["created_at"], name: "index_character_versions_on_created_at"
+    t.index ["name"], name: "index_character_versions_on_name"
+    t.index ["owner_user_id"], name: "index_character_versions_on_owner_user_id"
+    t.index ["updater_id"], name: "index_character_versions_on_updater_id"
+    t.index ["updater_ip_addr"], name: "index_character_versions_on_updater_ip_addr"
+  end
+
+  create_table "characters", force: :cascade do |t|
+    t.string "cover_caption"
+    t.bigint "cover_post_id"
+    t.datetime "created_at", precision: nil, null: false
+    t.bigint "creator_id", null: false
+    t.inet "creator_ip_addr", null: false
+    t.jsonb "custom_attributes", default: [], null: false
+    t.boolean "is_locked", default: false, null: false
+    t.string "name", null: false
+    t.bigint "owner_user_id"
+    t.datetime "updated_at", precision: nil, null: false
+    t.bigint "updater_id", null: false
+    t.inet "updater_ip_addr", null: false
+    t.index ["cover_post_id"], name: "index_characters_on_cover_post_id"
+    t.index ["name"], name: "index_characters_on_name", unique: true
+    t.index ["name"], name: "index_characters_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
+    t.index ["owner_user_id"], name: "index_characters_on_owner_user_id"
+    t.index ["updater_id"], name: "index_characters_on_updater_id"
   end
 
   create_table "comment_votes", force: :cascade do |t|
@@ -1622,6 +1680,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_120000) do
     t.text "bcrypt_password_hash"
     t.bigint "bit_prefs", default: 0, null: false
     t.text "blacklisted_tags", default: ""
+    t.integer "character_update_count", default: 0, null: false
     t.integer "comment_count", default: 0, null: false
     t.integer "comment_threshold", default: -2, null: false
     t.integer "comment_vote_count", default: 0, null: false

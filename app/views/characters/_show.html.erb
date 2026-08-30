@@ -1,0 +1,46 @@
+<% if @character.cover_post.present? %>
+  <div class="character-cover">
+    <%= PostPresenter.preview(@character.cover_post, inline: true, show_deleted: true) %>
+    <% if @character.cover_caption.present? %>
+      <p class="character-cover-caption"><%= format_text(@character.cover_caption, inline: true, allow_color: true) %></p>
+    <% end %>
+  </div>
+<% end %>
+
+<h1>
+  Character: <%= link_to(@character.pretty_name, posts_path(tags: @character.name), class: "tag-type-#{@character.category_id}") %>
+  <% if @character.is_locked? %>
+    (locked)
+  <% end %>
+</h1>
+
+<% if @character.notes.present? %>
+  <div class="dtext-container">
+    <%= format_text(@character.notes, allow_color: true) %>
+  </div>
+
+  <p><%= link_to("View wiki page", @character.wiki_page) %></p>
+<% else %>
+  <p><%= link_to_wiki_or_new("View wiki page", @character.name) %></p>
+<% end %>
+
+<%= render("tags/alias_and_implication_list", tag: @character.tag) %>
+<%= yield %>
+
+<div class="recent-posts">
+  <h1>Recent Posts (<%= link_to("view all", posts_path(tags: @character.name)) %>)</h1>
+
+  <%= render("posts/partials/common/inline_blacklist") %>
+
+  <div style="margin: 1em 0;">
+    <%= @post_set.presenter.post_previews_html(self) %>
+  </div>
+</div>
+
+<% render(partial: "static/embed", locals: { record: @character, name: @character.pretty_name, description: @character.notes || "", post: nil }) %>
+
+<%= render("secondary_links") %>
+
+<% content_for(:page_title) do %>
+  Character - <%= @character.name %>
+<% end %>

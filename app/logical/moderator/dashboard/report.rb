@@ -16,6 +16,12 @@ module Moderator
         end
       end
 
+      def characters
+        ApplicationRecord.without_timeout do
+          Queries::Character.all(min_date, max_level)
+        end
+      end
+
       def comments
         ApplicationRecord.without_timeout do
           Queries::Comment.all(min_date, max_level)

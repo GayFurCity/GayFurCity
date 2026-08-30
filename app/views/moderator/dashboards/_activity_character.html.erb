@@ -1,0 +1,9 @@
+<%= table_for(@dashboard.characters) do |t| %>
+  <% t.caption { "Character Updates" } %>
+  <% t.column("User") do |activity| %>
+    <%= link_to_user(activity.user) %>
+  <% end %>
+  <% t.column("Count") do |activity| %>
+    <%= link_to(activity.count, character_versions_path(search: { updater_id: activity.user.id })) %>
+  <% end %>
+<% end %>

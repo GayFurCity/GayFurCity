@@ -3,7 +3,7 @@
 class UploadSettings
   include(ActiveModel::Serializers::JSON)
 
-  ATTRIBUTES = %i[compact_mode safe_site post_tags upload_tags recent_tags allow_locked_tags allow_rating_lock allow_upload_as_pending allow_upload_as_in_progress max_file_size max_file_size_map max_file_size_per_request].freeze
+  ATTRIBUTES = %i[compact_mode safe_site post_tags character_groups upload_tags recent_tags allow_locked_tags allow_rating_lock allow_upload_as_pending allow_upload_as_in_progress max_file_size max_file_size_map max_file_size_per_request].freeze
 
   attr_accessor(:user, :post)
 
@@ -20,9 +20,15 @@ class UploadSettings
     user.safe_mode?
   end
 
+  # The plain "general tags" box: everything not attributed to a character group.
   def post_tags
     return if post.nil?
-    "#{post.presenter.split_tag_list_text} "
+    "#{post.ungrouped_tags.sort.join(' ')} "
+  end
+
+  def character_groups
+    return [] if post.nil?
+    post.character_groups_for_api
   end
 
   def upload_tags

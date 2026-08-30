@@ -16,6 +16,8 @@ class TagNameValidator < ActiveModel::EachValidator
       record.errors.add(attribute,  "'#{value}' cannot contain commas (',')")
     when /#/
       record.errors.add(attribute,  "'#{value}' cannot contain octothorpes ('#')")
+    when /[{}]/
+      record.errors.add(attribute,  "'#{value}' cannot contain curly braces ('{' or '}')")
     when /%/
       record.errors.add(attribute,  "'#{value}' cannot contain percent signs ('%')")
     when /\A~/

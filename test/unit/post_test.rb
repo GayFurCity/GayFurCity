@@ -7,6 +7,14 @@ class PostTest < ActiveSupport::TestCase
     assert_equal(posts.map(&:id), Post.tag_match(query, user).pluck(:id), "Query: #{query}")
   end
 
+  def save_with_groups(post, groups, ungrouped)
+    post.character_groups_attributes = groups
+    post.ungrouped_tag_string = ungrouped
+    post.updater = @janitor
+    post.save!
+    post
+  end
+
   setup do
     @user = create(:user, created_at: 2.weeks.ago)
     @janitor = create(:janitor_user)
@@ -2813,6 +2821,188 @@ class PostTest < ActiveSupport::TestCase
         assert_equal([@post.id], @pool.reload.post_ids)
         assert_equal("pool:#{@pool.id}", @post.pool_string)
         assert_equal("Test2_Pool", @pool.name)
+      end
+    end
+  end
+
+  context("Character groups:") do
+    setup do
+      create(:tag, name: "fluffy_(oc)", category: TagCategory.character)
+      create(:tag, name: "rex_(oc)", category: TagCategory.character)
+    end
+
+    should("populate character_groups from character_groups_attributes, folding the tags into tag_string") do
+      post = create(:post, tag_string: "solo")
+      save_with_groups(post, [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes"] }], "solo")
+
+      assert_equal([{ "tags" => %w[fluffy_(oc) blue_eyes] }], post.character_groups)
+      assert_includes(post.tag_string.split, "blue_eyes")
+      assert_includes(post.tag_string.split, "fluffy_(oc)")
+    end
+
+    should("preserve existing groups on a plain edit that doesn't resubmit character_groups_attributes") do
+      post = create(:post, tag_string: "solo")
+      save_with_groups(post, [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes"] }], "solo")
+
+      post.updater = @janitor
+      post.ungrouped_tag_string = "solo new_tag"
+      post.save!
+
+      assert_equal([{ "tags" => %w[fluffy_(oc) blue_eyes] }], post.character_groups)
+      assert_includes(post.tag_string.split, "new_tag")
+    end
+
+    should("clear groups (while leaving their tags on the post as general tags) when character_groups_attributes is explicitly empty") do
+      post = create(:post, tag_string: "solo")
+      save_with_groups(post, [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes"] }], "solo")
+
+      post.updater = @janitor
+      post.character_groups_attributes = []
+      post.ungrouped_tag_string = post.tag_string
+      post.save!
+
+      assert_empty(post.character_groups)
+      assert_includes(post.tag_string.split, "blue_eyes")
+      assert_includes(post.tag_string.split, "fluffy_(oc)")
+    end
+
+    should("actually remove a tag when it's dropped from ungrouped_tag_string") do
+      post = create(:post, tag_string: "solo")
+      save_with_groups(post, [], "solo duo")
+
+      post.updater = @janitor
+      post.character_groups_attributes = []
+      post.ungrouped_tag_string = "solo"
+      post.save!
+
+      assert_equal("solo", post.tag_string)
+    end
+
+    should("allow the same tag to be attributed to more than one character") do
+      post = create(:post, tag_string: "duo")
+      save_with_groups(post, [
+        { characters: ["fluffy_(oc)"], tags: ["blue_eyes"] },
+        { characters: ["rex_(oc)"], tags: ["blue_eyes"] },
+      ], "duo")
+
+      assert_equal(1, post.tag_string.split.count("blue_eyes"))
+      assert_equal(2, post.character_groups.size)
+      assert(post.character_groups.all? { |g| g["tags"].include?("blue_eyes") })
+    end
+
+    should("resolve an aliased tag to its canonical name within a group") do
+      create(:tag_alias, antecedent_name: "old_name", consequent_name: "blue_eyes")
+      post = create(:post, tag_string: "solo")
+      save_with_groups(post, [{ characters: ["fluffy_(oc)"], tags: ["old_name"] }], "solo")
+
+      assert_equal([{ "tags" => %w[fluffy_(oc) blue_eyes] }], post.character_groups)
+    end
+
+    should("sweep a grouped tag's implications into the same group") do
+      create(:tag, name: "domestic_cat", category: TagCategory.species)
+      create(:tag, name: "felid", category: TagCategory.species)
+      create(:tag_implication, antecedent_name: "domestic_cat", consequent_name: "felid")
+      post = create(:post, tag_string: "solo")
+      save_with_groups(post, [{ characters: ["fluffy_(oc)"], tags: ["domestic_cat"] }], "solo")
+
+      assert_equal([{ "tags" => %w[fluffy_(oc) domestic_cat felid] }], post.character_groups)
+    end
+
+    should("drop artist, meta, and invalid category tags out of a group into the ungrouped tags") do
+      create(:tag, name: "some_artist", category: TagCategory.artist)
+      create(:tag, name: "some_meta")
+      create(:tag, name: "some_invalid")
+      Tag.where(name: "some_meta").update_all(category: TagCategory.meta)
+      Tag.where(name: "some_invalid").update_all(category: TagCategory.invalid)
+      post = create(:post, tag_string: "solo")
+      save_with_groups(post, [{ characters: ["fluffy_(oc)"], tags: %w[blue_eyes some_artist some_meta some_invalid] }], "solo")
+
+      assert_equal([{ "tags" => %w[fluffy_(oc) blue_eyes] }], post.character_groups)
+      assert_includes(post.ungrouped_tags, "some_artist")
+      assert_includes(post.ungrouped_tags, "some_meta")
+      assert_includes(post.ungrouped_tags, "some_invalid")
+    end
+
+    should("prune a tag from its group when it's force-removed by locked tags") do
+      post = create(:post, tag_string: "solo")
+      save_with_groups(post, [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes"] }], "solo")
+
+      post.updater = @janitor
+      post.locked_tags = "-blue_eyes"
+      post.save!
+
+      assert_equal([{ "tags" => ["fluffy_(oc)"] }], post.character_groups)
+    end
+
+    should("not attribute a locked-tag force-add to any existing group") do
+      post = create(:post, tag_string: "solo")
+      save_with_groups(post, [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes"] }], "solo")
+
+      post.updater = @janitor
+      post.locked_tags = "forced_tag"
+      post.save!
+
+      assert_includes(post.ungrouped_tags, "forced_tag")
+      assert_not_includes(post.character_groups.flat_map { |g| g["tags"] }, "forced_tag")
+    end
+
+    should("parse {} groups embedded directly in tag_string, for API/manual editing") do
+      post = create(:post, tag_string: "solo {fluffy_(oc) blue_eyes} digital_media_(artwork)")
+
+      assert_equal([{ "tags" => %w[fluffy_(oc) blue_eyes] }], post.character_groups)
+      assert_not_includes(post.tag_string, "{")
+      assert_includes(post.tag_string.split, "fluffy_(oc)")
+      assert_includes(post.tag_string.split, "blue_eyes")
+    end
+
+    should("reject tag_string with unbalanced or nested {} groups") do
+      post = build(:post, tag_string: "solo {fluffy_(oc) blue_eyes")
+
+      assert_not(post.valid?)
+      assert_predicate(post.errors[:tag_string], :present?)
+    end
+
+    should("keep group membership when a grouped tag is renamed via an approved alias") do
+      post = create(:post, tag_string: "solo")
+      save_with_groups(post, [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes"] }], "solo")
+
+      with_inline_jobs do
+        create(:tag_alias, antecedent_name: "blue_eyes", consequent_name: "azure_eyes").approve!(@janitor)
+      end
+      post.reload
+
+      assert_equal([{ "tags" => %w[fluffy_(oc) azure_eyes] }], post.character_groups)
+    end
+
+    context("#character_groups_for_api") do
+      should("split each group's character tags from its attribute tags") do
+        post = create(:post, tag_string: "solo")
+        save_with_groups(post, [{ characters: ["fluffy_(oc)"], tags: %w[blue_eyes smiling] }], "solo")
+
+        result = post.character_groups_for_api
+
+        assert_equal(1, result.size)
+        assert_equal(["fluffy_(oc)"], result.first[:characters])
+        assert_equal(%w[blue_eyes smiling].sort, result.first[:tags].sort)
+      end
+
+      should("treat a group with no character-category tag as anonymous (empty characters)") do
+        post = create(:post, tag_string: "solo")
+        save_with_groups(post, [{ characters: [], tags: ["waving"] }], "solo")
+
+        result = post.character_groups_for_api
+
+        assert_equal([], result.first[:characters])
+        assert_equal(["waving"], result.first[:tags])
+      end
+    end
+
+    context("#ungrouped_tags") do
+      should("exclude every tag attributed to a character") do
+        post = create(:post, tag_string: "solo")
+        save_with_groups(post, [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes"] }], "solo")
+
+        assert_equal(["solo"], post.ungrouped_tags)
       end
     end
   end

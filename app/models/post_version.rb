@@ -21,16 +21,17 @@ class PostVersion < ApplicationRecord
 
   def self.queue(post, updater)
     create({
-      post_id:       post.id,
-      rating:        post.rating,
-      parent_id:     post.parent_id,
-      source:        post.source,
-      updater:       updater,
-      tags:          post.tag_string,
-      original_tags: post.tag_string_before_parse || "",
-      locked_tags:   post.locked_tags,
-      description:   post.description,
-      reason:        post.edit_reason,
+      post_id:          post.id,
+      rating:           post.rating,
+      parent_id:        post.parent_id,
+      source:           post.source,
+      updater:          updater,
+      tags:             post.tag_string,
+      character_groups: post.character_groups,
+      original_tags:    post.tag_string_before_parse || "",
+      locked_tags:      post.locked_tags,
+      description:      post.description,
+      reason:           post.edit_reason,
     })
   end
 
@@ -40,6 +41,7 @@ class PostVersion < ApplicationRecord
     raise(MergeError, "Attempted to merge post ##{post.id} into post version ##{version.id} created by different updater (#{version.updater_id}/#{updater.id})") unless version.updater_id == updater.id
     version.source = post.source
     version.tags = post.tag_string
+    version.character_groups = post.character_groups
     version.locked_tags = post.locked_tags
     # Don't even bother merging, just toss it out entirely. We should only be merging system edits, which
     # won't have an original tag string either way
@@ -165,6 +167,96 @@ class PostVersion < ApplicationRecord
       added_locked_tags:     added_locked,
       removed_locked_tags:   removed_locked,
       unchanged_locked_tags: new_locked & old_locked,
+    }
+  end
+
+  # tag_name => character_label, for every tag (including the character tag itself) in a
+  # named group - i.e. a group with at least one character-category tag in it.
+  def group_label_map
+    return {} if character_groups.blank?
+    categories = Tag.categories_for(character_groups.flat_map { |g| Array(g["tags"]) })
+    character_groups.each_with_object({}) do |g, map|
+      tags = Array(g["tags"])
+      characters = tags.select { |t| categories[t] == TagCategory::CHARACTER.id }.sort
+      next if characters.empty?
+      label = characters.join(" ")
+      tags.each { |t| map[t] = label }
+    end
+  end
+
+  # One tag array per group with no character-category tag in it - these have no stable
+  # identity across versions, so they can only be labeled by position ("Unnamed #1").
+  def anonymous_group_tag_sets
+    return [] if character_groups.blank?
+    categories = Tag.categories_for(character_groups.flat_map { |g| Array(g["tags"]) })
+    character_groups.filter_map do |g|
+      tags = Array(g["tags"])
+      tags.any? { |t| categories[t] == TagCategory::CHARACTER.id } ? nil : tags
+    end
+  end
+
+  # Tags bucketed into rows for the version-list display: one row per named character
+  # (sorted alphabetically), one per current anonymous group ("Unnamed #N", by position),
+  # a trailing row for tags that belonged to an anonymous group but are now gone entirely
+  # (their specific group can't be identified once it's gone), and one row (nil label,
+  # rendered as an empty first column) for tags with no character attribution at all.
+  #
+  # Each row is { label:, row_status: :added/:removed/nil, added:, removed:, unchanged: }.
+  # row_status is set when *every* tag in the row is added (the row/character is new) or
+  # removed (the row/character is gone) - never set for the nil-label (general) row.
+  def tag_rows(version = nil)
+    latest_tags = post.tag_array + parent_rating_tags(post)
+    new_tags = tag_array + parent_rating_tags(self)
+    old_tags = version.present? ? version.tag_array + parent_rating_tags(version) : []
+
+    new_named = group_label_map
+    old_named = version.present? ? version.group_label_map : {}
+    new_anon = anonymous_group_tag_sets
+    new_anon_flat = new_anon.flatten
+    old_anon_flat = version.present? ? version.anonymous_group_tag_sets.flatten : []
+
+    buckets = Hash.new { |h, k| h[k] = { added: [], removed: [], unchanged: [] } }
+
+    new_tags.each do |t|
+      next if new_anon_flat.include?(t)
+      buckets[new_named[t]][old_tags.include?(t) ? :unchanged : :added] << t
+    end
+
+    old_tags.each do |t|
+      next if new_tags.include?(t) || old_anon_flat.include?(t)
+      buckets[old_named[t]][:removed] << t
+    end
+
+    rows = []
+    rows << finalize_tag_row(nil, buckets.delete(nil), latest_tags) if buckets.key?(nil)
+    buckets.keys.sort.each { |label| rows << finalize_tag_row(label, buckets[label], latest_tags) }
+
+    new_anon.each_with_index do |tags, i|
+      bucket = { added: [], removed: [], unchanged: [] }
+      tags.each { |t| bucket[old_tags.include?(t) ? :unchanged : :added] << t }
+      rows << finalize_tag_row("Unnamed ##{i + 1}", bucket, latest_tags)
+    end
+
+    removed_anon = old_anon_flat - new_tags - new_anon_flat
+    rows << finalize_tag_row("Unnamed (removed)", { added: [], removed: removed_anon, unchanged: [] }, latest_tags) if removed_anon.any?
+
+    rows
+  end
+
+  def finalize_tag_row(label, bucket, latest_tags)
+    status =
+      if label.present? && bucket[:unchanged].empty? && bucket[:removed].empty? && bucket[:added].any?
+        :added
+      elsif label.present? && bucket[:unchanged].empty? && bucket[:added].empty? && bucket[:removed].any?
+        :removed
+      end
+
+    {
+      label:      label,
+      row_status: status,
+      added:      bucket[:added].map { |t| { name: t, obsolete: latest_tags.exclude?(t) } },
+      removed:    bucket[:removed].map { |t| { name: t, obsolete: latest_tags.include?(t) } },
+      unchanged:  bucket[:unchanged],
     }
   end
 

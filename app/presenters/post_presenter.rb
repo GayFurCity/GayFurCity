@@ -189,7 +189,7 @@ class PostPresenter < Presenter
   end
 
   def tag_set_presenter
-    @tag_set_presenter ||= TagSetPresenter.new(@post.tag_array)
+    @tag_set_presenter ||= TagSetPresenter.new(@post.tag_array, character_groups: @post.character_groups_for_api)
   end
 
   def preview_html

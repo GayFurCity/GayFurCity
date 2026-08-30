@@ -56,3 +56,49 @@ div#c-tags {
     }
   }
 }
+
+.character-group-editor {
+  margin-bottom: 1em;
+
+  .character-group-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5em;
+    background-color: themed("color-section-lighten-5");
+    border: 1px solid themed("color-section-lighten-10");
+    border-radius: $border-radius-half;
+    padding: 0.5em;
+    margin-bottom: 0.5em;
+  }
+
+  .character-group-card-fields {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+
+    label {
+      font-size: 0.85em;
+      opacity: 0.8;
+    }
+
+    input.tag-textarea,
+    textarea.tag-textarea {
+      width: 100%;
+    }
+  }
+
+  .character-group-remove {
+    flex: 0 0 auto;
+    margin-top: 1.4em;
+  }
+
+  .character-group-add {
+    margin-bottom: 0.5em;
+  }
+
+  .hint {
+    font-size: 0.85em;
+    opacity: 0.8;
+  }
+}

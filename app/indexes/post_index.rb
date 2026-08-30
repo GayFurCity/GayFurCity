@@ -85,6 +85,7 @@ module PostIndex
           views:                    { type: "integer" },
 
           tags:                     { type: "keyword" },
+          character_groups:         { type: "nested", properties: { tags: { type: "keyword" } } },
           md5:                      { type: "keyword" },
           rating:                   { type: "keyword" },
           file_ext:                 { type: "keyword" },
@@ -328,6 +329,7 @@ module PostIndex
       views:                    options_or_get.call(:views, -> { Reports.get_post_views(id) }),
 
       tags:                     tag_string.split,
+      character_groups:         character_groups.map { |g| { tags: g["tags"] } },
       md5:                      options_or_get.call(:md5, -> { md5 }),
       rating:                   rating,
       file_ext:                 options_or_get.call(:file_ext, -> { file_ext }),

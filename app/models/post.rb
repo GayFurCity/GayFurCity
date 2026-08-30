@@ -42,8 +42,10 @@ class Post < ApplicationRecord
 
   before_validation(:merge_old_changes)
   before_validation(:apply_source_diff)
+  before_validation(:merge_tag_inputs!)
   before_validation(:apply_tag_diff, if: :should_process_tags?)
   before_validation(:normalize_tags, if: :should_process_tags?)
+  before_validation(:finalize_character_groups, if: :should_process_tags?)
   before_validation(:tag_count_not_insane, if: :should_process_tags?)
   before_validation(:strip_source)
   before_validation(:fix_bg_color)
@@ -98,6 +100,7 @@ class Post < ApplicationRecord
   has_many(:pool_covers, class_name: "Pool", foreign_key: :cover_post_id, dependent: :nullify)
   revertible do |version|
     self.tag_string = version.tags
+    self.character_groups = version.character_groups
     self.rating = version.rating
     self.source = version.source
     self.parent_id = version.parent_id
@@ -576,10 +579,165 @@ class Post < ApplicationRecord
   end
 
   module TagMethods
+    # These categories don't identify or describe a character, so they're never allowed into a
+    # character group - finalize_character_groups strips them back out to the ungrouped tags.
+    UNGROUPABLE_CATEGORIES = [TagCategory.artist, TagCategory.meta, TagCategory.invalid].freeze
+
+    attr_reader(:ungrouped_tag_string_input, :character_groups_attributes_input)
+
     def should_process_tags?
       @removed_tags ||= []
 
-      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || !@removed_tags.empty? || !added_tags.empty?
+      tag_string_changed? || locked_tags_changed? || tag_string_diff.present? || !@removed_tags.empty? || !added_tags.empty? || @character_groups_provided
+    end
+
+    # Virtual attribute: the UI's plain "general tags" box. Never contains {} -
+    # groups always come through character_groups_attributes instead.
+    def ungrouped_tag_string=(value)
+      return if value.nil? # nil = not provided; distinct from "" = provided but empty
+      @ungrouped_tag_string_input = value.to_s
+    end
+
+    # Virtual attribute: the UI's Character cards, e.g.
+    #   [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes", "smiling"] }, { characters: [], tags: ["waving"] }]
+    # nil means "not provided" (existing groups are preserved); [] means "replace
+    # existing groups with none" - these must stay distinguishable, so this is not
+    # simply Array(groups_params).
+    def character_groups_attributes=(groups_params)
+      return if groups_params.nil?
+      # A real form submits post[character_groups_attributes][0][tags][]=... etc, which Rack
+      # parses as a Hash keyed by index ({"0" => {...}, "1" => {...}}), not a literal Array -
+      # only .values() unwraps that correctly (Array(hash) would pair up into [key, value] tuples).
+      groups = groups_params.respond_to?(:values) ? groups_params.values : Array(groups_params)
+      @character_groups_attributes_input = groups.map do |g|
+        # `g` may be ActionController::Parameters (indifferent access) or a plain Hash with
+        # string keys (update_with_current's `params.map(&:to_hash)` converts nested Parameters
+        # to plain Hashes) - so look up both, not just the symbol.
+        characters = g[:characters] || g["characters"]
+        tags = g[:tags] || g["tags"]
+        # Each of characters/tags may arrive as several array entries, or as one
+        # space-separated entry (a plain <input name="...[characters][]"> submits
+        # a single value, same as every other tag box in the app) - split either way.
+        names = (Array(characters) + Array(tags)).flat_map { |t| t.to_s.split }
+        names.compact_blank.uniq
+      end
+    end
+
+    # Folds tag_string (which may contain manual {} groups, for API/script callers),
+    # ungrouped_tag_string, and character_groups_attributes into one flat tag_string
+    # that flows through the normal alias/implication/normalization pipeline below.
+    # The grouping itself is resolved afterwards, in finalize_character_groups, once
+    # we know the final (post-normalization) set of tags and their aliased names.
+    def merge_tag_inputs!
+      return if ungrouped_tag_string_input.nil? && character_groups_attributes_input.nil? && tag_string.to_s.exclude?("{") && !tag_string_changed?
+
+      # tag_array/ungrouped_tags may already be memoized from an earlier save on this same
+      # in-memory Post (e.g. PostVersion#undo! reusing the association-cached post) - reset
+      # so they reflect the tag_string assigned for *this* save, not a stale prior one.
+      reset_tag_array_cache
+
+      # Only fold in tag_string's own content (and any embedded {} groups) when it was
+      # actually edited to something different - otherwise the UI's ungrouped_tag_string /
+      # character_groups_attributes are the authoritative set for their piece, and
+      # re-parsing the unchanged, already-loaded tag_string here would make removing a tag
+      # through the UI impossible (every removed tag would just get unioned right back in).
+      manual_edit = tag_string_changed? || tag_string.to_s.include?("{")
+      parsed = manual_edit ? TagStringParser.parse(tag_string) : TagStringParser::Result.new(tags: [], groups: [], error: nil)
+      unless parsed.valid?
+        errors.add(:tag_string, parsed.error)
+        throw(:abort)
+      end
+
+      @pending_character_groups = []
+      @character_groups_provided = false
+
+      if parsed.groups.any?
+        @character_groups_provided = true
+        @pending_character_groups.concat(parsed.groups)
+      end
+
+      if character_groups_attributes_input
+        @character_groups_provided = true
+        @pending_character_groups.concat(character_groups_attributes_input)
+      end
+
+      # Whatever isn't being explicitly resubmitted this save falls back to what's already
+      # stored, so it doesn't silently vanish from tag_string just because this request
+      # doesn't mention it.
+      preserved_group_tags = character_groups_attributes_input ? [] : Array(character_groups).flat_map { |g| Array(g["tags"]) }
+      general_tags = ungrouped_tag_string_input ? ungrouped_tag_string_input.to_s.split : ungrouped_tags
+
+      all_tags = (parsed.tags + @pending_character_groups.flatten + preserved_group_tags + general_tags).uniq
+
+      # Some callers (TagRelationship#update_posts, several tests) intentionally set
+      # tag_string to whitespace-different-but-same-tags content, purely to flip
+      # tag_string_changed? and force should_process_tags? -> normalize_tags to rerun (e.g.
+      # to pick up a newly-approved implication) without actually changing any tags. Rebuilding
+      # and reassigning tag_string here would silently normalize that back to the original
+      # string and erase the dirty flag before should_process_tags? ever sees it - so skip the
+      # reassignment when the resulting tag set doesn't actually differ from what's there now.
+      return if all_tags.sort == tag_array.sort
+
+      self.tag_string = all_tags.join(" ")
+    end
+
+    # Runs after normalize_tags, so tag_array reflects the final aliased/implicated
+    # set of tags. Resolves pending group tag names through the same aliasing tags
+    # went through, drops anything that didn't survive normalization, and otherwise
+    # (no group input on this save) just prunes stale entries from existing groups.
+    def finalize_character_groups
+      final_tags = tag_array
+
+      groups =
+        if @character_groups_provided
+          @pending_character_groups.map { |names| names.map { |n| Tag.normalize_name(n) } }
+        else
+          Array(character_groups).map { |g| Array(g["tags"]) }
+        end
+
+      # Resolve aliases to their canonical name, then sweep in each tag's implied
+      # descendants (e.g. grouping "domestic_cat" onto a character also groups the
+      # "felid"/"felis" it implies) - same treatment tag_string itself gets in
+      # normalize_tags, just scoped per group. & final_tags drops anything that didn't
+      # actually survive onto the post (invalid tags, DNP removal, etc).
+      groups = groups.map { |tags| TagImplication.with_descendants(TagAlias.to_aliased(tags)) & final_tags }
+
+      # Artist/meta/invalid tags can't describe a character, so they always fall back to the
+      # ungrouped tags instead - even if the UI (or an implication) put one in a group.
+      categories = Tag.categories_for(groups.flatten.uniq)
+      groups = groups.map { |tags| tags.reject { |t| UNGROUPABLE_CATEGORIES.include?(categories[t]) } }
+
+      self.character_groups = groups.compact_blank.map { |tags| { "tags" => tags.uniq } }
+    ensure
+      # These are per-save inputs (set via the virtual attribute writers above); without
+      # resetting them here, they'd leak into a later, unrelated save on the same in-memory
+      # Post object (e.g. revert_to! after an earlier grouped save).
+      @ungrouped_tag_string_input = nil
+      @character_groups_attributes_input = nil
+      @pending_character_groups = nil
+      @character_groups_provided = false
+      # tag_array (read above via final_tags) is otherwise left memoized to this save's final
+      # state indefinitely, since nothing else in the save lifecycle resets it after this point -
+      # stale on a later, unrelated save reusing this same in-memory Post (e.g. PostVersion#undo!).
+      reset_tag_array_cache
+    end
+
+    # Tags attributed to no character group.
+    def ungrouped_tags
+      grouped = Array(character_groups).flat_map { |g| Array(g["tags"]) }
+      tag_array - grouped
+    end
+
+    # Character groups shaped for the UI/API: each group's tags split into the
+    # character-category members (its "identity") and everything else.
+    def character_groups_for_api
+      return [] if character_groups.blank?
+      all_group_tags = character_groups.flat_map { |g| Array(g["tags"]) }
+      categories = Tag.categories_for(all_group_tags)
+      character_groups.map do |g|
+        characters, attributes = Array(g["tags"]).partition { |t| categories[t] == TagCategory::CHARACTER.id }
+        { characters: characters, tags: attributes }
+      end
     end
 
     def tag_array
@@ -1084,6 +1242,23 @@ class Post < ApplicationRecord
     def remove_tag(tag)
       set_tag_string((tag_array - Array(tag)).join(" "), typed: false)
       delete_typed_tag(tag)
+      remove_tags_from_character_groups(Array(tag))
+    end
+
+    def remove_tags_from_character_groups(tags)
+      return if character_groups.blank?
+      updated = character_groups.map { |g| { "tags" => Array(g["tags"]) - tags } }.reject { |g| g["tags"].blank? }
+      self.character_groups = updated
+    end
+
+    # Used when a tag is renamed (alias/implication move) so it keeps whatever
+    # character group(s) it was already attributed to, instead of falling out
+    # of grouping the way a plain remove_tag + add_tag pair would.
+    def rename_tag_in_groups(old_name, new_name)
+      return if character_groups.blank?
+      self.character_groups = character_groups.map do |g|
+        { "tags" => Array(g["tags"]).map { |t| t == old_name ? new_name : t }.uniq }
+      end
     end
 
     def tag_categories
@@ -1732,7 +1907,7 @@ class Post < ApplicationRecord
     end
 
     def saved_change_to_mergable_attributes?
-      saved_change_to_source? || saved_change_to_tag_string? || saved_change_to_locked_tags?
+      saved_change_to_source? || saved_change_to_tag_string? || saved_change_to_locked_tags? || saved_change_to_character_groups?
     end
 
     def create_new_version
@@ -1847,10 +2022,10 @@ class Post < ApplicationRecord
       options[:user] ||= CurrentUser.user || User.anonymous
       user = options[:user]
       {
-        id:              id,
-        created_at:      created_at,
-        updated_at:      updated_at,
-        file:            {
+        id:               id,
+        created_at:       created_at,
+        updated_at:       updated_at,
+        file:             {
           width:  image_width,
           height: image_height,
           ext:    file_ext,
@@ -1858,20 +2033,22 @@ class Post < ApplicationRecord
           md5:    md5,
           url:    visible?(user) ? file_url(user) : nil,
         },
-        variants:        variants(user),
-        score:           {
+        variants:         variants(user),
+        score:            {
           up:    up_score,
           down:  down_score,
           total: score,
         },
-        views:           {
+        views:            {
           daily: daily_views,
           total: total_views,
         },
-        tags:            TagCategory.category_names.index_with { |category| typed_tags(TagCategory.get(category).id) },
-        locked_tags:     locked_tags.split,
-        change_seq:      change_seq,
-        flags:           {
+        tags:             TagCategory.category_names.index_with { |category| typed_tags(TagCategory.get(category).id) },
+        character_groups: character_groups_for_api,
+        ungrouped_tags:   ungrouped_tags,
+        locked_tags:      locked_tags.split,
+        change_seq:       change_seq,
+        flags:            {
           pending:       is_pending?,
           flagged:       is_flagged?,
           note_locked:   is_note_locked?,
@@ -1882,31 +2059,31 @@ class Post < ApplicationRecord
           in_progress:   is_in_progress?,
           takedown:      is_taken_down?,
         },
-        rating:          rating,
-        fav_count:       fav_count,
-        sources:         source.split("\n"),
-        pools:           pool_ids,
-        relationships:   {
+        rating:           rating,
+        fav_count:        fav_count,
+        sources:          source.split("\n"),
+        pools:            pool_ids,
+        relationships:    {
           parent_id:           parent_id,
           has_children:        has_children,
           has_active_children: has_active_children,
           children:            children_ids&.split&.map(&:to_i) || [],
         },
-        approver_id:     approver_id,
-        approver_name:   approver_id.present? ? approver_name : nil,
-        uploader_id:     uploader_id,
-        uploader_name:   uploader_name,
-        description:     description,
-        comment_count:   visible_comment_count(user),
-        is_favorited:    is_favorited?(user),
-        own_vote:        own_vote(user),
-        has_notes:       has_notes?,
-        duration:        duration&.to_f,
-        framecount:      framecount,
-        thumbnail_frame: thumbnail_frame,
-        qtags:           qtags,
-        upload_url:      upload_url,
-        min_edit_level:  min_edit_level,
+        approver_id:      approver_id,
+        approver_name:    approver_id.present? ? approver_name : nil,
+        uploader_id:      uploader_id,
+        uploader_name:    uploader_name,
+        description:      description,
+        comment_count:    visible_comment_count(user),
+        is_favorited:     is_favorited?(user),
+        own_vote:         own_vote(user),
+        has_notes:        has_notes?,
+        duration:         duration&.to_f,
+        framecount:       framecount,
+        thumbnail_frame:  thumbnail_frame,
+        qtags:            qtags,
+        upload_url:       upload_url,
+        min_edit_level:   min_edit_level,
       }
     end
   end

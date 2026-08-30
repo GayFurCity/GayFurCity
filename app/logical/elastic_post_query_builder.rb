@@ -23,6 +23,25 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     should.concat(tags[:should].map { |x| { term: { tags: x } } })
   end
 
+  # {a b c}: all given tags must be members of the same character_groups entry.
+  def add_character_group_search_relation(tag_groups)
+    must.concat(tag_groups[:must].map { |names| character_group_nested_query(names) })
+    must_not.concat(tag_groups[:must_not].map { |names| character_group_nested_query(names) })
+  end
+
+  def character_group_nested_query(names)
+    {
+      nested: {
+        path:  "character_groups",
+        query: {
+          bool: {
+            must: names.map { |name| { term: { "character_groups.tags": name } } },
+          },
+        },
+      },
+    }
+  end
+
   def hide_deleted_posts?
     return false if @always_show_deleted
     return false if q[:status].in?(%w[deleted active any all modqueue appealed])
@@ -195,6 +214,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     add_boolean_relation(:artverified, :artverified)
 
     add_tag_string_search_relation(q[:tags])
+    add_character_group_search_relation(q[:tag_groups])
 
     case q[:order]
     when "id", "id_asc"

@@ -69,4 +69,51 @@ class TagQueryTest < ActiveSupport::TestCase
       end
     end
   end
+
+  context("{} character group syntax") do
+    should("keep a {} block as one token when scanning") do
+      assert_equal(["{a b c}"], TagQuery.scan("{a b c}"))
+      assert_equal(["-{a b c}"], TagQuery.scan("-{a b c}"))
+    end
+
+    should("parse {a b c} into a must tag_groups entry") do
+      query = TagQuery.new("{fluffy_(oc) blue_eyes}", @user)
+
+      assert_equal([%w[fluffy_(oc) blue_eyes]], query[:tag_groups][:must])
+      assert_equal([], query[:tag_groups][:must_not])
+    end
+
+    should("parse -{a b c} into a must_not tag_groups entry") do
+      query = TagQuery.new("-{fluffy_(oc) blue_eyes}", @user)
+
+      assert_equal([%w[fluffy_(oc) blue_eyes]], query[:tag_groups][:must_not])
+      assert_equal([], query[:tag_groups][:must])
+    end
+
+    should("leave bare tags in the query untouched by a {} group") do
+      query = TagQuery.new("solo {fluffy_(oc) blue_eyes} duo", @user)
+
+      assert_equal(%w[solo duo], query[:tags][:must])
+      assert_equal([%w[fluffy_(oc) blue_eyes]], query[:tag_groups][:must])
+    end
+
+    should("support multiple {} groups in one query") do
+      query = TagQuery.new("{a b} {c d}", @user)
+
+      assert_equal([%w[a b], %w[c d]], query[:tag_groups][:must])
+    end
+
+    should("resolve aliases within a {} group") do
+      create(:tag_alias, antecedent_name: "old_name", consequent_name: "new_name")
+      query = TagQuery.new("{fluffy_(oc) old_name}", @user)
+
+      assert_equal([%w[fluffy_(oc) new_name]], query[:tag_groups][:must])
+    end
+
+    should("count each tag inside a {} group toward the tag query limit") do
+      assert_raise(TagQuery::CountExceededError) do
+        TagQuery.new("{#{[*'aa'..'zz'].join(' ')}}", @user)
+      end
+    end
+  end
 end

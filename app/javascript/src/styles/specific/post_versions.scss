@@ -133,6 +133,9 @@ div#c-posts-versions {
     .pv-tags-label {
       grid-row: 3;
       @include grid-col(2, 10);
+      display: grid;
+      grid-template-columns: 8em 1fr;
+      column-gap: 0.5em;
     }
 
     .pv-tags {
@@ -169,6 +172,33 @@ div#c-posts-versions {
     .pv-spacer {
       grid-row: 1;
       grid-column: 13;
+    }
+
+    .pv-tag-row {
+      display: grid;
+      grid-template-columns: 8em 1fr;
+      column-gap: 0.5em;
+
+      &:not(:last-child) {
+        border-bottom: 1px solid themed("color-section");
+      }
+    }
+
+    .pv-tag-row-label {
+      font-weight: bold;
+      overflow-wrap: break-word;
+
+      &.added {
+        color: $diff-tag-added-color;
+      }
+
+      &.removed {
+        color: $diff-tag-removed-color;
+      }
+    }
+
+    .pv-tag-row-tags {
+      min-width: 0;
     }
   }
 }

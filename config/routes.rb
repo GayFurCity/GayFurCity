@@ -313,6 +313,8 @@ Rails.application.routes.draw do
     collection do
       get(:random)
       get(:uploaders)
+      match(:search, via: %i[get post])
+      get("search/definitions", to: "posts#search_definitions", as: :post_search_definitions, defaults: { format: :json })
       resources(:approvals, controller: "posts/approvals", as: "post_approvals", only: %i[index create destroy])
       resources(:appeals, controller: "posts/appeals", as: "post_appeals", only: %i[index show new create destroy])
       resources(:deleted, controller: "posts/deleted", as: "deleted_posts", only: %i[index])

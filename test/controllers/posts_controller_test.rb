@@ -41,7 +41,130 @@ class PostsControllerTest < ActionDispatch::IntegrationTest
           assert_response(:success)
         end
       end
+    end
 
+    context("search action") do
+      should("render") do
+        get(search_posts_path)
+
+        assert_response(:success)
+      end
+
+      should("render when pre-filling from an existing tags param") do
+        get(search_posts_path, params: { tags: "rating:s solo" })
+
+        assert_response(:success)
+      end
+
+      should("redirect to the index with the constructed tags string on submit") do
+        post(search_posts_path, params: { search: { general_tags: "solo", rating: "s" } })
+
+        assert_redirected_to(posts_path(tags: "solo rating:s"))
+      end
+
+      should("build a {} character group from a form submission on submit") do
+        post(search_posts_path, params: { search: { character_groups: { "0" => { tags: ["fluffy_(oc)", "blue_eyes"], mode: "must" } } } })
+
+        assert_redirected_to(posts_path(tags: "{fluffy_(oc) blue_eyes}"))
+      end
+
+      should("negate a field according to its _mode param") do
+        post(search_posts_path, params: { search: { score: ">100", score_mode: "must_not" } })
+
+        assert_redirected_to(posts_path(tags: "-score:>100"))
+      end
+
+      context("as json") do
+        should("respond to GET with the parsed search form") do
+          get(search_posts_path(format: :json), params: { tags: "rating:s -score:>100 solo" })
+
+          assert_response(:success)
+          json = response.parsed_body
+
+          assert_equal("solo", json["general_tags"])
+          assert_empty(json["character_groups"])
+          assert_equal({ "value" => "s", "mode" => "must" }, json["fields"]["rating"])
+          assert_equal({ "value" => ">100", "mode" => "must_not" }, json["fields"]["score"])
+        end
+
+        should("merge a field given more than once into one array-valued entry") do
+          get(search_posts_path(format: :json), params: { tags: "locked:rating -locked:status" })
+
+          json = response.parsed_body
+
+          assert_equal({ "value" => %w[rating status], "mode" => %w[must must_not] }, json["fields"]["locked"])
+        end
+
+        should("omit mode for a field with no mode recorded") do
+          get(search_posts_path(format: :json), params: { tags: "order:score" })
+
+          json = response.parsed_body
+
+          assert_equal({ "value" => "score" }, json["fields"]["order"])
+        end
+
+        should("respond to GET with an empty form when there's no tags param") do
+          get(search_posts_path(format: :json))
+
+          assert_response(:success)
+          json = response.parsed_body
+
+          assert_equal("", json["general_tags"])
+          assert_empty(json["character_groups"])
+          assert_empty(json["fields"])
+        end
+
+        should("respond to POST with the constructed tags string instead of redirecting") do
+          post(search_posts_path(format: :json), params: { search: { general_tags: "solo", rating: "s" } })
+
+          assert_response(:success)
+          assert_equal("solo rating:s", response.parsed_body["tags"])
+        end
+
+        should("build a {} character group from a form submission on POST") do
+          post(search_posts_path(format: :json), params: { search: { character_groups: { "0" => { tags: ["fluffy_(oc)", "blue_eyes"], mode: "must" } } } })
+
+          assert_equal("{fluffy_(oc) blue_eyes}", response.parsed_body["tags"])
+        end
+
+        context("with forgery protection enabled") do
+          setup do
+            ActionController::Base.allow_forgery_protection = true
+          end
+
+          teardown do
+            ActionController::Base.allow_forgery_protection = false
+          end
+
+          should("not require a CSRF token on POST") do
+            post(search_posts_path(format: :json), params: { search: { general_tags: "solo" } })
+
+            assert_response(:success)
+          end
+
+          should("still require a CSRF token on a POST to the html format") do
+            post(search_posts_path, params: { search: { general_tags: "solo" } })
+
+            assert_response(:forbidden)
+          end
+        end
+      end
+    end
+
+    context("search_definitions action") do
+      should("expose the PostSearch::Fields DSL as json") do
+        get(post_search_definitions_posts_path)
+
+        assert_response(:success)
+        json = response.parsed_body
+
+        assert_equal(PostSearch::Fields.categories, json["categories"])
+        assert_equal(PostSearch::Fields.fields.size, json["fields"].size)
+        assert_equal("rating", json["fields"].first["metatag"])
+      end
+    end
+
+    context("index action") do
       context("with an md5 param") do
         should("render") do
           get(posts_path, params: { md5: @post.md5 })

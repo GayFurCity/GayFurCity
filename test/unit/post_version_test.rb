@@ -126,4 +126,107 @@ class PostVersionTest < ActiveSupport::TestCase
       end
     end
   end
+
+  context("Character groups:") do
+    setup do
+      @user = create(:user, created_at: 1.month.ago)
+      create(:tag, name: "fluffy_(oc)", category: TagCategory.character)
+      @post = create(:post, tag_string: "solo")
+      @v1 = @post.versions.last
+    end
+
+    should("create a new version for a pure re-grouping edit that doesn't change tag_string") do
+      @post.update_with(@user, ungrouped_tag_string: "solo fluffy_(oc) blue_eyes")
+      base_tag_string = @post.tag_string
+
+      assert_difference("@post.versions.size", 1) do
+        @post.update_with(@user, character_groups_attributes: [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes"] }], ungrouped_tag_string: base_tag_string)
+      end
+    end
+
+    should("record character_groups on the version") do
+      @post.update_with(@user, character_groups_attributes: [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes"] }], ungrouped_tag_string: "solo")
+
+      assert_equal([{ "tags" => %w[fluffy_(oc) blue_eyes] }], @post.versions.last.character_groups)
+    end
+
+    context("#tag_rows") do
+      should("show a row for a new named character with row_status :added") do
+        @post.update_with(@user, character_groups_attributes: [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes"] }], ungrouped_tag_string: "solo")
+        v2 = @post.versions.last
+
+        rows = v2.tag_rows(@v1)
+        character_row = rows.find { |r| r[:label] == "fluffy_(oc)" }
+
+        assert_equal(:added, character_row[:row_status])
+        assert_equal(%w[blue_eyes fluffy_(oc)], character_row[:added].map { |t| t[:name] }.sort)
+      end
+
+      should("attribute a tag added to an existing character without re-flagging the character as added") do
+        @post.update_with(@user, character_groups_attributes: [{ characters: ["fluffy_(oc)"], tags: [] }], ungrouped_tag_string: "solo")
+        v2 = @post.versions.last
+
+        @post.update_with(@user, character_groups_attributes: [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes"] }], ungrouped_tag_string: @post.ungrouped_tags.join(" "))
+        v3 = @post.versions.last
+
+        rows = v3.tag_rows(v2)
+        character_row = rows.find { |r| r[:label] == "fluffy_(oc)" }
+
+        assert_nil(character_row[:row_status])
+        assert_equal(["blue_eyes"], character_row[:added].map { |t| t[:name] })
+      end
+
+      should("not show a character row at all when its group is cleared but its tags stay on the post (just ungrouped)") do
+        @post.update_with(@user, character_groups_attributes: [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes"] }], ungrouped_tag_string: "solo")
+        v2 = @post.versions.last
+
+        @post.update_with(@user, character_groups_attributes: [], ungrouped_tag_string: @post.tag_string)
+        v3 = @post.versions.last
+
+        rows = v3.tag_rows(v2)
+
+        assert_nil(rows.find { |r| r[:label] == "fluffy_(oc)" })
+        general_row = rows.find { |r| r[:label].nil? }
+
+        assert_includes(general_row[:unchanged], "blue_eyes")
+        assert_includes(general_row[:unchanged], "fluffy_(oc)")
+      end
+
+      should("show row_status :removed when a character's tags are dropped from the post in the same edit that clears its group") do
+        @post.update_with(@user, character_groups_attributes: [{ characters: ["fluffy_(oc)"], tags: ["blue_eyes"] }], ungrouped_tag_string: "solo")
+        v2 = @post.versions.last
+
+        @post.update_with(@user, character_groups_attributes: [], ungrouped_tag_string: "solo")
+        v3 = @post.versions.last
+
+        rows = v3.tag_rows(v2)
+        character_row = rows.find { |r| r[:label] == "fluffy_(oc)" }
+
+        assert_equal(:removed, character_row[:row_status])
+        assert_equal(%w[blue_eyes fluffy_(oc)], character_row[:removed].map { |t| t[:name] }.sort)
+      end
+
+      should("bucket an anonymous group's tags under an Unnamed row") do
+        @post.update_with(@user, character_groups_attributes: [{ characters: [], tags: ["waving"] }], ungrouped_tag_string: "solo")
+        v2 = @post.versions.last
+
+        rows = v2.tag_rows(@v1)
+        unnamed_row = rows.find { |r| r[:label] == "Unnamed #1" }
+
+        assert_not_nil(unnamed_row)
+        assert_equal(["waving"], unnamed_row[:added].map { |t| t[:name] })
+      end
+
+      should("bucket ungrouped tags under a nil-label row") do
+        @post.update_with(@user, ungrouped_tag_string: "solo new_tag")
+        v2 = @post.versions.last
+
+        rows = v2.tag_rows(@v1)
+        general_row = rows.find { |r| r[:label].nil? }
+
+        assert_not_nil(general_row)
+        assert_includes(general_row[:added].map { |t| t[:name] }, "new_tag")
+      end
+    end
+  end
 end

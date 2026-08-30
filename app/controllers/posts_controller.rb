@@ -2,7 +2,12 @@
 
 class PostsController < ApplicationController
   respond_to(:html, :json)
-  before_action(:ensure_lockdown_disabled, except: %i[index show show_seq random uploaders])
+  before_action(:ensure_lockdown_disabled, except: %i[index show show_seq random uploaders search search_definitions])
+  # Combining if: with only: here would NOT AND them - only:/except: attach as their own
+  # independent "unless" condition alongside if:, so `only: %i[search]` alone would skip CSRF
+  # for every request to :search regardless of format. The action check has to live inside the
+  # if: proc itself instead.
+  skip_forgery_protection(if: -> { action_name == "search" && request.post? && request.format.json? })
 
   def index
     if params[:md5].present?
@@ -24,6 +29,30 @@ class PostsController < ApplicationController
         format.atom
       end
     end
+  end
+
+  def search
+    authorize(Post)
+
+    if request.post?
+      @tags = PostSearch::QueryBuilder.build(params[:search])
+      respond_to do |format|
+        format.html { redirect_to(posts_path(tags: @tags)) }
+        format.json { render(json: { tags: @tags }) }
+      end
+    else
+      @search_form = PostSearch::FormParser.parse(params[:tags])
+      respond_to do |format|
+        format.html
+        format.json { render(json: @search_form) }
+      end
+    end
+  end
+
+  # The PostSearch::Fields DSL itself, for API/script consumers building their own search UI.
+  def search_definitions
+    authorize(Post, :search?)
+    render(json: { categories: PostSearch::Fields.categories, fields: PostSearch::Fields.fields.map(&:to_h) })
   end
 
   def show

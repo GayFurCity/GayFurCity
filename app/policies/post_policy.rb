@@ -101,12 +101,14 @@ class PostPolicy < ApplicationPolicy
     attr = %i[
       tag_string old_tag_string
       tag_string_diff source_diff
+      ungrouped_tag_string
       source old_source
       parent_id old_parent_id
       description old_description
       rating old_rating
       edit_reason
     ]
+    attr << { character_groups_attributes: [{ characters: [], tags: [] }] }
     attr += %i[is_rating_locked thumbnail_frame] if user.is_trusted?
     attr += %i[is_note_locked bg_color] if user.is_janitor?
     attr += %i[is_unlisted] if user.is_approver?

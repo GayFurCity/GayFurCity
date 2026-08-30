@@ -96,7 +96,7 @@ module MigrationHelpers
   # Reads back the columns currently tracked by the live posts_trigger_change_seq
   # function, so callers can add/remove a column without respecifying the full list.
   def existing_change_seq_columns
-    row = connection.select_one("SELECT prosrc FROM pg_proc WHERE proname = $1", nil, ["posts_trigger_change_seq"])
+    row = ActiveRecord::Base.connection.select_one("SELECT prosrc FROM pg_proc WHERE proname = $1", nil, ["posts_trigger_change_seq"])
     return [] if row.nil?
     row["prosrc"].scan(/NEW\.([a-z_]+) IS DISTINCT FROM OLD\.([a-z_]+)/).flatten.uniq
   end
@@ -110,7 +110,7 @@ module MigrationHelpers
       ctext += "\n    OR NEW.#{name} IS DISTINCT FROM OLD.#{name}"
     end
     ctext = ctext[8..]
-    <<~SQL.squish
+    <<~SQL # rubocop:disable Rails/SquishedSQLHeredocs
       CREATE OR REPLACE FUNCTION public.posts_trigger_change_seq() RETURNS trigger
         LANGUAGE plpgsql
       AS $$

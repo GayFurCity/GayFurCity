@@ -25,5 +25,70 @@ class TagSetPresenterTest < ActiveSupport::TestCase
         assert_equal("bkub \nsolo", text)
       end
     end
+
+    context("#post_show_sidebar_tag_list_html method") do
+      setup do
+        @user = create(:user)
+        character_groups = [{ characters: ["chen"], tags: ["solo"] }]
+        @presenter = TagSetPresenter.new(%w[bkub chen cirno solo touhou], character_groups: character_groups)
+      end
+
+      should("group tags by character when the viewer has grouping enabled") do
+        CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentOutsideOfRequests
+          html = @presenter.post_show_sidebar_tag_list_html(highlighted_tags: [], followed_tags: [])
+
+          assert_includes(html, "character-group-header")
+          assert_includes(html, "chen")
+        end
+      end
+
+      should("fall back to the flat, ungrouped list when the viewer has grouping disabled") do
+        @user.disable_character_tag_grouping = true
+        CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentOutsideOfRequests
+          html = @presenter.post_show_sidebar_tag_list_html(highlighted_tags: [], followed_tags: [])
+
+          assert_not_includes(html, "character-group-header")
+          assert_includes(html, "chen")
+        end
+      end
+
+      should("fall back to the flat list when there are no character groups, even with grouping enabled") do
+        presenter = TagSetPresenter.new(%w[bkub chen cirno solo touhou])
+        CurrentUser.scoped(@user) do # rubocop:disable YiffSpace/CurrentOutsideOfRequests
+          html = presenter.post_show_sidebar_tag_list_html(highlighted_tags: [], followed_tags: [])
+
+          assert_not_includes(html, "character-group-header")
+        end
+      end
+    end
+
+    context("#post_show_sidebar_grouped_tag_list_html method") do
+      should("label a group with no character-category tag as an unnamed character") do
+        presenter = TagSetPresenter.new(%w[bkub solo], character_groups: [{ characters: [], tags: ["solo"] }])
+
+        html = presenter.post_show_sidebar_grouped_tag_list_html(highlighted_tags: [], followed_tags: [])
+
+        assert_includes(html, "Unnamed Character #1")
+      end
+
+      should("put tags not attributed to any character under a trailing General section") do
+        presenter = TagSetPresenter.new(%w[bkub chen solo], character_groups: [{ characters: ["chen"], tags: [] }])
+
+        html = presenter.post_show_sidebar_grouped_tag_list_html(highlighted_tags: [], followed_tags: [])
+
+        assert_includes(html, "general-character-group-header")
+        assert_includes(html, "bkub")
+        assert_includes(html, "solo")
+      end
+
+      should("wrap each group's header and tags in a collapsible container") do
+        presenter = TagSetPresenter.new(%w[bkub chen solo], character_groups: [{ characters: ["chen"], tags: [] }])
+
+        html = presenter.post_show_sidebar_grouped_tag_list_html(highlighted_tags: [], followed_tags: [])
+
+        assert_includes(html, %(class="character-group"))
+        assert_includes(html, "character-group-content")
+      end
+    end
   end
 end

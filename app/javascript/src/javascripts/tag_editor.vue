@@ -1,8 +1,10 @@
 <template>
     <div>
+        <character-group-editor param-name="post" :initial-groups="initialCharacterGroups"></character-group-editor>
         <div v-show="!preview.show">
+            <label for="post_tag_string">General Tags</label>
             <textarea class="tag-textarea" id="post_tag_string" v-model="tags" rows="5" data-autocomplete="tag-edit"
-                      ref="otherTags" name="post[tag_string]" :spellcheck="false" @keyup="updateTagCount"></textarea>
+                      ref="otherTags" name="post[ungrouped_tag_string]" :spellcheck="false" @keyup="updateTagCount"></textarea>
         </div>
         <div v-show="preview.show">
             <tag-preview :tags="preview.tags" :loading="preview.loading" @close="previewFinalTags"></tag-preview>
@@ -31,6 +33,7 @@
   import { nextTick } from 'vue';
   import relatedTags from './uploader/related.vue';
   import tagPreview from './uploader/tag_preview.vue';
+  import characterGroupEditor from './character_group_editor.vue';
   import Post from './posts';
   import Autocomplete from "./autocomplete.js.erb";
   import Utility from "./utility.js";
@@ -43,7 +46,8 @@
   export default {
     components: {
       'related-tags': relatedTags,
-      'tag-preview': tagPreview
+      'tag-preview': tagPreview,
+      'character-group-editor': characterGroupEditor,
     },
     data() {
       return {
@@ -54,6 +58,7 @@
         },
         expandRelated: true,
         tags: Uploader.settings.post_tags,
+        initialCharacterGroups: Uploader.settings.character_groups || [],
         relatedTags: [],
         loadingRelated: false,
       };

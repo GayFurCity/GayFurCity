@@ -78,6 +78,9 @@
     <%= f.input(:show_post_uploader, as: :select, collection: [%w[No false], %w[Yes true]], include_blank: false,
     hint: "Show the uploader on posts.") %>
 
+    <%= f.input(:disable_character_tag_grouping, label: "Group tags by character", as: :select, collection: [%w[Yes false], %w[No true]], include_blank: false,
+    hint: "Group a post's tags by character in the sidebar, with each character's tags further split by category. Tags not attributed to a character are still shown split by category as usual.") %>
+
     <%= f.input(:unique_views, as: :select, collection: [%w[No false], %w[Yes true]], include_blank: false,
     hint: "If the unique view count should be shown on posts. If no, the total view count will be shown.") %>
 

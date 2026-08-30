@@ -26,22 +26,42 @@ module PostVersionsHelper
   end
 
   def post_version_diff(post_version)
-    diff = post_version.diff(post_version.previous)
-    changes = []
+    rows = post_version.tag_rows(post_version.previous)
 
-    diff[:added_tags].each do |tag_name|
-      classes = diff[:obsolete_added_tags].include?(tag_name) ? "obsolete" : ""
-      changes << tag.ins(link_to_wiki_or_new("+#{tag_name}", tag_name), class: classes)
+    safe_join(rows.map { |row| post_version_tag_row(row) })
+  end
+
+  def post_version_tag_row(row)
+    label_classes = ["pv-tag-row-label"]
+    label_classes << row[:row_status].to_s if row[:row_status]
+    label_text =
+      case row[:row_status]
+      when :added then "+#{row[:label]}"
+      when :removed then "-#{row[:label]}"
+      else row[:label]
+      end
+
+    tag.div(class: "pv-tag-row") do
+      safe_join([
+        tag.div(label_text, class: label_classes.join(" ")),
+        tag.div(post_version_tag_row_tags(row), class: "pv-tag-row-tags diff-list"),
+      ])
     end
-    diff[:removed_tags].each do |tag_name|
-      classes = diff[:obsolete_removed_tags].include?(tag_name) ? "obsolete" : ""
-      changes << tag.del(link_to_wiki_or_new("-#{tag_name}", tag_name), class: classes)
+  end
+
+  def post_version_tag_row_tags(row)
+    changes = []
+    row[:added].each do |t|
+      changes << tag.ins(link_to_wiki_or_new("+#{t[:name]}", t[:name]), class: t[:obsolete] ? "obsolete" : "")
     end
-    diff[:unchanged_tags].each do |tag_name|
+    row[:removed].each do |t|
+      changes << tag.del(link_to_wiki_or_new("-#{t[:name]}", t[:name]), class: t[:obsolete] ? "obsolete" : "")
+    end
+    row[:unchanged].each do |tag_name|
       changes << tag.span(link_to_wiki_or_new(tag_name))
     end
 
-    tag.span(safe_join(changes, " "), class: "diff-list")
+    safe_join(changes, " ")
   end
 
   def post_version_locked_diff(post_version)

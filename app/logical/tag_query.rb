@@ -64,10 +64,14 @@ class TagQuery
     end
 
     @q = {
-      tags: {
+      tags:       {
         must:     [],
         must_not: [],
         should:   [],
+      },
+      tag_groups: {
+        must:     [],
+        must_not: [],
       },
     }
     @user = user
@@ -92,6 +96,12 @@ class TagQuery
     tagstr = query.to_s.unicode_normalize(:nfc).strip
     quote_delimited = []
     tagstr = tagstr.gsub(/[-~]?\w*?:".*?"/) do |match|
+      quote_delimited << match
+      ""
+    end
+    # {a b c} / -{a b c}: require (or forbid) tags all being in the same character group.
+    # Kept as one token here so the later whitespace split doesn't tear the group apart.
+    tagstr = tagstr.gsub(/-?\{[^{}]*\}/) do |match|
       quote_delimited << match
       ""
     end
@@ -138,6 +148,11 @@ class TagQuery
 
   def parse_query(query)
     TagQuery.scan(query).each do |token| # rubocop:disable Metrics/BlockLength
+      if token =~ /\A(-?)\{(.*)\}\z/
+        add_tag_group(Regexp.last_match(1) == "-" ? :must_not : :must, Regexp.last_match(2).downcase.split)
+        next
+      end
+
       @tag_count += 1 unless GayFurCity.config.is_unlimited_tag?(token)
       metatag_name, g2 = token.split(":", 2)
 
@@ -396,6 +411,14 @@ class TagQuery
     normalize_tags if resolve_aliases
   end
 
+  def add_tag_group(type, names)
+    names = names.uniq
+    return if names.empty?
+
+    @tag_count += names.count { |n| !GayFurCity.config.is_unlimited_tag?(n) }
+    q[:tag_groups][type] << names
+  end
+
   def add_tag(tag)
     tag = tag.downcase
     if tag.start_with?("-") && tag.length > 1
@@ -464,6 +487,8 @@ class TagQuery
     q[:tags][:must] = TagAlias.to_aliased(q[:tags][:must])
     q[:tags][:must_not] = TagAlias.to_aliased(q[:tags][:must_not])
     q[:tags][:should] = TagAlias.to_aliased(q[:tags][:should])
+    q[:tag_groups][:must] = q[:tag_groups][:must].map { |names| TagAlias.to_aliased(names) }
+    q[:tag_groups][:must_not] = q[:tag_groups][:must_not].map { |names| TagAlias.to_aliased(names) }
   end
 
   def parse_boolean(value)

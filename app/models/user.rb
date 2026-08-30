@@ -120,6 +120,7 @@ class User < ApplicationRecord
     FORUM_UNREAD_ITALIC              = pref(1 << 31, private: false)
     AGE_VERIFIED                     = pref(1 << 32, settable: false, private: false)
     CAN_UPLOAD_IN_PROGRESS           = pref(1 << 33, settable: false, public: true)
+    DISABLE_CHARACTER_TAG_GROUPING   = pref(1 << 34)
 
     def self.map
       constants.to_h { |name| [name.to_s.downcase, const_get(name)] }

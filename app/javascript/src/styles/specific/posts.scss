@@ -1,6 +1,6 @@
 
 #mode-box-mode, #mode-box #set-id {
-  width: 15em; // Match width to that of the
+  width: 17em; // Match width to that of the sidebar
 }
 
 article.post-preview {
@@ -382,6 +382,21 @@ div#c-posts {
     font-size: $h4_size;
   }
 
+  aside#sidebar #tag-list .character-group {
+    h2.character-group-header {
+      font-size: $h3-size;
+      margin-top: 0.75em;
+      padding-top: 0.5em;
+      border-top: 1px solid themed("color-section-lighten-10");
+    }
+
+    &:first-child h2.character-group-header {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+  }
+
   div#a-index {
     menu#post-sections {
       margin-bottom: 0.5em;
@@ -682,7 +697,9 @@ section#tag-list {
   word-break: break-word;
 }
 
-#tag-list > ul {
+// Not a direct-child selector - character groups wrap their category ul's one level deeper,
+// inside .character-group-content (see TagSetPresenter#character_group_section_html).
+#tag-list ul {
   li {
     display: flex;
     line-height: 1rem;
@@ -764,7 +781,8 @@ section#tag-list {
   }
 }
 
-.tag-list-header {
+.tag-list-header,
+.character-group-header {
   cursor: pointer;
   &.hidden-category::before {
     content: "► ";

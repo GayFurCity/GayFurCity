@@ -6,7 +6,8 @@ class Upload < ApplicationRecord
   class Error < StandardError; end
   has_media_asset(:upload_media_asset)
 
-  attr_accessor(:as_pending, :as_in_progress, :original_post_id, :locked_rating, :locked_tags, :is_replacement, :replacement_id)
+  attr_accessor(:as_pending, :as_in_progress, :original_post_id, :locked_rating, :locked_tags, :is_replacement, :replacement_id,
+                :ungrouped_tag_string, :character_groups_attributes)
 
   belongs_to_user(:uploader, ip: true, aliases: :creator)
   belongs_to(:post, optional: true)
@@ -138,6 +139,8 @@ class Upload < ApplicationRecord
   def convert_to_post
     Post.new.tap do |p|
       p.tag_string = tag_string
+      p.ungrouped_tag_string = ungrouped_tag_string
+      p.character_groups_attributes = character_groups_attributes
       p.original_tag_string = tag_string
       p.locked_tags = locked_tags
       p.is_rating_locked = locked_rating if locked_rating.present?

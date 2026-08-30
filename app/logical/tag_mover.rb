@@ -126,6 +126,7 @@ class TagMover
         post.with_lock do
           post.automated_edit = true
           post.updater = user
+          post.rename_tag_in_groups(old_tag.name, new_tag.name)
           post.remove_tag(old_tag.name)
           post.add_tag(new_tag.name)
           post.save!

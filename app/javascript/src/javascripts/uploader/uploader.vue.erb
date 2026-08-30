@@ -85,6 +85,19 @@
                 </div>
                 <div class="flex-grid border-bottom">
                     <div class="col">
+                        <label class="section-label">Character Tagging</label>
+                        <div>
+                          If specific tags apply to a specific character (not the scene as a whole), add them here
+                          instead of the general tags box below. Leave the character name blank for an
+                          unknown/anonymous character.
+                        </div>
+                    </div>
+                    <div class="col2">
+                        <character-group-editor param-name="upload" :native-names="false" @update:model-value="characterGroups = $event"></character-group-editor>
+                    </div>
+                </div>
+                <div class="flex-grid border-bottom">
+                    <div class="col">
                         <label class="section-label">Body Types and Species</label>
                         <div>One listed body type per visible character, listed options are mutually exclusive.</div>
                     </div>
@@ -286,6 +299,7 @@
   import tagPreview from "./tag_preview.vue";
   import filePreview from "./file_preview.vue";
   import fileInput from "./file_input.vue";
+  import characterGroupEditor from "../character_group_editor.vue";
   import SparkMD5 from "spark-md5";
   import Uploader from "../uploader";
 
@@ -375,6 +389,7 @@
       "tag-preview": tagPreview,
       "file-preview": filePreview,
       "file-input": fileInput,
+      "character-group-editor": characterGroupEditor,
     },
     data() {
       const allChecks = {};
@@ -413,6 +428,7 @@
 
         sourceWarning: false,
         sources: [""],
+        characterGroups: [],
         normalMode: !Uploader.settings.compact_mode,
         maxFileSizePerRequest: Uploader.settings.max_file_size_per_request,
 
@@ -662,7 +678,15 @@
             directUpload = true
           }
         }
-        data.append("upload[tag_string]", this.tags);
+        data.append("upload[ungrouped_tag_string]", this.ungroupedTags);
+        if (this.characterGroups.length === 0) {
+          data.append("upload[character_groups_attributes][0][tags][]", "");
+        } else {
+          this.characterGroups.forEach((group, index) => {
+            data.append(`upload[character_groups_attributes][${index}][characters][]`, group.characters.join(" "));
+            data.append(`upload[character_groups_attributes][${index}][tags][]`, group.tags.join(" "));
+          });
+        }
         data.append("upload[rating]", this.rating);
         data.append("upload[source]", this.sources.join("\n"));
         data.append("upload[description]", this.description);
@@ -891,7 +915,12 @@
       }
     },
     computed: {
-      tags() {
+      characterGroupTagsFlat() {
+        return this.characterGroups.flatMap((g) => [...g.characters, ...g.tags]).join(" ");
+      },
+      // Everything except the character-group tags - this is what's actually submitted as
+      // upload[ungrouped_tag_string]; the groups are submitted separately, structured.
+      ungroupedTags() {
         const self = this;
         if (!this.normalMode)
           return this.tagEntries.other;
@@ -900,6 +929,11 @@
         });
         return checked.concat([this.tagEntries.other, this.tagEntries.artist, this.tagEntries.character,
           this.tagEntries.species, this.tagEntries.content]).join(" ").replace(",", " ").trim().replace(/ +/g, " ");
+      },
+      // Full tag set including character-group tags - used for the tag count/validation/preview/related-tag
+      // features below, which should treat a character's tags the same as any other tag on the post.
+      tags() {
+        return `${this.ungroupedTags} ${this.characterGroupTagsFlat}`.trim().replace(/ +/g, " ");
       },
       tagsArray() {
         return this.tags.toLowerCase().split(" ");

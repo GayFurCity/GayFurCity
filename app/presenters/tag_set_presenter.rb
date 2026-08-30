@@ -11,9 +11,13 @@ class TagSetPresenter < ApplicationPresenter
   # @param [Array<String>] tag_names a list of tags to present. Tags will be presented in
   # the order given. The list should not contain duplicates. The list may
   # contain tags that do not exist in the tags table, such as metatags.
-  def initialize(tag_names, helper: nil, view: nil)
+  # @param [Array<Hash>] character_groups optional, as returned by Post#character_groups_for_api
+  # ({ characters: [...], tags: [...] }) - only used by post_show_sidebar_tag_list_html, when the
+  # viewer has character tag grouping enabled.
+  def initialize(tag_names, character_groups: [], helper: nil, view: nil)
     super(helper, view)
     @tag_names = tag_names
+    @character_groups = character_groups
   end
 
   def post_index_sidebar_tag_list_html(followed_tags:, current_query: "")
@@ -28,18 +32,44 @@ class TagSetPresenter < ApplicationPresenter
   end
 
   def post_show_sidebar_tag_list_html(highlighted_tags:, followed_tags:, current_query: "")
+    if @character_groups.present? && !CurrentUser.user.disable_character_tag_grouping?
+      return post_show_sidebar_grouped_tag_list_html(highlighted_tags: highlighted_tags, followed_tags: followed_tags, current_query: current_query)
+    end
+
+    category_sections_html(ordered_tags, highlighted_tags: highlighted_tags, followed_tags: followed_tags, current_query: current_query)
+  end
+
+  # Same tags, but split into one section per character (further split by category within
+  # each), followed by a General section (also split by category) for everything not
+  # attributed to a character.
+  def post_show_sidebar_grouped_tag_list_html(highlighted_tags:, followed_tags:, current_query: "")
     html = []
+    tags_by_name = ordered_tags.index_by(&:name)
+    unnamed_index = 0
+    grouped_names = []
 
-    TagCategory::SPLIT_HEADER_LIST.each do |category|
-      typetags = tags_for_category(category)
+    @character_groups.each do |group|
+      character_names = Array(group[:characters])
+      attribute_tags = Array(group[:tags]).filter_map { |name| tags_by_name[name] }
+      grouped_names.concat(character_names, group[:tags])
 
-      next unless typetags.any?
-      html << h.tag.h2(TagCategory.get(category).header, class: "#{category}-tag-list-header tag-list-header", data: { category: category })
-      tags = []
-      typetags.each do |tag|
-        tags << build_list_item(tag, current_query: current_query, highlight: highlighted_tags.include?(tag.name), followed: followed_tags.include?(tag.name))
-      end
-      html << h.tag.ul(safe_join(tags), class: "#{category}-tag-list")
+      label =
+        if character_names.any?
+          character_names.map { |name| name.tr("_", " ") }.join(", ")
+        else
+          unnamed_index += 1
+          "Unnamed Character ##{unnamed_index}"
+        end
+
+      section_html = category_sections_html(attribute_tags, highlighted_tags: highlighted_tags, followed_tags: followed_tags, current_query: current_query)
+      html << character_group_section_html(label, section_html)
+    end
+
+    ungrouped = ordered_tags.reject { |tag| grouped_names.include?(tag.name) }
+    if ungrouped.any?
+      section_html = category_sections_html(ungrouped, highlighted_tags: highlighted_tags, followed_tags: followed_tags, current_query: current_query)
+      section_html = character_group_section_html("Ungrouped", section_html, header_class: "character-group-header general-character-group-header") if @character_groups.any?
+      html << section_html
     end
 
     safe_join(html)
@@ -97,6 +127,36 @@ class TagSetPresenter < ApplicationPresenter
   end
 
   private
+
+  # Wraps one character group's header + tag sections in a collapsible container - see
+  # .character-group-header's click handler in posts.js. The wrapper is what makes the
+  # collapse scoped to just this group instead of every same-named category section on the
+  # page (category_sections_html reuses shared classes like "general-tag-list" per group).
+  def character_group_section_html(label, content_html, header_class: "character-group-header")
+    h.tag.div(safe_join([
+      h.tag.h2(label, class: header_class),
+      h.tag.div(content_html, class: "character-group-content"),
+    ]), class: "character-group")
+  end
+
+  # The header+list markup for post_show_sidebar_tag_list_html, scoped to an explicit set of
+  # tags rather than always the full @tag_names - shared between the plain and
+  # character-grouped renderings.
+  def category_sections_html(tags, highlighted_tags:, followed_tags:, current_query:)
+    html = []
+    by_category = tags.group_by(&:category)
+
+    TagCategory::SPLIT_HEADER_LIST.each do |category|
+      typetags = by_category[TagCategory.mapping[category.downcase]] || []
+      next unless typetags.any?
+
+      html << h.tag.h2(TagCategory.get(category).header, class: "#{category}-tag-list-header tag-list-header", data: { category: category })
+      list_items = typetags.map { |tag| build_list_item(tag, current_query: current_query, highlight: highlighted_tags.include?(tag.name), followed: followed_tags.include?(tag.name)) }
+      html << h.tag.ul(safe_join(list_items), class: "#{category}-tag-list")
+    end
+
+    safe_join(html)
+  end
 
   def tags
     @tags ||= Tag.where(name: tag_names).includes(antecedent_alias: :consequent_tag).select(:name, :post_count, :category)

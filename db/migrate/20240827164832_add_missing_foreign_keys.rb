@@ -98,8 +98,16 @@ class AddMissingForeignKeys < ActiveRecord::Migration[7.1]
     add_foreign_key(:uploads, :posts)
     # add_foreign_key(:uploads, :posts, column: :parent_id)
     add_foreign_key(:user_blocks, :users)
-    add_foreign_key(:user_feedbacks, :users)
-    add_foreign_key(:user_feedbacks, :users, column: :creator_id)
+    # if_exists: a later migration's column-type change on user_id/creator_id drops these FKs as a
+    # side effect without recreating them, so by the time this runs on rollback they may already be gone.
+    reversible do |dir|
+      dir.up   { add_foreign_key(:user_feedbacks, :users, if_not_exists: true) }
+      dir.down { remove_foreign_key(:user_feedbacks, :users, if_exists: true) }
+    end
+    reversible do |dir|
+      dir.up   { add_foreign_key(:user_feedbacks, :users, column: :creator_id, if_not_exists: true) }
+      dir.down { remove_foreign_key(:user_feedbacks, :users, column: :creator_id, if_exists: true) }
+    end
     add_foreign_key(:user_name_change_requests, :users)
     add_foreign_key(:user_name_change_requests, :users, column: :approver_id)
     add_foreign_key(:user_password_reset_nonces, :users)

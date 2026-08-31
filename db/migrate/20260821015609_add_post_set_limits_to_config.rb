@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class AddPostSetLimitsToConfig < ExtendedMigration[8.1]
+  with_config_override!
+
   def change
     add_column(:config, :post_set_create_limit, :integer, null: false, default: 6)
     add_column(:config, :post_set_create_limit_bypass, :integer, null: false, default: User::Levels::JANITOR)
@@ -11,6 +13,6 @@ class AddPostSetLimitsToConfig < ExtendedMigration[8.1]
       User::Levels::ADMIN    => -1,
     })
 
-    AdminConfig.delete_cache
+    Config.delete_cache
   end
 end

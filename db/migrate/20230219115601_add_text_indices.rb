@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class AddTextIndices < ActiveRecord::Migration[7.0]
+class AddTextIndices < ExtendedMigration[7.0]
   disable_ddl_transaction!
 
   def change
@@ -15,9 +15,5 @@ class AddTextIndices < ActiveRecord::Migration[7.0]
     up_only do
       execute("ALTER INDEX index_posts_on_string_to_array_tag_string ALTER COLUMN 1 SET STATISTICS 3000")
     end
-  end
-
-  def add_gin_index(table, index)
-    add_index(table, "(#{index})", using: :gin, algorithm: :concurrently)
   end
 end

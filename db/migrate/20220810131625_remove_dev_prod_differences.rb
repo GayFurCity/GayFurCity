@@ -2,7 +2,9 @@
 
 class RemoveDevProdDifferences < ActiveRecord::Migration[6.1]
   def change
-    execute("DROP FUNCTION IF EXISTS sourcepattern")
+    reversible do |r|
+      r.up { execute("DROP FUNCTION IF EXISTS sourcepattern") }
+    end
 
     non_null_timestamps(:artist_urls)
     non_null_timestamps(:artists)
@@ -19,7 +21,7 @@ class RemoveDevProdDifferences < ActiveRecord::Migration[6.1]
 
     change_column_null(:forum_topics, :creator_ip_addr, false)
 
-    change_column_default(:note_versions, :version, nil)
+    change_column_default(:note_versions, :version, from: 0, to: nil)
 
     change_column_null(:pools, :name, false)
 
@@ -27,14 +29,17 @@ class RemoveDevProdDifferences < ActiveRecord::Migration[6.1]
 
     change_column_null(:posts, :has_active_children, false)
     change_column_null(:posts, :created_at, false)
-    change_column_default(:posts, :source, nil)
+    change_column_default(:posts, :source, from: "", to: nil)
 
-    change_column(:tags, :category, :smallint)
+    reversible do |r|
+      r.up { change_column(:tags, :category, :smallint) }
+      r.down { change_column(:tags, :category, :integer) }
+    end
 
     change_column_null(:post_sets, :description, false)
 
-    change_column_default(:users, :per_page, 75)
-    change_column_default(:users, :comment_threshold, -2)
+    change_column_default(:users, :per_page, from: 20, to: 75)
+    change_column_default(:users, :comment_threshold, from: -1, to: -2)
 
     change_column_null(:post_flags, :created_at, false)
   end

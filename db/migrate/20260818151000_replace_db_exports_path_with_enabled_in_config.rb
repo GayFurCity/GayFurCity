@@ -4,10 +4,12 @@
 # from externally (e.g. an nginx-served directory). Now that exports are served through our own
 # DbExportsController, only an on/off toggle is needed - the destination is fixed.
 class ReplaceDbExportsPathWithEnabledInConfig < ExtendedMigration[7.1]
+  with_config_override!
+
   def change
     remove_column(:config, :db_exports_path, :string, default: "/db_exports")
     add_column(:config, :db_exports_enabled, :boolean, null: false, default: false)
 
-    AdminConfig.delete_cache
+    Config.delete_cache
   end
 end

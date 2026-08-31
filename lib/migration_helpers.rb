@@ -132,6 +132,24 @@ module MigrationHelpers
     SQL
   end
 
+  def with_renamed_table(table, name)
+    raise(LocalJumpError, "block required") unless block_given?
+    rename_table(table, name)
+    yield
+    rename_table(name, table)
+  end
+
+  def add_gin_index(table, index)
+    add_index(table, "(#{index})", using: :gin, algorithm: :concurrently)
+  end
+
+  # rename_column/rename_table don't rename constraints named after the old column/table name -
+  # Postgres leaves them as-is. Not reversible on its own; wrap in `reversible` at the call site
+  # with `from`/`to` swapped, same as add_foreign_key/remove_foreign_key pairs elsewhere.
+  def rename_constraint(table, from, to)
+    execute("ALTER TABLE #{quote_table_name(table)} RENAME CONSTRAINT #{quote_column_name(from)} TO #{quote_column_name(to)}")
+  end
+
   def update_change_seq(columns = nil, add: [], remove: [])
     if add.blank? && remove.blank? # use execute directly so migration is marked as irreversible
       execute(update_change_seq_sql(columns, add: [], remove: []))
@@ -143,6 +161,20 @@ module MigrationHelpers
     end
   end
 
+  # `remove_column(table, column, type, index: {...})` records itself for auto-inversion, but the
+  # inverse it generates is `add_column(table, column, type, index: {...})`, and add_column has no
+  # `index:` option - it raises "Unknown key: :index" on rollback. Splits the down direction into
+  # add_column + a separate add_index instead.
+  def remove_column_with_index(table, column, type, index:, **options)
+    reversible do |dir|
+      dir.up { remove_column(table, column, type, **options) }
+      dir.down do
+        add_column(table, column, type, **options)
+        add_index(table, column, **(index.is_a?(Hash) ? index : {}))
+      end
+    end
+  end
+
   private
 
   # Deliberately lazy (not a module-level constant) - `include(MigrationHelpers)` runs for every
@@ -150,7 +182,18 @@ module MigrationHelpers
   # while merely *defining* a migration class, before its `change` method (and any schema changes
   # it makes) has actually run. That bit us when a migration renaming AdminConfig's own table ran:
   # the eager load tried to query the not-yet-renamed table before the rename in `change` executed.
+  #
+  # Raw SQL rather than User.system: that goes through AdminConfig.instance for the system user's
+  # name, which is unusable here for the same reason - migrations older than db/migrate/*create_config*
+  # run before any config table exists at all, so there's no table name to point AdminConfig at.
   def default_id
-    User.system.id
+    existing = connection.select_value("SELECT id FROM users WHERE level = #{User::Levels::SYSTEM} LIMIT 1")
+    return existing.to_i if existing
+
+    connection.select_value(<<~SQL.squish)
+      INSERT INTO users (name, password_hash, level, email, created_at)
+      VALUES (#{connection.quote("System")}, '', #{User::Levels::SYSTEM}, #{connection.quote("system@#{GayFurCity.config.domain}")}, NOW())
+      RETURNING id
+    SQL
   end
 end

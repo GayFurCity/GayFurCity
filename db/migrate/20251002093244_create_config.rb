@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-class CreateConfig < ActiveRecord::Migration[7.1]
+class CreateConfig < ExtendedMigration[7.1]
+  with_config_override!
+
   def change
     create_table(:config, id: false) do |t|
       t.column(:id, :text, default: "config", null: false, primary_key: true)
@@ -153,6 +155,6 @@ class CreateConfig < ActiveRecord::Migration[7.1]
       t.column(:post_sample_size, :integer, default: 300, null: false)
       t.column(:updated_at, :datetime)
     end
-    AdminConfig.delete_cache
+    Config.delete_cache
   end
 end

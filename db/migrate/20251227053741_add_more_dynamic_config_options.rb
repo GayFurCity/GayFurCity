@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class AddMoreDynamicConfigOptions < ExtendedMigration[7.1]
+  with_config_override!
+
   def change
     add_column(:config, :enable_autotagging, :boolean, null: false, default: true)
     add_column(:config, :enable_image_cropping, :boolean, null: false, default: true)
@@ -14,6 +16,6 @@ class AddMoreDynamicConfigOptions < ExtendedMigration[7.1]
     add_column(:config, :app_description, :string, null: false, default: "Your one-stop shop for femboy furries.")
     add_column(:config, :anonymous_user_name, :string, null: false, default: "Anonymous")
     add_column(:config, :system_user_name, :string, null: false, default: "System")
-    AdminConfig.delete_cache
+    Config.delete_cache
   end
 end

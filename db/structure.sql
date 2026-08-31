@@ -46,10 +46,13 @@ BEGIN
     OR NEW.is_pending IS DISTINCT FROM OLD.is_pending
     OR NEW.is_flagged IS DISTINCT FROM OLD.is_flagged
     OR NEW.is_deleted IS DISTINCT FROM OLD.is_deleted
+    OR NEW.is_appealed IS DISTINCT FROM OLD.is_appealed
     OR NEW.approver_id IS DISTINCT FROM OLD.approver_id
     OR NEW.last_noted_at IS DISTINCT FROM OLD.last_noted_at
     OR NEW.tag_string IS DISTINCT FROM OLD.tag_string
+    OR NEW.typed_tag_string IS DISTINCT FROM OLD.typed_tag_string
     OR NEW.parent_id IS DISTINCT FROM OLD.parent_id
+    OR NEW.has_children IS DISTINCT FROM OLD.has_children
     OR NEW.has_active_children IS DISTINCT FROM OLD.has_active_children
     OR NEW.bit_flags IS DISTINCT FROM OLD.bit_flags
     OR NEW.locked_tags IS DISTINCT FROM OLD.locked_tags
@@ -64,6 +67,7 @@ BEGIN
     OR NEW.qtags IS DISTINCT FROM OLD.qtags
     OR NEW.tag_count_general IS DISTINCT FROM OLD.tag_count_general
     OR NEW.tag_count_artist IS DISTINCT FROM OLD.tag_count_artist
+    OR NEW.tag_count_contributor IS DISTINCT FROM OLD.tag_count_contributor
     OR NEW.tag_count_character IS DISTINCT FROM OLD.tag_count_character
     OR NEW.tag_count_copyright IS DISTINCT FROM OLD.tag_count_copyright
     OR NEW.tag_count_meta IS DISTINCT FROM OLD.tag_count_meta
@@ -71,11 +75,7 @@ BEGIN
     OR NEW.tag_count_invalid IS DISTINCT FROM OLD.tag_count_invalid
     OR NEW.tag_count_lore IS DISTINCT FROM OLD.tag_count_lore
     OR NEW.tag_count_gender IS DISTINCT FROM OLD.tag_count_gender
-    OR NEW.tag_count_contributor IS DISTINCT FROM OLD.tag_count_contributor
     OR NEW.tag_count_important IS DISTINCT FROM OLD.tag_count_important
-    OR NEW.has_children IS DISTINCT FROM OLD.has_children
-    OR NEW.typed_tag_string IS DISTINCT FROM OLD.typed_tag_string
-    OR NEW.is_appealed IS DISTINCT FROM OLD.is_appealed
     OR NEW.is_unlisted IS DISTINCT FROM OLD.is_unlisted
     OR NEW.is_in_progress IS DISTINCT FROM OLD.is_in_progress
     OR NEW.character_groups IS DISTINCT FROM OLD.character_groups
@@ -97,158 +97,158 @@ SET default_table_access_method = heap;
 --
 
 CREATE TABLE public.admin_config (
-    id text DEFAULT 'config'::text CONSTRAINT config_id_not_null NOT NULL,
-    contributor_suffixes text DEFAULT 'va, modeler'::text CONSTRAINT config_contributor_suffixes_not_null NOT NULL,
-    comment_bump_threshold integer DEFAULT 40 CONSTRAINT config_comment_bump_threshold_not_null NOT NULL,
-    pending_uploads_limit integer DEFAULT 3 CONSTRAINT config_pending_uploads_limit_not_null NOT NULL,
-    comment_limit integer DEFAULT 15 CONSTRAINT config_comment_limit_not_null NOT NULL,
-    comment_limit_bypass integer DEFAULT 15 CONSTRAINT config_comment_limit_bypass_not_null NOT NULL,
-    comment_vote_limit integer DEFAULT 25 CONSTRAINT config_comment_vote_limit_not_null NOT NULL,
-    comment_vote_limit_bypass integer DEFAULT 15 CONSTRAINT config_comment_vote_limit_bypass_not_null NOT NULL,
-    post_vote_limit integer DEFAULT 1000 CONSTRAINT config_post_vote_limit_not_null NOT NULL,
-    post_vote_limit_bypass integer DEFAULT 15 CONSTRAINT config_post_vote_limit_bypass_not_null NOT NULL,
-    dmail_minute_limit integer DEFAULT 2 CONSTRAINT config_dmail_minute_limit_not_null NOT NULL,
-    dmail_minute_limit_bypass integer DEFAULT 20 CONSTRAINT config_dmail_minute_limit_bypass_not_null NOT NULL,
-    dmail_hour_limit integer DEFAULT 30 CONSTRAINT config_dmail_hour_limit_not_null NOT NULL,
-    dmail_hour_limit_bypass integer DEFAULT 20 CONSTRAINT config_dmail_hour_limit_bypass_not_null NOT NULL,
-    dmail_day_limit integer DEFAULT 60 CONSTRAINT config_dmail_day_limit_not_null NOT NULL,
-    dmail_day_limit_bypass integer DEFAULT 20 CONSTRAINT config_dmail_day_limit_bypass_not_null NOT NULL,
-    dmail_restricted_day_limit integer DEFAULT 5 CONSTRAINT config_dmail_restricted_day_limit_not_null NOT NULL,
-    tag_suggestion_limit integer DEFAULT 15 CONSTRAINT config_tag_suggestion_limit_not_null NOT NULL,
-    tag_suggestion_limit_bypass integer DEFAULT 15 CONSTRAINT config_tag_suggestion_limit_bypass_not_null NOT NULL,
-    forum_vote_limit integer DEFAULT 25 CONSTRAINT config_forum_vote_limit_not_null NOT NULL,
-    forum_vote_limit_bypass integer DEFAULT 15 CONSTRAINT config_forum_vote_limit_bypass_not_null NOT NULL,
-    artist_edit_limit integer DEFAULT 25 CONSTRAINT config_artist_edit_limit_not_null NOT NULL,
-    artist_edit_limit_bypass integer DEFAULT 15 CONSTRAINT config_artist_edit_limit_bypass_not_null NOT NULL,
-    wiki_edit_limit integer DEFAULT 60 CONSTRAINT config_wiki_edit_limit_not_null NOT NULL,
-    wiki_edit_limit_bypass integer DEFAULT 15 CONSTRAINT config_wiki_edit_limit_bypass_not_null NOT NULL,
-    note_edit_limit integer DEFAULT 50 CONSTRAINT config_note_edit_limit_not_null NOT NULL,
-    note_edit_limit_bypass integer DEFAULT 15 CONSTRAINT config_note_edit_limit_bypass_not_null NOT NULL,
-    pool_limit integer DEFAULT 2 CONSTRAINT config_pool_limit_not_null NOT NULL,
-    pool_limit_bypass integer DEFAULT 15 CONSTRAINT config_pool_limit_bypass_not_null NOT NULL,
-    pool_edit_limit integer DEFAULT 10 CONSTRAINT config_pool_edit_limit_not_null NOT NULL,
-    pool_edit_limit_bypass integer DEFAULT 15 CONSTRAINT config_pool_edit_limit_bypass_not_null NOT NULL,
-    pool_post_edit_limit integer DEFAULT 30 CONSTRAINT config_pool_post_edit_limit_not_null NOT NULL,
-    pool_post_edit_limit_bypass integer DEFAULT 15 CONSTRAINT config_pool_post_edit_limit_bypass_not_null NOT NULL,
-    post_edit_limit integer DEFAULT 150 CONSTRAINT config_post_edit_limit_not_null NOT NULL,
-    post_edit_limit_bypass integer DEFAULT 15 CONSTRAINT config_post_edit_limit_bypass_not_null NOT NULL,
-    post_appeal_limit integer DEFAULT 5 CONSTRAINT config_post_appeal_limit_not_null NOT NULL,
-    post_appeal_limit_bypass integer DEFAULT 15 CONSTRAINT config_post_appeal_limit_bypass_not_null NOT NULL,
-    post_flag_limit integer DEFAULT 20 CONSTRAINT config_post_flag_limit_not_null NOT NULL,
-    post_flag_limit_bypass integer DEFAULT 15 CONSTRAINT config_post_flag_limit_bypass_not_null NOT NULL,
-    hourly_upload_limit integer DEFAULT 30 CONSTRAINT config_hourly_upload_limit_not_null NOT NULL,
-    ticket_limit integer DEFAULT 30 CONSTRAINT config_ticket_limit_not_null NOT NULL,
-    ticket_limit_bypass integer DEFAULT 15 CONSTRAINT config_ticket_limit_bypass_not_null NOT NULL,
-    pool_category_change_limit integer DEFAULT 30 CONSTRAINT config_pool_category_change_limit_not_null NOT NULL,
-    post_replacement_per_day_limit integer DEFAULT 2 CONSTRAINT config_post_replacement_per_day_limit_not_null NOT NULL,
-    post_replacement_per_day_limit_bypass integer DEFAULT 20 CONSTRAINT config_post_replacement_per_day_limit_bypass_not_null NOT NULL,
-    post_replacement_per_post_limit integer DEFAULT 5 CONSTRAINT config_post_replacement_per_post_limit_not_null NOT NULL,
-    post_replacement_per_post_limit_bypass integer DEFAULT 20 CONSTRAINT config_post_replacement_per_post_limit_bypass_not_null NOT NULL,
-    compact_uploader_minimum_posts integer DEFAULT 10 CONSTRAINT config_compact_uploader_minimum_posts_not_null NOT NULL,
-    bur_entry_limit jsonb DEFAULT '{"10": 50, "40": -1}'::jsonb CONSTRAINT config_bur_entry_limit_not_null NOT NULL,
-    max_numbered_pages integer DEFAULT 1000 CONSTRAINT config_max_numbered_pages_not_null NOT NULL,
-    max_per_page integer DEFAULT 500 CONSTRAINT config_max_per_page_not_null NOT NULL,
-    comment_max_size integer DEFAULT 10000 CONSTRAINT config_comment_max_size_not_null NOT NULL,
-    dmail_max_size integer DEFAULT 50000 CONSTRAINT config_dmail_max_size_not_null NOT NULL,
-    forum_post_max_size integer DEFAULT 50000 CONSTRAINT config_forum_post_max_size_not_null NOT NULL,
-    forum_category_description_max_size integer DEFAULT 250 CONSTRAINT config_forum_category_description_max_size_not_null NOT NULL,
-    note_max_size integer DEFAULT 1000 CONSTRAINT config_note_max_size_not_null NOT NULL,
-    pool_description_max_size integer DEFAULT 10000 CONSTRAINT config_pool_description_max_size_not_null NOT NULL,
-    post_description_max_size integer DEFAULT 50000 CONSTRAINT config_post_description_max_size_not_null NOT NULL,
-    ticket_max_size integer DEFAULT 5000 CONSTRAINT config_ticket_max_size_not_null NOT NULL,
-    user_about_max_size integer DEFAULT 50000 CONSTRAINT config_user_about_max_size_not_null NOT NULL,
-    blacklisted_tags_max_size integer DEFAULT 150000 CONSTRAINT config_blacklisted_tags_max_size_not_null NOT NULL,
-    custom_style_max_size integer DEFAULT 500000 CONSTRAINT config_custom_style_max_size_not_null NOT NULL,
-    wiki_page_max_size integer DEFAULT 250000 CONSTRAINT config_wiki_page_max_size_not_null NOT NULL,
-    user_feedback_max_size integer DEFAULT 20000 CONSTRAINT config_user_feedback_max_size_not_null NOT NULL,
-    news_update_max_size integer DEFAULT 50000 CONSTRAINT config_news_update_max_size_not_null NOT NULL,
-    pool_post_limit integer DEFAULT 1000 CONSTRAINT config_pool_post_limit_not_null NOT NULL,
-    pool_post_limit_bypass integer DEFAULT 40 CONSTRAINT config_pool_post_limit_bypass_not_null NOT NULL,
-    set_post_limit integer DEFAULT 10000 CONSTRAINT config_set_post_limit_not_null NOT NULL,
-    set_post_limit_bypass integer DEFAULT 40 CONSTRAINT config_set_post_limit_bypass_not_null NOT NULL,
-    disapproval_message_max_size integer DEFAULT 250 CONSTRAINT config_disapproval_message_max_size_not_null NOT NULL,
-    max_upload_per_request integer DEFAULT 75 CONSTRAINT config_max_upload_per_request_not_null NOT NULL,
-    max_file_size integer DEFAULT 200 CONSTRAINT config_max_file_size_not_null NOT NULL,
-    max_file_sizes jsonb DEFAULT '{"gif": 30, "jpg": 100, "mp4": 200, "png": 100, "apng": 30, "webm": 200, "webp": 100}'::jsonb CONSTRAINT config_max_file_sizes_not_null NOT NULL,
-    max_mascot_file_sizes jsonb DEFAULT '{"jpg": 1000, "png": 1000, "webp": 1000}'::jsonb CONSTRAINT config_max_mascot_file_sizes_not_null NOT NULL,
-    max_video_duration integer DEFAULT 1800 CONSTRAINT config_max_video_duration_not_null NOT NULL,
-    max_image_resolution integer DEFAULT 441 CONSTRAINT config_max_image_resolution_not_null NOT NULL,
-    max_tags_per_post integer DEFAULT 2000 CONSTRAINT config_max_tags_per_post_not_null NOT NULL,
-    enable_signups boolean DEFAULT true CONSTRAINT config_enable_signups_not_null NOT NULL,
-    user_approvals_enabled boolean DEFAULT true CONSTRAINT config_user_approvals_enabled_not_null NOT NULL,
-    enable_email_verification boolean DEFAULT false CONSTRAINT config_enable_email_verification_not_null NOT NULL,
-    enable_stale_forum_topics boolean DEFAULT true CONSTRAINT config_enable_stale_forum_topics_not_null NOT NULL,
-    enable_sock_puppet_validation boolean DEFAULT false CONSTRAINT config_enable_sock_puppet_validation_not_null NOT NULL,
-    forum_topic_stale_window integer DEFAULT 180 CONSTRAINT config_forum_topic_stale_window_not_null NOT NULL,
-    forum_topic_aibur_stale_window integer DEFAULT 365 CONSTRAINT config_forum_topic_aibur_stale_window_not_null NOT NULL,
-    flag_notice_wiki_page character varying DEFAULT 'internal:flag_notice'::character varying CONSTRAINT config_flag_notice_wiki_page_not_null NOT NULL,
-    replacement_notice_wiki_page character varying DEFAULT 'internal:replacement_notice'::character varying CONSTRAINT config_replacement_notice_wiki_page_not_null NOT NULL,
-    avoid_posting_notice_wiki_page character varying DEFAULT 'internal:avoid_posting_notice'::character varying CONSTRAINT config_avoid_posting_notice_wiki_page_not_null NOT NULL,
-    discord_notice_wiki_page character varying DEFAULT 'internal:discord_notice'::character varying CONSTRAINT config_discord_notice_wiki_page_not_null NOT NULL,
-    rules_body_wiki_page character varying DEFAULT 'internal:rules_body'::character varying CONSTRAINT config_rules_body_wiki_page_not_null NOT NULL,
-    restricted_notice_wiki_page character varying DEFAULT 'internal:restricted_notice'::character varying CONSTRAINT config_restricted_notice_wiki_page_not_null NOT NULL,
-    rejected_notice_wiki_page character varying DEFAULT 'internal:rejected_notice'::character varying CONSTRAINT config_rejected_notice_wiki_page_not_null NOT NULL,
-    appeal_notice_wiki_page character varying DEFAULT 'internal:appeal_notice'::character varying CONSTRAINT config_appeal_notice_wiki_page_not_null NOT NULL,
-    ban_notice_wiki_page character varying DEFAULT 'internal:ban_notice'::character varying CONSTRAINT config_ban_notice_wiki_page_not_null NOT NULL,
-    user_approved_wiki_page character varying DEFAULT 'internal:user_approved'::character varying CONSTRAINT config_user_approved_wiki_page_not_null NOT NULL,
-    user_rejected_wiki_page character varying DEFAULT 'internal:user_rejected'::character varying CONSTRAINT config_user_rejected_wiki_page_not_null NOT NULL,
-    records_per_page integer DEFAULT 100 CONSTRAINT config_records_per_page_not_null NOT NULL,
-    tag_change_request_update_limit jsonb DEFAULT '{"15": 500, "20": 1000, "30": 10000, "40": 100000, "50": -1}'::jsonb CONSTRAINT config_tag_change_request_update_limit_not_null NOT NULL,
-    followed_tag_limit jsonb DEFAULT '{"10": 100, "15": 500, "20": 1000}'::jsonb CONSTRAINT config_followed_tag_limit_not_null NOT NULL,
-    tag_type_edit_limit jsonb DEFAULT '{"10": 100, "15": 1000, "20": 10000, "40": -1}'::jsonb CONSTRAINT config_tag_type_edit_limit_not_null NOT NULL,
-    tag_type_edit_implicit_limit jsonb DEFAULT '{"10": 100, "15": 1000}'::jsonb CONSTRAINT config_tag_type_edit_implicit_limit_not_null NOT NULL,
-    alias_category_change_cutoff integer DEFAULT 10000 CONSTRAINT config_alias_category_change_cutoff_not_null NOT NULL,
-    max_multi_count integer DEFAULT 100 CONSTRAINT config_max_multi_count_not_null NOT NULL,
-    takedown_email character varying DEFAULT 'admin@gayfur.city'::character varying CONSTRAINT config_takedown_email_not_null NOT NULL,
-    contact_email character varying DEFAULT 'admin@gayfur.city'::character varying CONSTRAINT config_contact_email_not_null NOT NULL,
+    id text DEFAULT 'config'::text NOT NULL,
+    contributor_suffixes text DEFAULT 'va, modeler'::text NOT NULL,
+    comment_bump_threshold integer DEFAULT 40 NOT NULL,
+    pending_uploads_limit integer DEFAULT 3 NOT NULL,
+    comment_limit integer DEFAULT 15 NOT NULL,
+    comment_limit_bypass integer DEFAULT 15 NOT NULL,
+    comment_vote_limit integer DEFAULT 25 NOT NULL,
+    comment_vote_limit_bypass integer DEFAULT 15 NOT NULL,
+    post_vote_limit integer DEFAULT 1000 NOT NULL,
+    post_vote_limit_bypass integer DEFAULT 15 NOT NULL,
+    dmail_minute_limit integer DEFAULT 2 NOT NULL,
+    dmail_minute_limit_bypass integer DEFAULT 20 NOT NULL,
+    dmail_hour_limit integer DEFAULT 30 NOT NULL,
+    dmail_hour_limit_bypass integer DEFAULT 20 NOT NULL,
+    dmail_day_limit integer DEFAULT 60 NOT NULL,
+    dmail_day_limit_bypass integer DEFAULT 20 NOT NULL,
+    dmail_restricted_day_limit integer DEFAULT 5 NOT NULL,
+    tag_suggestion_limit integer DEFAULT 15 NOT NULL,
+    tag_suggestion_limit_bypass integer DEFAULT 15 NOT NULL,
+    forum_vote_limit integer DEFAULT 25 NOT NULL,
+    forum_vote_limit_bypass integer DEFAULT 15 NOT NULL,
+    artist_edit_limit integer DEFAULT 25 NOT NULL,
+    artist_edit_limit_bypass integer DEFAULT 15 NOT NULL,
+    wiki_edit_limit integer DEFAULT 60 NOT NULL,
+    wiki_edit_limit_bypass integer DEFAULT 15 NOT NULL,
+    note_edit_limit integer DEFAULT 50 NOT NULL,
+    note_edit_limit_bypass integer DEFAULT 15 NOT NULL,
+    pool_limit integer DEFAULT 2 NOT NULL,
+    pool_limit_bypass integer DEFAULT 15 NOT NULL,
+    pool_edit_limit integer DEFAULT 10 NOT NULL,
+    pool_edit_limit_bypass integer DEFAULT 15 NOT NULL,
+    pool_post_edit_limit integer DEFAULT 30 NOT NULL,
+    pool_post_edit_limit_bypass integer DEFAULT 15 NOT NULL,
+    post_edit_limit integer DEFAULT 150 NOT NULL,
+    post_edit_limit_bypass integer DEFAULT 15 NOT NULL,
+    post_appeal_limit integer DEFAULT 5 NOT NULL,
+    post_appeal_limit_bypass integer DEFAULT 15 NOT NULL,
+    post_flag_limit integer DEFAULT 20 NOT NULL,
+    post_flag_limit_bypass integer DEFAULT 15 NOT NULL,
+    hourly_upload_limit integer DEFAULT 30 NOT NULL,
+    ticket_limit integer DEFAULT 30 NOT NULL,
+    ticket_limit_bypass integer DEFAULT 15 NOT NULL,
+    pool_category_change_limit integer DEFAULT 30 NOT NULL,
+    post_replacement_per_day_limit integer DEFAULT 2 NOT NULL,
+    post_replacement_per_day_limit_bypass integer DEFAULT 20 NOT NULL,
+    post_replacement_per_post_limit integer DEFAULT 5 NOT NULL,
+    post_replacement_per_post_limit_bypass integer DEFAULT 20 NOT NULL,
+    compact_uploader_minimum_posts integer DEFAULT 10 NOT NULL,
+    bur_entry_limit jsonb DEFAULT '{"10": 50, "40": -1}'::jsonb NOT NULL,
+    max_numbered_pages integer DEFAULT 1000 NOT NULL,
+    max_per_page integer DEFAULT 500 NOT NULL,
+    comment_max_size integer DEFAULT 10000 NOT NULL,
+    dmail_max_size integer DEFAULT 50000 NOT NULL,
+    forum_post_max_size integer DEFAULT 50000 NOT NULL,
+    forum_category_description_max_size integer DEFAULT 250 NOT NULL,
+    note_max_size integer DEFAULT 1000 NOT NULL,
+    pool_description_max_size integer DEFAULT 10000 NOT NULL,
+    post_description_max_size integer DEFAULT 50000 NOT NULL,
+    ticket_max_size integer DEFAULT 5000 NOT NULL,
+    user_about_max_size integer DEFAULT 50000 NOT NULL,
+    blacklisted_tags_max_size integer DEFAULT 150000 NOT NULL,
+    custom_style_max_size integer DEFAULT 500000 NOT NULL,
+    wiki_page_max_size integer DEFAULT 250000 NOT NULL,
+    user_feedback_max_size integer DEFAULT 20000 NOT NULL,
+    news_update_max_size integer DEFAULT 50000 NOT NULL,
+    pool_post_limit integer DEFAULT 1000 NOT NULL,
+    pool_post_limit_bypass integer DEFAULT 40 NOT NULL,
+    set_post_limit integer DEFAULT 10000 NOT NULL,
+    set_post_limit_bypass integer DEFAULT 40 NOT NULL,
+    disapproval_message_max_size integer DEFAULT 250 NOT NULL,
+    max_upload_per_request integer DEFAULT 75 NOT NULL,
+    max_file_size integer DEFAULT 200 NOT NULL,
+    max_file_sizes jsonb DEFAULT '{"gif": 30, "jpg": 100, "mp4": 200, "png": 100, "apng": 30, "webm": 200, "webp": 100}'::jsonb NOT NULL,
+    max_mascot_file_sizes jsonb DEFAULT '{"jpg": 1000, "png": 1000, "webp": 1000}'::jsonb NOT NULL,
+    max_video_duration integer DEFAULT 1800 NOT NULL,
+    max_image_resolution integer DEFAULT 441 NOT NULL,
+    max_tags_per_post integer DEFAULT 2000 NOT NULL,
+    enable_signups boolean DEFAULT true NOT NULL,
+    user_approvals_enabled boolean DEFAULT true NOT NULL,
+    enable_email_verification boolean DEFAULT false NOT NULL,
+    enable_stale_forum_topics boolean DEFAULT true NOT NULL,
+    enable_sock_puppet_validation boolean DEFAULT false NOT NULL,
+    forum_topic_stale_window integer DEFAULT 180 NOT NULL,
+    forum_topic_aibur_stale_window integer DEFAULT 365 NOT NULL,
+    flag_notice_wiki_page character varying DEFAULT 'internal:flag_notice'::character varying NOT NULL,
+    replacement_notice_wiki_page character varying DEFAULT 'internal:replacement_notice'::character varying NOT NULL,
+    avoid_posting_notice_wiki_page character varying DEFAULT 'internal:avoid_posting_notice'::character varying NOT NULL,
+    discord_notice_wiki_page character varying DEFAULT 'internal:discord_notice'::character varying NOT NULL,
+    rules_body_wiki_page character varying DEFAULT 'internal:rules_body'::character varying NOT NULL,
+    restricted_notice_wiki_page character varying DEFAULT 'internal:restricted_notice'::character varying NOT NULL,
+    rejected_notice_wiki_page character varying DEFAULT 'internal:rejected_notice'::character varying NOT NULL,
+    appeal_notice_wiki_page character varying DEFAULT 'internal:appeal_notice'::character varying NOT NULL,
+    ban_notice_wiki_page character varying DEFAULT 'internal:ban_notice'::character varying NOT NULL,
+    user_approved_wiki_page character varying DEFAULT 'internal:user_approved'::character varying NOT NULL,
+    user_rejected_wiki_page character varying DEFAULT 'internal:user_rejected'::character varying NOT NULL,
+    records_per_page integer DEFAULT 100 NOT NULL,
+    tag_change_request_update_limit jsonb DEFAULT '{"15": 500, "20": 1000, "30": 10000, "40": 100000, "50": -1}'::jsonb NOT NULL,
+    followed_tag_limit jsonb DEFAULT '{"10": 100, "15": 500, "20": 1000}'::jsonb NOT NULL,
+    tag_type_edit_limit jsonb DEFAULT '{"10": 100, "15": 1000, "20": 10000, "40": -1}'::jsonb NOT NULL,
+    tag_type_edit_implicit_limit jsonb DEFAULT '{"10": 100, "15": 1000}'::jsonb NOT NULL,
+    alias_category_change_cutoff integer DEFAULT 10000 NOT NULL,
+    max_multi_count integer DEFAULT 100 NOT NULL,
+    takedown_email character varying DEFAULT 'admin@gayfur.city'::character varying NOT NULL,
+    contact_email character varying DEFAULT 'admin@gayfur.city'::character varying NOT NULL,
     default_user_timezone character varying DEFAULT 'Central Time (US & Canada)'::character varying,
-    alias_and_implication_forum_category integer DEFAULT 1 CONSTRAINT config_alias_and_implication_forum_category_not_null NOT NULL,
-    default_forum_category integer DEFAULT 1 CONSTRAINT config_default_forum_category_not_null NOT NULL,
-    upload_whitelists_forum_topic integer DEFAULT 0 CONSTRAINT config_upload_whitelists_forum_topic_not_null NOT NULL,
-    post_sample_size integer DEFAULT 300 CONSTRAINT config_post_sample_size_not_null NOT NULL,
+    alias_and_implication_forum_category integer DEFAULT 1 NOT NULL,
+    default_forum_category integer DEFAULT 1 NOT NULL,
+    upload_whitelists_forum_topic integer DEFAULT 0 NOT NULL,
+    post_sample_size integer DEFAULT 300 NOT NULL,
     updated_at timestamp(6) without time zone,
-    lore_suffixes text DEFAULT 'lore'::text CONSTRAINT config_lore_suffixes_not_null NOT NULL,
-    artist_exclusion_tags text DEFAULT 'avoid_posting, conditional_dnp, epilepsy_warning, sound_warning'::text CONSTRAINT config_artist_exclusion_tags_not_null NOT NULL,
-    flag_ai_posts boolean DEFAULT true CONSTRAINT config_flag_ai_posts_not_null NOT NULL,
-    tag_ai_posts boolean DEFAULT true CONSTRAINT config_tag_ai_posts_not_null NOT NULL,
-    ai_confidence_threshold integer DEFAULT 50 CONSTRAINT config_ai_confidence_threshold_not_null NOT NULL,
-    post_flag_note_max_size integer DEFAULT 10000 CONSTRAINT config_post_flag_note_max_size_not_null NOT NULL,
-    pool_category_change_cutoff integer DEFAULT 30 CONSTRAINT config_pool_category_change_cutoff_not_null NOT NULL,
-    pool_category_change_cutoff_bypass integer DEFAULT 20 CONSTRAINT config_pool_category_change_cutoff_bypass_not_null NOT NULL,
-    pool_name_max_size integer DEFAULT 250 CONSTRAINT config_pool_name_max_size_not_null NOT NULL,
-    default_blacklist character varying DEFAULT ''::character varying CONSTRAINT config_default_blacklist_not_null NOT NULL,
-    safeblocked_tags character varying DEFAULT ''::character varying CONSTRAINT config_safeblocked_tags_not_null NOT NULL,
-    enable_autotagging boolean DEFAULT true CONSTRAINT config_enable_autotagging_not_null NOT NULL,
-    enable_image_cropping boolean DEFAULT true CONSTRAINT config_enable_image_cropping_not_null NOT NULL,
-    enable_bad_sources boolean DEFAULT true CONSTRAINT config_enable_bad_sources_not_null NOT NULL,
-    safe_mode boolean DEFAULT false CONSTRAINT config_safe_mode_not_null NOT NULL,
-    show_tag_scripting integer DEFAULT 15 CONSTRAINT config_show_tag_scripting_not_null NOT NULL,
-    show_backtrace integer DEFAULT 20 CONSTRAINT config_show_backtrace_not_null NOT NULL,
-    bur_nuke integer DEFAULT 40 CONSTRAINT config_bur_nuke_not_null NOT NULL,
-    app_name character varying DEFAULT 'GayFur City'::character varying CONSTRAINT config_app_name_not_null NOT NULL,
-    canonical_app_name character varying DEFAULT 'GayFur City'::character varying CONSTRAINT config_canonical_app_name_not_null NOT NULL,
-    app_description character varying DEFAULT 'Your one-stop shop for gay furries.'::character varying CONSTRAINT config_app_description_not_null NOT NULL,
-    anonymous_user_name character varying DEFAULT 'Anonymous'::character varying CONSTRAINT config_anonymous_user_name_not_null NOT NULL,
-    system_user_name character varying DEFAULT 'System'::character varying CONSTRAINT config_system_user_name_not_null NOT NULL,
-    image_width jsonb DEFAULT '{"max": 40000, "min": 300}'::jsonb CONSTRAINT config_image_width_not_null NOT NULL,
-    image_height jsonb DEFAULT '{"max": 40000, "min": 300}'::jsonb CONSTRAINT config_image_height_not_null NOT NULL,
-    mascot_width jsonb DEFAULT '{"max": 1000, "min": 250}'::jsonb CONSTRAINT config_mascot_width_not_null NOT NULL,
-    mascot_height jsonb DEFAULT '{"max": 1000, "min": 250}'::jsonb CONSTRAINT config_mascot_height_not_null NOT NULL,
-    postgres_query_timeout jsonb DEFAULT '{"0": 3000, "15": 6000, "19": 9000}'::jsonb CONSTRAINT config_postgres_query_timeout_not_null NOT NULL,
-    elasticsearch_query_timeout jsonb DEFAULT '{"0": 3000, "15": 6000, "19": 9000}'::jsonb CONSTRAINT config_elasticsearch_query_timeout_not_null NOT NULL,
-    elasticsearch_request_timeout jsonb DEFAULT '{"0": 5, "15": 10, "19": 15}'::jsonb CONSTRAINT config_elasticsearch_request_timeout_not_null NOT NULL,
-    request_cycle_timeout jsonb DEFAULT '{"0": 10000, "15": 20000, "19": 30000}'::jsonb CONSTRAINT config_request_cycle_timeout_not_null NOT NULL,
-    db_exports_enabled boolean DEFAULT false CONSTRAINT config_db_exports_enabled_not_null NOT NULL,
-    blacklisted_preview_url character varying DEFAULT '/images/blacklisted-preview.png'::character varying CONSTRAINT config_blacklisted_preview_url_not_null NOT NULL,
-    deleted_preview_url character varying DEFAULT '/images/deleted-preview.png'::character varying CONSTRAINT config_deleted_preview_url_not_null NOT NULL,
-    download_preview_url character varying DEFAULT '/images/download-preview.png'::character varying CONSTRAINT config_download_preview_url_not_null NOT NULL,
-    missing_preview_url character varying DEFAULT '/images/missing-preview.png'::character varying CONSTRAINT config_missing_preview_url_not_null NOT NULL,
-    placeholder_preview_url character varying DEFAULT '/images/placeholder-preview.png'::character varying CONSTRAINT config_placeholder_preview_url_not_null NOT NULL,
-    tag_query_limit jsonb DEFAULT '{"0": 40}'::jsonb CONSTRAINT config_tag_query_limit_not_null NOT NULL,
-    anonymous_hard_tag_limit integer DEFAULT 40 CONSTRAINT config_anonymous_hard_tag_limit_not_null NOT NULL,
-    post_set_create_limit integer DEFAULT 6 CONSTRAINT config_post_set_create_limit_not_null NOT NULL,
-    post_set_create_limit_bypass integer DEFAULT 20 CONSTRAINT config_post_set_create_limit_bypass_not_null NOT NULL,
-    post_set_limit jsonb DEFAULT '{"4": 5, "10": 75, "15": 150, "40": -1}'::jsonb CONSTRAINT config_post_set_limit_not_null NOT NULL,
+    lore_suffixes text DEFAULT 'lore'::text NOT NULL,
+    artist_exclusion_tags text DEFAULT 'avoid_posting, conditional_dnp, epilepsy_warning, sound_warning'::text NOT NULL,
+    flag_ai_posts boolean DEFAULT true NOT NULL,
+    tag_ai_posts boolean DEFAULT true NOT NULL,
+    ai_confidence_threshold integer DEFAULT 50 NOT NULL,
+    post_flag_note_max_size integer DEFAULT 10000 NOT NULL,
+    pool_category_change_cutoff integer DEFAULT 30 NOT NULL,
+    pool_category_change_cutoff_bypass integer DEFAULT 20 NOT NULL,
+    pool_name_max_size integer DEFAULT 250 NOT NULL,
+    default_blacklist character varying DEFAULT ''::character varying NOT NULL,
+    safeblocked_tags character varying DEFAULT ''::character varying NOT NULL,
+    enable_autotagging boolean DEFAULT true NOT NULL,
+    enable_image_cropping boolean DEFAULT true NOT NULL,
+    enable_bad_sources boolean DEFAULT true NOT NULL,
+    safe_mode boolean DEFAULT false NOT NULL,
+    show_tag_scripting integer DEFAULT 15 NOT NULL,
+    show_backtrace integer DEFAULT 20 NOT NULL,
+    bur_nuke integer DEFAULT 40 NOT NULL,
+    app_name character varying DEFAULT 'GayFur City'::character varying NOT NULL,
+    canonical_app_name character varying DEFAULT 'GayFur City'::character varying NOT NULL,
+    app_description character varying DEFAULT 'Your one-stop shop for gay furries.'::character varying NOT NULL,
+    anonymous_user_name character varying DEFAULT 'Anonymous'::character varying NOT NULL,
+    system_user_name character varying DEFAULT 'System'::character varying NOT NULL,
+    image_width jsonb DEFAULT '{"max": 40000, "min": 300}'::jsonb NOT NULL,
+    image_height jsonb DEFAULT '{"max": 40000, "min": 300}'::jsonb NOT NULL,
+    mascot_width jsonb DEFAULT '{"max": 1000, "min": 250}'::jsonb NOT NULL,
+    mascot_height jsonb DEFAULT '{"max": 1000, "min": 250}'::jsonb NOT NULL,
+    postgres_query_timeout jsonb DEFAULT '{"0": 3000, "15": 6000, "19": 9000}'::jsonb NOT NULL,
+    elasticsearch_query_timeout jsonb DEFAULT '{"0": 3000, "15": 6000, "19": 9000}'::jsonb NOT NULL,
+    elasticsearch_request_timeout jsonb DEFAULT '{"0": 5, "15": 10, "19": 15}'::jsonb NOT NULL,
+    request_cycle_timeout jsonb DEFAULT '{"0": 10000, "15": 20000, "19": 30000}'::jsonb NOT NULL,
+    db_exports_enabled boolean DEFAULT false NOT NULL,
+    blacklisted_preview_url character varying DEFAULT '/images/blacklisted-preview.png'::character varying NOT NULL,
+    deleted_preview_url character varying DEFAULT '/images/deleted-preview.png'::character varying NOT NULL,
+    download_preview_url character varying DEFAULT '/images/download-preview.png'::character varying NOT NULL,
+    missing_preview_url character varying DEFAULT '/images/missing-preview.png'::character varying NOT NULL,
+    placeholder_preview_url character varying DEFAULT '/images/placeholder-preview.png'::character varying NOT NULL,
+    tag_query_limit jsonb DEFAULT '{"0": 40}'::jsonb NOT NULL,
+    anonymous_hard_tag_limit integer DEFAULT 40 NOT NULL,
+    post_set_create_limit integer DEFAULT 6 NOT NULL,
+    post_set_create_limit_bypass integer DEFAULT 20 NOT NULL,
+    post_set_limit jsonb DEFAULT '{"4": 5, "10": 75, "15": 150, "40": -1}'::jsonb NOT NULL,
     character_edit_limit integer DEFAULT 25 NOT NULL,
     character_edit_limit_bypass integer DEFAULT 15 NOT NULL
 );
@@ -4305,6 +4305,14 @@ ALTER TABLE ONLY public.wiki_pages ALTER COLUMN id SET DEFAULT nextval('public.w
 
 
 --
+-- Name: admin_config admin_config_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.admin_config
+    ADD CONSTRAINT admin_config_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: api_keys api_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4430,14 +4438,6 @@ ALTER TABLE ONLY public.comment_votes
 
 ALTER TABLE ONLY public.comments
     ADD CONSTRAINT comments_pkey PRIMARY KEY (id);
-
-
---
--- Name: admin_config config_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.admin_config
-    ADD CONSTRAINT config_pkey PRIMARY KEY (id);
 
 
 --
@@ -8783,6 +8783,8 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260831130000'),
+('20260831120000'),
 ('20260830100200'),
 ('20260830100100'),
 ('20260830100000'),
@@ -8963,6 +8965,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220106081415');
 
 INSERT INTO "fixes" (id, "index") VALUES
+(234, NULL),
 (233, 2),
 (233, 1),
 (232, NULL),

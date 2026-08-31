@@ -11,6 +11,13 @@ class CreateForumTopicStatuses < ActiveRecord::Migration[7.1]
       t.timestamps
     end
 
-    drop_table(:forum_subscriptions)
+    drop_table(:forum_subscriptions, id: :integer) do |t|
+      t.integer(:user_id)
+      t.integer(:forum_topic_id)
+      t.datetime(:last_read_at)
+      t.string(:delete_key)
+      t.index(:user_id)
+      t.index(:forum_topic_id)
+    end
   end
 end

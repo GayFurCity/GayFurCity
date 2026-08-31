@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class AddTextWildcardSearchIndex < ActiveRecord::Migration[7.0]
-  def up
+  def change
     add_gin_index(:blips, :body)
     add_gin_index(:comments, :body)
     add_gin_index(:dmails, :body)
@@ -14,6 +14,6 @@ class AddTextWildcardSearchIndex < ActiveRecord::Migration[7.0]
   end
 
   def add_gin_index(table, column)
-    execute("CREATE INDEX index_#{table}_on_lower_#{column}_trgm ON #{table} USING gin ((lower(#{column})) gin_trgm_ops)")
+    add_index(table, "(lower(#{column})) gin_trgm_ops", using: :gin, name: "index_#{table}_on_lower_#{column}_trgm")
   end
 end

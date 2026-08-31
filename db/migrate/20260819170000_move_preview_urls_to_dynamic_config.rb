@@ -10,6 +10,8 @@
 # deleted_preview_url's env default was "/images/delete-preview.png", but the actual asset on
 # disk is "deleted-preview.png" - fixed here rather than carrying the typo into the DB default.
 class MovePreviewUrlsToDynamicConfig < ExtendedMigration[8.1]
+  with_config_override!
+
   def change
     add_column(:config, :blacklisted_preview_url, :string, null: false, default: "/images/blacklisted-preview.png")
     add_column(:config, :deleted_preview_url, :string, null: false, default: "/images/deleted-preview.png")
@@ -17,6 +19,6 @@ class MovePreviewUrlsToDynamicConfig < ExtendedMigration[8.1]
     add_column(:config, :missing_preview_url, :string, null: false, default: "/images/missing-preview.png")
     add_column(:config, :placeholder_preview_url, :string, null: false, default: "/images/placeholder-preview.png")
 
-    AdminConfig.delete_cache
+    Config.delete_cache
   end
 end

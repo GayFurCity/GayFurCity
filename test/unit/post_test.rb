@@ -1546,6 +1546,49 @@ class PostTest < ActiveSupport::TestCase
           assert_match(/Artist \[\[bkub\]\] requires an artist entry./, @post.warnings.full_messages.join)
         end
 
+        should("warn when adding a deprecated tag") do
+          tag = create(:deprecated_tag)
+          @post.add_tag(tag.name)
+          @post.updater = @user
+          @post.save
+
+          assert_match(/These tags can no longer be used, see their wiki page for more information: \[\[#{tag.name}\]\]/, @post.warnings.full_messages.join)
+        end
+
+        should("remove added deprecated tags when saving") do
+          tag = create(:deprecated_tag)
+          @post.add_tag(tag.name)
+          @post.updater = @user
+          @post.save
+
+          assert_not(@post.has_tag?(tag.name))
+        end
+
+        should("remove an added deprecated tag even if it already has posts") do
+          tag = create(:deprecated_tag, post_count: 2)
+          @post.add_tag(tag.name)
+          @post.updater = @user
+          @post.save
+
+          assert_not(@post.has_tag?(tag.name))
+          assert_match(/These tags can no longer be used, see their wiki page for more information: \[\[#{tag.name}\]\]/, @post.warnings.full_messages.join)
+        end
+
+        should("maintain existing deprecated tags when saving") do
+          tag = @post.tags.first
+          add_tag = create(:tag)
+          create(:wiki_page, title: tag.name)
+          tag.update(is_deprecated: true)
+
+          assert(@post.has_tag?(tag.name))
+          @post.add_tag(add_tag.name)
+          @post.updater = @user
+          @post.save
+
+          assert(@post.has_tag?(tag.name))
+          assert_includes(@post.deprecated_tags.map(&:name), tag.name)
+        end
+
         should("warn when a post from a known source is missing an artist tag") do
           post = build(:post, source: "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=65985331", uploader: @user)
           post.save

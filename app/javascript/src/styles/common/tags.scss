@@ -36,6 +36,13 @@
   }
 }
 
+.deprecated-tag-icon {
+  width: 0.9em;
+  height: 0.9em;
+  vertical-align: -0.1em;
+  color: $tags-vote-down-color;
+}
+
 ul.inline-tag-list {
   display: inline;
 

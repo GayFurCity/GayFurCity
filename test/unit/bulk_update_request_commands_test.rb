@@ -250,6 +250,20 @@ class BulkUpdateRequestCommandsTest < ActiveSupport::TestCase
 
         assert_equal(TagCategory.invalid, @tag.category)
         assert_predicate(@tag, :is_deprecated?)
+        assert_predicate(@tag, :is_locked?)
+      end
+
+      should("not move a non-general tag into the invalid category") do
+        copyright_tag = create(:copyright_tag)
+        create(:wiki_page, title: copyright_tag.name)
+        bur = create(:bulk_update_request, script: "deprecate #{copyright_tag.name}", skip_forum: true, title: random)
+
+        approve!(bur, @admin)
+        copyright_tag.reload
+
+        assert_equal(TagCategory.copyright, copyright_tag.category)
+        assert_predicate(copyright_tag, :is_deprecated?)
+        assert_predicate(copyright_tag, :is_locked?)
       end
 
       should("fail to process if invalid") do

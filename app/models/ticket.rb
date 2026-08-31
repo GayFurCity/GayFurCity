@@ -108,7 +108,7 @@ class Ticket < ApplicationRecord
       User            => -> { model_id },
       :default        => -> {},
     },
-  }.freeze
+  }.to_open_hash.freeze
 
   module ValidationMethods
     def validate_model_type

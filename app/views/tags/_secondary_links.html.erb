@@ -17,7 +17,7 @@
     <%= subnav_link_to("Wiki Page", show_or_new_wiki_pages_path(title: @tag.name)) %>
     <%= subnav_link_to("Edit", edit_tag_path(@tag)) %>
     <%= subnav_link_to_if(TicketPolicy.new(CurrentUser.user, @tag).create?, "Report", model_new_ticket_path(model: @tag)) %>
-    <%= subnav_link_to("History", tag_versions_path(search: { tag: @tag.name })) %>
+    <%= subnav_link_to("History", tag_versions_path(search: { tag_id: @tag.id })) %>
     <%= subnav_link_to_if(policy(@tag).correct?, "Fix", correct_tag_path(@tag), method: :put) %>
   <% end %>
 <% end %>

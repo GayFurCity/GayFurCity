@@ -1,9 +1,20 @@
-<h1>Tag: <%= link_to(@tag.name, posts_path(tags: @tag.name), class: "tag-type-#{@tag.category}") %></h1>
+<h1>
+  Tag: <%= link_to(@tag.name, posts_path(tags: @tag.name), class: "tag-type-#{@tag.category}") %>
+  <%= deprecated_tag_icon if @tag.is_deprecated? %>
+</h1>
+
+<% if @tag.is_deprecated? %>
+  <p class="error-messages ui-state-error ui-corner-all">This tag is deprecated and should not be used.</p>
+<% end %>
 
 <ul>
   <li>Count: <%= @tag.post_count %></li>
   <li>Category: <%= @tag.category_name %></li>
   <li>Followers: <%= link_to(@tag.follower_count, followers_tag_path(@tag)) %></li>
+  <% unless CurrentUser.user.is_anonymous? %>
+    <li>Category Editable: <%= @tag.category_editable_by?(CurrentUser.user) ? link_to("Yes", edit_tag_path(@tag)) : "No" %><%= " (implicit locked)" unless @tag.category_editable_by_implicit?(CurrentUser.user) %></li>
+  <% end %>
+  <li>Locked: <%= @tag.is_locked? ? "Yes" : "No" %></li>
 </ul>
 
 <%= render("secondary_links") %>

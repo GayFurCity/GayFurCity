@@ -215,6 +215,30 @@ class TagTest < ActiveSupport::TestCase
       end
     end
 
+    context("when deprecated") do
+      should("require a wiki page") do
+        tag = build(:tag, is_deprecated: true)
+
+        assert_not(tag.valid?)
+        assert_includes(tag.errors.full_messages, "Is deprecated cannot be set without a wiki page")
+      end
+
+      should("be forced locked") do
+        tag = create(:deprecated_tag, is_locked: false)
+
+        assert_predicate(tag, :is_locked?)
+      end
+
+      should("stay locked on later saves while still deprecated") do
+        tag = create(:deprecated_tag)
+        tag.update_columns(is_locked: false)
+
+        tag.update!(post_count: 5)
+
+        assert_predicate(tag.reload, :is_locked?)
+      end
+    end
+
     context("during name validation") do
       subject do
         build(:tag) # required because of creator validation

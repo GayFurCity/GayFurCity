@@ -15,4 +15,8 @@ module TagsHelper
     return nil if tag.blank?
     "tag-type-#{tag.category}"
   end
+
+  def deprecated_tag_icon
+    svg_icon(:octagon_alert, class: "deprecated-tag-icon", title: "This tag is deprecated")
+  end
 end

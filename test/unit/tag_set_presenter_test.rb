@@ -26,6 +26,22 @@ class TagSetPresenterTest < ActiveSupport::TestCase
       end
     end
 
+    context("#post_index_sidebar_tag_list_html method") do
+      should("mark a deprecated tag with an icon and strike it through") do
+        create(:deprecated_tag, name: "old_tag", category: TagCategory.general)
+        html = TagSetPresenter.new(%w[bkub old_tag]).post_index_sidebar_tag_list_html(followed_tags: [])
+
+        assert_includes(html, "deprecated-tag")
+        assert_includes(html, "deprecated-tag-icon")
+      end
+
+      should("not mark a non-deprecated tag") do
+        html = TagSetPresenter.new(%w[bkub solo]).post_index_sidebar_tag_list_html(followed_tags: [])
+
+        assert_not_includes(html, "deprecated-tag")
+      end
+    end
+
     context("#post_show_sidebar_tag_list_html method") do
       setup do
         @user = create(:user)

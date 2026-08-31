@@ -22,6 +22,13 @@
         <%= change.is_locked %>
       <% end %>
     <% end %>
+    <% t.column("Deprecated") do |change| %>
+      <% if change.is_deprecated_changed? %>
+        <b><%= change.is_deprecated %></b>
+      <% else %>
+        <%= change.is_deprecated %>
+      <% end %>
+    <% end %>
     <% t.column("Reason") do |change| %>
       <%= change.reason %>
     <% end %>

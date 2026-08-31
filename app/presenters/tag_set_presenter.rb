@@ -167,7 +167,7 @@ class TagSetPresenter < ApplicationPresenter
   end
 
   def tags
-    @tags ||= Tag.where(name: tag_names).includes(antecedent_alias: :consequent_tag).select(:name, :post_count, :category)
+    @tags ||= Tag.where(name: tag_names).includes(antecedent_alias: :consequent_tag).select(:name, :post_count, :category, :is_deprecated)
   end
 
   def tags_by_category
@@ -232,11 +232,12 @@ class TagSetPresenter < ApplicationPresenter
   def build_list_item_category(tag)
     name = tag.name
     category = tag.category
+    marker = tag.is_deprecated? ? h.deprecated_tag_icon : "?"
 
     if category == TagCategory.artist
-      safe_join([link_to("?", r.show_or_new_artists_path(name: name), class: "wiki-link", rel: "nofollow"), " "])
+      safe_join([link_to(marker, r.show_or_new_artists_path(name: name), class: "wiki-link", rel: "nofollow"), " "])
     else
-      safe_join([link_to("?", r.show_or_new_wiki_pages_path(title: name), class: "wiki-link", rel: "nofollow"), " "])
+      safe_join([link_to(marker, r.show_or_new_wiki_pages_path(title: name), class: "wiki-link", rel: "nofollow"), " "])
     end
   end
 
@@ -252,6 +253,8 @@ class TagSetPresenter < ApplicationPresenter
   def tag_link(tag, link_text = tag.name, link_type = :tag)
     link = link_type == :wiki_page ? r.show_or_new_wiki_pages_path(title: tag.name) : r.posts_path(tags: tag.name)
     itemprop = tag.artist? ? { itemprop: "author" } : {}
-    safe_join([link_to(link_text, link, rel: "nofollow", class: "search-tag", **itemprop), " "])
+    klass = tag.is_deprecated? ? "search-tag deprecated-tag" : "search-tag"
+
+    safe_join([link_to(link_text, link, rel: "nofollow", class: klass, **itemprop), " "])
   end
 end

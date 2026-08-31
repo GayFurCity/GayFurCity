@@ -1,5 +1,7 @@
 <h1>Tag: <%= link_to(@tag.name, posts_path(tags: @tag.name), class: "tag-type-#{@tag.category}") %></h1>
 
+<%= error_messages_for(:tag) %>
+
 <%= custom_form_for(@tag, policy: policy(@tag)) do |f| %>
   <% if @tag.is_locked? %>
     <p>This tag is category locked</p>
@@ -8,6 +10,8 @@
   <% end %>
 
     <%= f.input(:is_locked, collection: [%w[No false], %w[Yes true]], include_blank: false) %>
+
+    <%= f.input(:is_deprecated, collection: [%w[No false], %w[Yes true]], include_blank: false, hint: safe_join(["The tag must have a ", link_to_wiki_or_new("wiki page", @tag.name), " before it can be deprecated."])) %>
 
   <% if !@tag.is_locked? || f.policy.can_use_attribute?(:is_locked) %>
     <%= f.input(:reason, as: :string) %>

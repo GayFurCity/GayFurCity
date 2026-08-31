@@ -748,6 +748,10 @@ class Post < ApplicationRecord
       @tag_array_was ||= TagQuery.scan(tag_string_in_database.presence || tag_string_before_last_save || "")
     end
 
+    def deprecated_tags
+      @deprecated_tags = tags.select(&:is_deprecated?)
+    end
+
     def tags
       Tag.where(name: tag_array)
     end
@@ -2253,6 +2257,10 @@ class Post < ApplicationRecord
       new_general_tags = new_tags.select { |t| t.category == TagCategory.general }
       # noinspection RubyArgCount
       new_artist_tags = new_tags.select { |t| t.category == TagCategory.artist }
+      # Deprecated tags are blocked regardless of post_count - a tag that was already in wide use
+      # before being deprecated must still be rejected, not just brand-new/unused ones.
+      # noinspection RubyArgCount
+      added_deprecated_tags = added.select(&:is_deprecated?)
       # See https://github.com/e621ng/e621ng/issues/494
       # If the tag is fresh it's safe to assume it was created with a prefix
       # noinspection RubyArgCount
@@ -2274,6 +2282,13 @@ class Post < ApplicationRecord
         n = repopulated_tags.size
         tag_wiki_links = repopulated_tags.map { |tag| "[[#{tag.name}]]" }
         warnings.add(:base, "Repopulated #{n} old #{'tag'.pluralize(n)}: #{tag_wiki_links.join(', ')}")
+      end
+
+      if added_deprecated_tags.present?
+        n = added_deprecated_tags.size
+        tag_wiki_links = added_deprecated_tags.map { |tag| "[[#{tag.name}]]" }
+        warnings.add(:base, "Attempted to add #{n} deprecated #{'tag'.pluralize(n)}. These tags can no longer be used, see their wiki page for more information: #{tag_wiki_links.join(', ')}")
+        added_deprecated_tags.each { |tag| remove_tag(tag.name) }
       end
 
       new_artist_tags.each do |tag|

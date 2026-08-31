@@ -1,3 +1,3 @@
 <h4>You are reporting the following tag:</h4>
-<div class="page"><%= link_to(@ticket.model.name, @ticket.model) %></div>
+<div class="page"><%= link_to(@ticket.model.name, @ticket.model) %> <%= deprecated_tag_icon if @ticket.model.is_deprecated? %></div>
 <span class="date"><%= time_ago_in_words_tagged(@ticket.model.created_at) %></span>

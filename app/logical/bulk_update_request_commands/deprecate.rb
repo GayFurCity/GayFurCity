@@ -37,19 +37,21 @@ module BulkUpdateRequestCommands
     end
 
     def category_changes
-      return [] if tag&.invalid?
-      [[tag || Tag.new(name: tag_name), TagCategory.invalid]]
+      t = tag || Tag.new(name: tag_name)
+      return [] unless t.general?
+      [[t, TagCategory.invalid]]
     end
 
     def process(_processor, approver)
       ensure_valid!
-      tag = Tag.find_or_create_by_name("invalid:#{tag_name}", user: approver)
-      tag.category = TagCategory.invalid unless tag.invalid?
-      tag.is_deprecated = true
-      tag.save!
-      tag.consequent_aliases.find_each { |ta| ta.reject!(approver) }
-      tag.consequent_implications.find_each { |ti| ti.reject!(approver) }
-      tag.antecedent_implications.find_each { |ti| ti.reject!(approver) }
+      t = tag
+      t.category = TagCategory.invalid if t.general?
+      t.is_deprecated = true
+      t.updater = approver
+      t.save!
+      t.consequent_aliases.find_each { |ta| ta.reject!(approver) }
+      t.consequent_implications.find_each { |ti| ti.reject!(approver) }
+      t.antecedent_implications.find_each { |ti| ti.reject!(approver) }
     end
   end
 end

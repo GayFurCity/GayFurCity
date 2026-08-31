@@ -63,23 +63,25 @@ class TagsControllerTest < ActionDispatch::IntegrationTest
           @general_tag = create(:tag, name: "foo", category: TagCategory.general, post_count: 3, creator: @creator, creator_ip_addr: "127.0.0.2", is_locked: false)
           @artist_tag = create(:tag, name: "bar", category: TagCategory.artist, post_count: 5, creator: @creator, creator_ip_addr: "127.0.0.2", is_locked: true)
           @copyright_tag = create(:tag, name: "baz", category: TagCategory.copyright, post_count: 5, creator: @creator, creator_ip_addr: "127.0.0.2", is_locked: false)
+          @deprecated_tag = create(:deprecated_tag, name: "qux", category: TagCategory.general, post_count: 3, creator: @creator, creator_ip_addr: "127.0.0.2", is_deprecated: true)
           @wiki = create(:wiki_page, title: "foo")
           @artist = create(:artist, name: "bar")
         end
 
         asserts do
-          search(:is_locked, "true").records { [@artist_tag] }
-          search(:category, TagCategory.general).records { [@general_tag] }
-          search(:category, "#{TagCategory.general},#{TagCategory.artist}").records { [@artist_tag, @general_tag] }
+          search(:is_locked, "true").records { [@deprecated_tag, @artist_tag] }
+          search(:is_deprecated, "true").records { [@deprecated_tag] }
+          search(:category, TagCategory.general).records { [@deprecated_tag, @general_tag] }
+          search(:category, "#{TagCategory.general},#{TagCategory.artist}").records { [@deprecated_tag, @artist_tag, @general_tag] }
           search(:name, "foo").records { [@general_tag] }
           search(:name_matches, "bar").records { [@artist_tag] }
           search(:fuzzy_name_matches, "ba").records { [@copyright_tag, @artist_tag] }
-          search(:has_wiki, "true").records { [@general_tag] }
+          search(:has_wiki, "true").records { [@deprecated_tag, @general_tag] }
           search(:has_artist, "true").records { [@artist_tag] }
-          search(:creator_id).value { @creator.id }.records { [@copyright_tag, @artist_tag, @general_tag] }
-          search(:creator_name).value { @creator.name }.records { [@copyright_tag, @artist_tag, @general_tag] }
-          search(:ip_addr, "127.0.0.2").records { [@copyright_tag, @artist_tag, @general_tag] }.user { @admin }
-          search.shared.records { [@copyright_tag, @artist_tag, @general_tag] }
+          search(:creator_id).value { @creator.id }.records { [@deprecated_tag, @copyright_tag, @artist_tag, @general_tag] }
+          search(:creator_name).value { @creator.name }.records { [@deprecated_tag, @copyright_tag, @artist_tag, @general_tag] }
+          search(:ip_addr, "127.0.0.2").records { [@deprecated_tag, @copyright_tag, @artist_tag, @general_tag] }.user { @admin }
+          search.shared.records { [@deprecated_tag, @copyright_tag, @artist_tag, @general_tag] }
         end
       end
     end

@@ -29,6 +29,10 @@ class TagVersion < ApplicationRecord
     previous && previous.is_locked? != is_locked?
   end
 
+  def is_deprecated_changed?
+    previous && previous.is_deprecated? != is_deprecated?
+  end
+
   def self.available_includes
     %i[tag updater]
   end

@@ -20,5 +20,10 @@ FactoryBot.define do
     factory(:character_tag) do
       category { TagCategory.character }
     end
+
+    factory(:deprecated_tag) do
+      is_deprecated { true }
+      before(:create) { |tag| create(:wiki_page, title: tag.name, creator: tag.creator) }
+    end
   end
 end

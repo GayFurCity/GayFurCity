@@ -12,6 +12,12 @@
     <% name = User::Levels.id_to_name(@wiki_page.protection_level) %>
     <div class="wiki-page-protection">Edits are restricted to <%= link_to(name.titlecase, help_page_path(id: "accounts", anchor: name.downcase), class: "#{User::Levels.level_class(name)} with-style") %> users and above.</div>
   <% end %>
+  <% if wiki_content.tag&.is_deprecated? %>
+    <p class="error-messages ui-state-error ui-corner-all">
+      <%= deprecated_tag_icon %>
+      This tag is deprecated and should not be used.
+    </p>
+  <% end %>
 
   <div id="wiki-page-body" class="dtext-container">
     <%= format_text(wiki_content.body, allow_color: true, max_thumbs: 75) %>

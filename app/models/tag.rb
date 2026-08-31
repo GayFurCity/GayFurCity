@@ -15,10 +15,12 @@ class Tag < ApplicationRecord
   validates(:category, inclusion: { in: TagCategory.ids })
   validate(:user_can_create_tag?, on: :create)
   validate(:user_can_change_category?, if: :category_changed?)
+  validate(:validate_deprecation_requires_wiki_page, if: -> { is_deprecated? && is_deprecated_changed? })
 
   before_save(:update_category, if: :category_changed?)
+  before_save(:lock_when_deprecated, if: :is_deprecated?)
   after_create(:create_version)
-  after_update(:create_version, if: ->(rec) { rec.saved_change_to_category? || rec.saved_change_to_is_locked? })
+  after_update(:create_version, if: :saved_change_to_watched_attributes?)
   belongs_to_user(:creator, ip: true, clones: :updater)
   resolvable(:updater)
 
@@ -35,6 +37,10 @@ class Tag < ApplicationRecord
   scope(:invalid, -> { where(category: TagCategory::INVALID) })
   scope(:empty, -> { where.lteq(post_count: 0) })
   scope(:nonempty, -> { where.gt(post_count: 0) })
+
+  def saved_change_to_watched_attributes?
+    saved_change_to_category? || saved_change_to_is_locked? || saved_change_to_is_deprecated?
+  end
 
   module CountMethods
     extend(ActiveSupport::Concern)
@@ -300,6 +306,7 @@ class Tag < ApplicationRecord
     def query_dsl
       super
         .field(:is_locked)
+        .field(:is_deprecated)
         .field(:category, multi: true)
         .field(:ip_addr, :creator_ip_addr)
         .field(:name, normalize: Tag.method(:normalize_name))
@@ -372,6 +379,14 @@ class Tag < ApplicationRecord
       return false
     end
     true
+  end
+
+  def validate_deprecation_requires_wiki_page
+    errors.add(:is_deprecated, "cannot be set without a wiki page") if wiki_page.blank?
+  end
+
+  def lock_when_deprecated
+    self.is_locked = true
   end
 
   include(CountMethods)

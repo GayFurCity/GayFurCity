@@ -36,12 +36,12 @@ class TagPolicy < ApplicationPolicy
 
   def permitted_attributes
     attr = %i[category reason]
-    attr += %i[is_locked] if user.is_admin?
+    attr += %i[is_deprecated is_locked] if user.is_admin?
     attr
   end
 
   def permitted_search_params
-    params = super + %i[fuzzy_name_matches name_matches name category hide_empty has_wiki has_artist is_locked creator_id creator_name] + nested_search_params(creator: User)
+    params = super + %i[fuzzy_name_matches name_matches name category hide_empty has_wiki has_artist is_locked is_deprecated creator_id creator_name] + nested_search_params(creator: User)
     params << :ip_addr if can_search_ip_addr?
     params
   end

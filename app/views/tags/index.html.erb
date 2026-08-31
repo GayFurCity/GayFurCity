@@ -5,13 +5,14 @@
     <%= tag.post_count %>
   <% end %>
   <% t.column("Name", th: { class: "col-expand" }) do |tag| %>
+    <% marker = tag.is_deprecated? ? deprecated_tag_icon : "?" %>
     <span class="category-<%= tag.category %>">
       <% if tag.artist? %>
-        <%= link_to("?", show_or_new_artists_path(name: tag.name)) %>
+        <%= link_to(marker, show_or_new_artists_path(name: tag.name), class: "wiki-link") %>
       <% else %>
-        <%= link_to_wiki_or_new("?", tag.name) %>
+        <%= link_to_wiki_or_new(marker, tag.name, class: "wiki-link") %>
       <% end %>
-      <%= link_to(tag.name, posts_path(tags: tag.name)) %>
+      <%= link_to(tag.name, posts_path(tags: tag.name), class: ("deprecated-tag" if tag.is_deprecated?)) %>
     </span>
   <% end %>
   <% t.column do |tag| %>
@@ -19,7 +20,7 @@
     <% if policy(tag).update? %>
       <%= link_to("edit", edit_tag_path(tag)) %> |
     <% end %>
-    <%= link_to("history", tag_versions_path(search: { tag: tag.name })) %>
+    <%= link_to("history", tag_versions_path(search: { tag_id: tag.id })) %>
     <% if policy(tag).correct? %>
       | <%= link_to("fix", correct_tag_path(tag), method: :put) %>
     <% end %>

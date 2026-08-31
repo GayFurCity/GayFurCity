@@ -7,7 +7,7 @@
 | [app/models/artist.rb](app/models/artist.rb#L216) | 216 | This is a hack. Setting an association directly immediately updates without regard for the parents validity. |
 | [app/models/character.rb](app/models/character.rb#L48) | 48 | This is a hack on top of the hack below for setting url_string to ensure name is set first for validations |
 | [app/models/character.rb](app/models/character.rb#L73) | 73 | This is a hack. Setting an association directly immediately updates without regard for the parents validity. |
-| [test/unit/post_test.rb](test/unit/post_test.rb#L2305) | 2305 | This test fails randomly at different assertions |
+| [test/unit/post_test.rb](test/unit/post_test.rb#L2348) | 2348 | This test fails randomly at different assertions |
 
 ### TODOs
 | Filename | line # | TODO |
@@ -25,11 +25,11 @@
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L12) | 12 | Lock off these extra items? |
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L28) | 28 | Fix tag array with forced -status:deleted |
 | [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L5) | 5 | look into refactoring out minitest? |
-| [test/unit/post_test.rb](test/unit/post_test.rb#L2169) | 2169 | These don't quite make sense, what should hide deleted posts and what shouldn't? |
+| [test/unit/post_test.rb](test/unit/post_test.rb#L2212) | 2212 | These don't quite make sense, what should hide deleted posts and what shouldn't? |
 | [config/config.rb](config/config.rb#L208) | 208 | appealed posts should be visible, but this makes it far too easy to get the contents of deleted posts at a moments notice |
 
 ### XXXs
 | Filename | line # | XXX |
 |:------|:------:|:------|
-| [app/models/post.rb](app/models/post.rb#L1819) | 1819 | This must happen *after* the `is_deleted` flag is set to true (issue #3419). |
+| [app/models/post.rb](app/models/post.rb#L1823) | 1823 | This must happen *after* the `is_deleted` flag is set to true (issue #3419). |
 | [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L3) | 3 | Testing modules should not have a say in if we can or cannot use assert_equal with nil |

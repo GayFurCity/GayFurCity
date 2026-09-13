@@ -118,7 +118,9 @@ header#top {
       background: #00000040;
       font-weight: bold;
     }
+  }
 
+  menu.main {
     li.unread a::after {
       content: unicode('f111');
       @include FontAwesomeFamily;
@@ -131,9 +133,7 @@ header#top {
         top: -3px;
       }
     }
-  }
 
-  menu.main {
     li#nav-sign-in a {
       font-weight: bold;
       color: $page-header-sign-in-link-color;

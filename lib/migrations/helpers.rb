@@ -154,6 +154,18 @@ module Migrations
       execute("ALTER TABLE #{quote_table_name(table)} RENAME CONSTRAINT #{quote_column_name(from)} TO #{quote_column_name(to)}")
     end
 
+    # Same as rename_constraint, but a no-op if `from` doesn't currently exist. A rename_column that
+    # leaves a NOT NULL constraint's auto-generated default name mismatched only actually manifests on
+    # a database that replayed every migration from scratch (a fresh clone, CI) - one that's been
+    # running continuously across a Postgres major-version upgrade may already carry the canonical
+    # name, since the upgrade backfills constraint catalog rows from the column's current name.
+    def rename_constraint_if_exists(table, from, to)
+      exists = select_value(<<~SQL.squish)
+        SELECT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = #{quote(table.to_s)}::regclass AND conname = #{quote(from)})
+      SQL
+      rename_constraint(table, from, to) if exists
+    end
+
     def update_change_seq(columns = nil, add: [], remove: [])
       if add.blank? && remove.blank? # use execute directly so migration is marked as irreversible
         execute(update_change_seq_sql(columns, add: [], remove: []))

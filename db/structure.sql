@@ -9266,6 +9266,9 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260907223002'),
+('20260907223001'),
+('20260907223000'),
 ('20260904033820'),
 ('20260903142849'),
 ('20260903135858'),

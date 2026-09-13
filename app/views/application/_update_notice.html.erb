@@ -6,8 +6,8 @@
 
 <% if (advanced && record.edited_at.present?) || !advanced %>
   <% if record.respond_to?(:updater) && record.updater != record.creator %>
-    <p class="info">Updated by <%= link_to_user(record.updater) %> <%= time_ago_in_words_tagged(timestamp) %></p>
+    <p class="info">Updated<%= " #{record.edit_count} times" if advanced && record.edit_count > 1 %> by <%= link_to_user(record.updater) %> <%= time_ago_in_words_tagged(timestamp) %></p>
   <% elsif always_show_edits || timestamp - record.created_at > 5.minutes %>
-    <p class="info">Updated <%= time_ago_in_words_tagged(timestamp) %></p>
+    <p class="info">Updated<%= " #{record.edit_count} times" if always_show_edits && record.edit_count > 1 %> <%= time_ago_in_words_tagged(timestamp) %></p>
   <% end %>
 <% end %>

@@ -273,6 +273,12 @@ class ForumPost < ApplicationRecord
     last_edit_version&.created_at
   end
 
+  def edit_count
+    editors = versions.edited.order(version: :desc).pluck(:updater_id)
+    return 0 if editors.empty?
+    editors.take_while { |id| id == editors.first }.size
+  end
+
   def auto_report_spam
     if SpamDetector.new(self, user_ip: creator_ip_addr.to_s).spam?
       self.is_spam = true

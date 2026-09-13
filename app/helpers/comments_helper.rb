@@ -23,9 +23,11 @@ module CommentsHelper
   def comment_edited_notice(comment)
     return "" if comment.edited_version.nil?
     if comment.edited_version.updater != comment.creator
-      tag.span(safe_join(["Updated by ", link_to_user(comment.edited_version.updater), " ", time_ago_in_words_tagged(comment.edited_at)]), class: "comment-edited-when")
+      prefix = comment.edit_count > 1 ? "Updated #{comment.edit_count} times by " : "Updated by "
+      tag.span(safe_join([prefix, link_to_user(comment.edited_version.updater), " ", time_ago_in_words_tagged(comment.edited_at)]), class: "comment-edited-when")
     elsif CurrentUser.user.is_moderator? || comment.updated_at - comment.created_at > 5.minutes
-      tag.span(safe_join(["Updated ", time_ago_in_words_tagged(comment.edited_at)]), class: "comment-edited-when")
+      prefix = CurrentUser.user.is_moderator? && comment.edit_count > 1 ? "Updated #{comment.edit_count} times " : "Updated "
+      tag.span(safe_join([prefix, time_ago_in_words_tagged(comment.edited_at)]), class: "comment-edited-when")
     end
   end
 

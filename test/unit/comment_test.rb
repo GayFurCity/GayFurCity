@@ -400,6 +400,34 @@ class CommentTest < ActiveSupport::TestCase
           verify_history(unmark3, @comment, "unmark", @mod.id)
         end
       end
+
+      should("count consecutive edits by the most recent editor") do
+        assert_equal(0, @comment.edit_count)
+
+        @comment.update_with(@user, body: "test")
+
+        assert_equal(1, @comment.edit_count)
+
+        @comment.update_with(@user, body: "test2")
+
+        assert_equal(2, @comment.edit_count)
+
+        @comment.update_with(@mod, body: "test3")
+
+        assert_equal(1, @comment.edit_count)
+
+        @comment.update_with(@user, body: "test4")
+
+        assert_equal(1, @comment.edit_count)
+      end
+
+      should("not count non-edit versions towards edit_count") do
+        @comment.update_with(@user, body: "test")
+        @comment.hide!(@mod)
+        @comment.unhide!(@mod)
+
+        assert_equal(1, @comment.edit_count)
+      end
     end
   end
 end

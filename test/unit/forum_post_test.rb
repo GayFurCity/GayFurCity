@@ -241,6 +241,34 @@ class ForumPostTest < ActiveSupport::TestCase
           verify_history(unmark3, @forum_post, "unmark", @mod.id)
         end
       end
+
+      should("count consecutive edits by the most recent editor") do
+        assert_equal(0, @forum_post.edit_count)
+
+        @forum_post.update_with(@user, body: "test")
+
+        assert_equal(1, @forum_post.edit_count)
+
+        @forum_post.update_with(@user, body: "test2")
+
+        assert_equal(2, @forum_post.edit_count)
+
+        @forum_post.update_with(@mod, body: "test3")
+
+        assert_equal(1, @forum_post.edit_count)
+
+        @forum_post.update_with(@user, body: "test4")
+
+        assert_equal(1, @forum_post.edit_count)
+      end
+
+      should("not count non-edit versions towards edit_count") do
+        @forum_post.update_with(@user, body: "test")
+        @forum_post.hide!(@mod)
+        @forum_post.unhide!(@mod)
+
+        assert_equal(1, @forum_post.edit_count)
+      end
     end
   end
 end

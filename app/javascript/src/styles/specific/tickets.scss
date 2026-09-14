@@ -22,7 +22,31 @@
     }
   }
 
+  #a-show {
+    // Every .section on this page (the info table, the messages thread, the reply/response
+    // forms) was otherwise touching the one below it - table/heading margins are reset to 0
+    // globally (see base/_reset.scss, base/_base.scss), so nothing here gets spacing for free.
+    .section {
+      margin-bottom: 1em;
+    }
+
+    h3 {
+      margin-bottom: 0.5em;
+    }
+  }
+
   #tickets-table {
+    td {
+      padding: $padding-025 $padding-050;
+      vertical-align: top;
+    }
+
+    .title {
+      font-weight: bold;
+      padding-right: $base-padding;
+      white-space: nowrap;
+    }
+
     tr[data-status="approved"] .status-column {
       color: palette("text-green");
       font-weight: bold;
@@ -37,5 +61,50 @@
       color: palette("text-yellow");
       font-weight: bold;
     }
+  }
+}
+
+// Not scoped under #c-tickets - the tickets/messages/_message partial these rules style is
+// rendered both on the ticket's own show page (#c-tickets #a-show) and from
+// Tickets::MessagesController#index (#c-tickets-messages #a-index), so they need to apply
+// regardless of which controller/action wrapper is on the page.
+
+// Darker than the page's own background so the whole thread reads as one distinct box, same
+// idea as menu.secondary in page_header.scss - each message inside is darker still.
+.ticket-messages-section {
+  background: var(--color-section);
+  border-radius: 6px;
+  padding: $padding-050;
+}
+
+.ticket-messages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+
+  .ticket-message {
+    max-width: 80%;
+    border-radius: 8px;
+    padding: 0.5em 0.75em;
+    background: var(--color-section-darken-5);
+
+    // Staff replies keep a distinct background from reporter messages, just not a different
+    // side - the thread reads top-to-bottom in order, not split by who's currently viewing it.
+    &.staff {
+      background: var(--color-background);
+    }
+  }
+
+  .ticket-message-meta {
+    font-size: 0.85em;
+    opacity: 0.75;
+    margin-bottom: 0.25em;
+  }
+
+  .ticket-message-body {
+    word-break: break-word;
   }
 }

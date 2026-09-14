@@ -113,6 +113,7 @@ Rails.application.routes.draw do
       post(:claim)
       post(:unclaim)
     end
+    resources(:messages, controller: "tickets/messages", only: %i[index create destroy])
   end
 
   resources(:takedowns) do

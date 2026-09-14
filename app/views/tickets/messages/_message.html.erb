@@ -1,0 +1,12 @@
+<%# locals: (message:) -%>
+
+<li class="ticket-message <%= message.from_creator? ? "reporter" : "staff" %>">
+  <div class="ticket-message-meta">
+    <%= link_to_user(message.creator) %>
+    <%= time_ago_in_words_tagged(message.created_at) %>
+    <% if policy(message).destroy? %>
+      <%= link_to("Delete", ticket_message_path(message.ticket, message), method: :delete, data: { confirm: "Delete this message?" }, class: "ticket-message-delete") %>
+    <% end %>
+  </div>
+  <div class="ticket-message-body dtext-container"><%= format_text(message.body) %></div>
+</li>

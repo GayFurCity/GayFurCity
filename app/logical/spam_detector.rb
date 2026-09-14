@@ -47,9 +47,10 @@ class SpamDetector
   end
 
   def self.ban_spammer!(spammer)
-    tickets = User.system.tickets.where(accused: spammer, status: "pending")
-    tickets.update_all(status: "approved", response: "Automatically Banned", handler_id: User.system.id, handler_ip_addr: "127.0.0.1", claimant_id: User.system.id)
-    tickets.each { |ticket| ticket.reload.push_pubsub("update") }
+    User.system.tickets.where(accused: spammer, status: "pending").find_each do |ticket|
+      ticket.update!(status: "approved", handler: User.system, handler_ip_addr: "127.0.0.1", claimant: User.system, response: "Automatically Banned")
+      ticket.push_pubsub("update")
+    end
     spammer.bans.create!(reason: "Spammer", duration: AUTOBAN_DURATION, creator: User.system)
   end
 

@@ -12,6 +12,7 @@ class TicketsController < ApplicationController
 
   def show
     @ticket = authorize(Ticket.find(params[:id]))
+    @ticket_messages = @ticket.ticket_messages.includes(:creator)
     respond_with(@ticket)
   end
 
@@ -33,7 +34,6 @@ class TicketsController < ApplicationController
     authorize(@ticket)
     if @ticket.valid?
       @ticket.save
-      @ticket.push_pubsub("create")
       notice("Ticket created")
       redirect_to(ticket_path(@ticket))
     else
@@ -43,6 +43,7 @@ class TicketsController < ApplicationController
 
   def update
     @ticket = authorize(Ticket.find(params[:id]))
+    @ticket_messages = @ticket.ticket_messages.includes(:creator)
     if @ticket.claimant_id.present? && @ticket.claimant_id != CurrentUser.user.id && !params[:force_claim].to_s.truthy?
       notice("Ticket has already been claimed by somebody else, submit again to force")
       redirect_to(ticket_path(@ticket, force_claim: "true"))
@@ -50,21 +51,26 @@ class TicketsController < ApplicationController
     end
 
     ticket_params = permitted_attributes(@ticket)
-    @ticket.transaction do
-      if @ticket.warnable? && ticket_params[:record_type].present?
-        @ticket.content.user_warned!(ticket_params[:record_type].to_i, CurrentUser.user)
+    # A message is optional here - a moderator may just be changing the status, locking the
+    # ticket, etc. without needing to leave a reply.
+    message = ticket_params[:message].presence && TicketMessage.new(ticket: @ticket, creator: CurrentUser.user, body: ticket_params[:message], skip_reply_effects: true)
+
+    if message&.invalid?
+      @ticket.errors.add(:base, message.errors[:body].first || "Message is invalid")
+    else
+      @ticket.transaction do
+        if @ticket.warnable? && ticket_params[:record_type].present?
+          @ticket.content.user_warned!(ticket_params[:record_type].to_i, CurrentUser.user)
+        end
+
+        @ticket.handler = CurrentUser.user
+        @ticket.claimant = CurrentUser.user
+        @ticket.update_with_current(:updater, ticket_params)
+        message.save! if message && @ticket.errors.empty?
       end
-
-      @ticket.handler = CurrentUser.user
-      @ticket.claimant = CurrentUser.user
-      @ticket.update_with_current(:updater, ticket_params)
     end
 
-    if @ticket.valid?
-      not_changed = ticket_params[:send_update_dmail].to_s.truthy? && !@ticket.saved_change_to_response? && !@ticket.saved_change_to_status?
-      notice("Not sending update, no changes") if not_changed
-      @ticket.push_pubsub("update")
-    end
+    @ticket.respond!(CurrentUser.user, message: message, force_dmail: ticket_params[:send_update_dmail].to_s.truthy?) if @ticket.errors.empty?
 
     respond_with(@ticket)
   end

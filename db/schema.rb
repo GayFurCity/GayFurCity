@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_07_223002) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_14_012419) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -1596,6 +1596,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_223002) do
     t.index ["updater_id"], name: "index_takedowns_on_updater_id"
   end
 
+  create_table "ticket_messages", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.bigint "creator_id", null: false
+    t.inet "creator_ip_addr", null: false
+    t.bigint "ticket_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["creator_id"], name: "index_ticket_messages_on_creator_id"
+    t.index ["ticket_id"], name: "index_ticket_messages_on_ticket_id"
+  end
+
   create_table "tickets", force: :cascade do |t|
     t.bigint "accused_id"
     t.bigint "claimant_id"
@@ -1604,11 +1615,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_223002) do
     t.inet "creator_ip_addr", null: false
     t.bigint "handler_id"
     t.inet "handler_ip_addr"
+    t.boolean "is_locked", default: false, null: false
     t.bigint "model_id", null: false
     t.string "model_type", null: false
     t.string "reason"
     t.string "report_type", default: "report", null: false
-    t.string "response", default: "", null: false
     t.string "status", default: "pending", null: false
     t.datetime "updated_at", precision: nil, null: false
   end
@@ -2059,6 +2070,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_223002) do
   add_foreign_key "takedowns", "users", column: "approver_id"
   add_foreign_key "takedowns", "users", column: "creator_id"
   add_foreign_key "takedowns", "users", column: "updater_id"
+  add_foreign_key "ticket_messages", "tickets"
+  add_foreign_key "ticket_messages", "users", column: "creator_id"
   add_foreign_key "tickets", "users", column: "accused_id"
   add_foreign_key "tickets", "users", column: "creator_id"
   add_foreign_key "tickets", "users", column: "handler_id"

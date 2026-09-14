@@ -41,7 +41,7 @@ class TicketPolicy < ApplicationPolicy
   end
 
   def permitted_attributes_for_update
-    %i[response status record_type send_update_dmail]
+    %i[message status record_type send_update_dmail is_locked]
   end
 
   def permitted_search_params

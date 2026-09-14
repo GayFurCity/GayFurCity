@@ -50,6 +50,17 @@
       <td class="status-column"><%= @ticket.pretty_status %></td>
     </tr>
 
+    <tr>
+      <td><span class="title">Locked</span></td>
+      <td>
+        <% if @ticket.is_locked? %>
+          <b>Yes</b>
+        <% else %>
+          <b>No</b>
+        <% end %>
+      </td>
+    </tr>
+
     <% if policy(@ticket).can_see_ip_addr? %>
       <tr>
         <td><span class='title'>IP</span></td>
@@ -69,34 +80,26 @@
     <% end %>
 
     <%= render(partial: "tickets/types/#{@ticket.model_type.underscore}") %>
-
-    <tr>
-      <td><span class='title'>Reason</span></td>
-      <td class="dtext-container">
-        <%= format_text(@ticket.reason) %>
-      </td>
-    </tr>
-
-    <% if @ticket.response.present? %>
-      <tr>
-        <td><span class='title'>Handled by</span></td>
-        <% if @ticket.handler.present? %>
-          <td><%= link_to_user(@ticket.handler) %></td>
-        <% else %>
-          <td>Unknown</td>
-        <% end %>
-      </tr>
-
-      <tr>
-        <td><span class='title'>Response</span></td>
-        <td class="dtext-container"><%= format_text(@ticket.response.presence || "No response.") %></td>
-      </tr>
-    <% end %>
   </table>
+</div>
+
+<div class="section ticket-messages-section">
+  <h3>Messages</h3>
+  <ul class="ticket-messages">
+    <li class="ticket-message reporter">
+      <div class="ticket-message-meta">
+        <%= link_to_user(@ticket.creator) %>
+        <%= time_ago_in_words_tagged(@ticket.created_at) %>
+      </div>
+      <div class="ticket-message-body dtext-container"><%= format_text(@ticket.reason) %></div>
+    </li>
+    <%= render(partial: "tickets/messages/message", collection: @ticket_messages, as: :message) %>
+  </ul>
 </div>
 
 <% if CurrentUser.user.is_moderator? %>
   <div class="section">
+    <%= error_messages_for(:ticket) %>
     <%= custom_form_for(@ticket) do |f| %>
       <%= f.input(:status, collection: [%w[Approved approved], ["Under Investigation", "partial"], %w[Rejected rejected]], selected: @ticket.status || "approved") %>
       <% if @ticket.warnable? %>
@@ -105,6 +108,7 @@
       <% unless @ticket.pending? %>
         <%= f.input(:send_update_dmail, label: "Send update DMail", as: :boolean, hint: "A DMail is always sent if the status is changed") %>
       <% end %>
+      <%= f.input(:is_locked, label: "Locked", as: :boolean, hint: "Prevents the creator from reopening this ticket by replying") %>
       <div class="ticket-responses">
         <% GayFurCity.config.ticket_quick_response_buttons.each do |btn| %>
         <%= button_tag(btn[:name], type: "button", data: { text: btn[:text] }) %>
@@ -112,11 +116,18 @@
       </div>
       <table>
         <tr>
-          <td><%= f.input(:response, as: :dtext, limit: AdminConfig.instance.dmail_max_size) %></td>
+          <td><%= f.input(:message, as: :dtext, limit: AdminConfig.instance.ticket_max_size, hint: "Optional - leave blank to update the ticket without leaving a message") %></td>
         </tr>
       </table>
       <%= tag.input(name: "force_claim", type: "hidden", value: params[:force_claim]) %>
       <%= f.button(:submit, "Submit") %>
+    <% end %>
+  </div>
+<% elsif @ticket.creator_id == CurrentUser.user.id %>
+  <div class="section">
+    <%= custom_form_for(TicketMessage.new, url: ticket_messages_path(@ticket)) do |f| %>
+      <%= f.input(:body, as: :dtext, label: "Reply", limit: AdminConfig.instance.ticket_max_size) %>
+      <%= f.button(:submit, "Reply") %>
     <% end %>
   </div>
 <% end %>

@@ -390,7 +390,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
         assert_equal(@comment, @ticket.model)
         assert_equal("Spam.", @ticket.reason)
-        assert_equal("Automatically Banned", @ticket.response)
+        assert_equal("Automatically Banned", @ticket.ticket_messages.last.body)
         assert_equal("approved", @ticket.status)
         assert_predicate(@comment, :is_spam?)
         assert_predicate(@user.reload, :is_banned?)

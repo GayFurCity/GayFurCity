@@ -1,7 +1,7 @@
 const Ticket = {};
 
 Ticket.initialize_quick_reply = function () {
-  const input = $("textarea[name='ticket[response]']");
+  const input = $("textarea[name='ticket[message]']");
 
   $("div.ticket-responses").on("click", "button", function (event) {
     event.preventDefault();

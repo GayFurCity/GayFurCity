@@ -7,17 +7,18 @@ class Ticket < ApplicationRecord
   belongs_to_user(:accused, optional: true)
   resolvable(:updater)
   belongs_to(:model, polymorphic: true)
+  has_many(:ticket_messages, -> { order(created_at: :asc, id: :asc) }, dependent: :destroy)
   before_validation(:initialize_accused, on: :create)
   normalizes(:reason, with: ->(reason) { reason.gsub("\r\n", "\n") })
   validates(:reason, presence: true)
   validates(:reason, length: { minimum: 2, maximum: -> { AdminConfig.instance.ticket_max_size } })
-  validates(:response, length: { minimum: 2, maximum: -> { AdminConfig.instance.ticket_max_size } }, on: :update)
   validates(:report_type, presence: true)
   validate(:validate_model_type)
   validate(:validate_report_type)
   enum(:status, %i[pending partial approved rejected].index_with(&:to_s))
+  before_save(:build_pending_response_message)
   after_create(:autoban_accused_user)
-  after_update(:create_dmail)
+  after_create(:push_create_pubsub)
   validate(:validate_model_exists, on: :create)
   validate(:validate_creator_is_not_limited, on: :create)
 
@@ -28,16 +29,43 @@ class Ticket < ApplicationRecord
   scope(:claimed, -> { where.not(claimant_id: nil) })
   scope(:unclaimed, -> { where(claimant_id: nil) })
 
-  attr_accessor(:record_type, :send_update_dmail)
+  # Transient, non-persisted - the message text is stored as a TicketMessage, not a ticket column.
+  attr_accessor(:message, :record_type, :send_update_dmail)
+
+  # response used to be a real column, overwritten on every reply - kept as a write-only accessor
+  # so old call sites (SpamDetector, fixers, etc.) that just assign a canned response don't need
+  # to know about the ticket_messages association themselves. Building the message is deferred to
+  # before_save (rather than done immediately here) so it works from both create and update calls:
+  # attributes like handler can be assigned in either order relative to response, and on create
+  # the ticket doesn't have an id yet for the message to belong_to until it's actually saved.
+  def response=(text)
+    @pending_response = text
+  end
+
+  def build_pending_response_message
+    return if @pending_response.blank?
+    if handler.present?
+      author = handler
+      ip_addr = handler_ip_addr
+    elsif claimant.present?
+      author = claimant
+      ip_addr = "127.0.0.1"
+    else
+      author = User.system
+      ip_addr = "127.0.0.1"
+    end
+    # skip_reply_effects: true - a response= assignment is a system/official response, not a
+    # reply from a specific viewer. If the author happens to equal the ticket's creator (e.g. an
+    # automated ticket where both are User.system), TicketMessage's normal reply effects would
+    # otherwise try to reopen the ticket right back out from under the status this same call is setting.
+    ticket_messages.build(creator_id: author.id, creator_ip_addr: ip_addr, body: @pending_response, skip_reply_effects: true)
+    @pending_response = nil
+  end
 
   modactions(:ticket)
-    .add(:update, :updater, on: :update, if: :saved_change_to_watched_attributes?)
+    .add(:update, :updater)
     .add(:claim, :updater, on: :update, if: -> { saved_change_to_claimant_id? && claimant_id.present? }) { { user_id: claimant_id } }
     .add(:unclaim, :updater, on: :update, if: -> { saved_change_to_claimant_id? && claimant_id.blank? })
-
-  def saved_change_to_watched_attributes?
-    saved_change_to_response? || saved_change_to_status?
-  end
 
   # Permissions Table
   #
@@ -266,6 +294,15 @@ class Ticket < ApplicationRecord
     end
   end
 
+  # Bundles the side effects of the staff response form (TicketsController#update) - logging the
+  # mod action, notifying the creator, and broadcasting - into one call, so the controller doesn't
+  # need to know the conditions under which any of that should happen.
+  def respond!(handler, message:, force_dmail: false)
+    log_update
+    notify_creator!(handler, message: message) if saved_change_to_status? || force_dmail
+    push_pubsub("update")
+  end
+
   module ClaimMethods
     def claim!(user)
       transaction do
@@ -283,17 +320,16 @@ class Ticket < ApplicationRecord
   end
 
   module NotificationMethods
-    def create_dmail
+    # Called explicitly by the staff response form (TicketsController#update) after the status/
+    # message update has been saved - not a callback, since it needs to know whether *this*
+    # request changed the status (for the title/subject) and what the just-created message said.
+    # message is optional - a moderator can change the status (or just lock the ticket) without
+    # leaving one.
+    def notify_creator!(handler, message: nil)
       return if creator == User.system
-      should_send = saved_change_to_status? || (send_update_dmail.to_s.truthy? && saved_change_to_response?)
-      return unless should_send
 
-      msg = <<~MSG.chomp
-        "Your ticket":#{Rails.application.routes.url_helpers.ticket_path(self)} has been updated by #{handler.pretty_name}.
-        Ticket Status: #{status}
-
-        Response: #{response}
-      MSG
+      msg = "\"Your ticket\":#{Rails.application.routes.url_helpers.ticket_path(self)} has been updated by #{handler.pretty_name}.\nTicket Status: #{status}"
+      msg << "\n\n#{message.body}" if message
       title = "Your ticket has been updated"
       if saved_change_to_status?
         if %w[approved rejected].include?(status)
@@ -309,6 +345,30 @@ class Ticket < ApplicationRecord
         body:          msg,
         bypass_limits: true,
       )
+    end
+
+    # Plain back-and-forth reply (Tickets::MessagesController#create), from anyone allowed to post
+    # one (the creator, or any moderator) - notify the creator and, if the ticket is claimed, the
+    # claimant too, skipping whichever of them just wrote the message.
+    def notify_of_reply!(message)
+      recipients = [creator, claimant].compact.uniq(&:id)
+      recipients.reject! { |user| user.id == message.creator_id || user == User.system }
+      return if recipients.empty?
+
+      msg = <<~MSG.chomp
+        "Your ticket":#{Rails.application.routes.url_helpers.ticket_path(self)} has a new reply from #{message.creator.pretty_name}.
+
+        #{message.body}
+      MSG
+      recipients.each do |recipient|
+        Dmail.create_split!(
+          from:          message.creator,
+          to:            recipient,
+          title:         "New reply on ticket ##{id}",
+          body:          msg,
+          bypass_limits: true,
+        )
+      end
     end
   end
 
@@ -335,6 +395,10 @@ class Ticket < ApplicationRecord
       # learned the hard way via receiving 25 pings during testing
       return if Rails.env.test?
       Cache.redis.publish("ticket_updates", pubsub_hash(action).to_json)
+    end
+
+    def push_create_pubsub
+      push_pubsub("create")
     end
   end
 

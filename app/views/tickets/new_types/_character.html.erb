@@ -3,5 +3,5 @@
 <span class="date"><%= time_ago_in_words_tagged(@ticket.model.created_at) %></span>
 <br><br>
 <div class="dtext-container">
-  <%= format_text(@character.notes) %>
+  <%= format_text(@ticket.model.notes) %>
 </div>

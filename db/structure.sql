@@ -3294,6 +3294,40 @@ ALTER SEQUENCE public.takedowns_id_seq OWNED BY public.takedowns.id;
 
 
 --
+-- Name: ticket_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ticket_messages (
+    id bigint NOT NULL,
+    ticket_id bigint NOT NULL,
+    creator_id bigint NOT NULL,
+    creator_ip_addr inet NOT NULL,
+    body text NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: ticket_messages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ticket_messages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ticket_messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ticket_messages_id_seq OWNED BY public.ticket_messages.id;
+
+
+--
 -- Name: tickets; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3303,7 +3337,6 @@ CREATE TABLE public.tickets (
     creator_ip_addr inet NOT NULL,
     status character varying DEFAULT 'pending'::character varying NOT NULL,
     reason character varying,
-    response character varying DEFAULT ''::character varying NOT NULL,
     handler_id bigint,
     claimant_id bigint,
     created_at timestamp without time zone NOT NULL,
@@ -3312,7 +3345,8 @@ CREATE TABLE public.tickets (
     model_type character varying NOT NULL,
     model_id bigint NOT NULL,
     report_type character varying DEFAULT 'report'::character varying NOT NULL,
-    handler_ip_addr inet
+    handler_ip_addr inet,
+    is_locked boolean DEFAULT false NOT NULL
 );
 
 
@@ -4431,6 +4465,13 @@ ALTER TABLE ONLY public.takedowns ALTER COLUMN id SET DEFAULT nextval('public.ta
 
 
 --
+-- Name: ticket_messages id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ticket_messages ALTER COLUMN id SET DEFAULT nextval('public.ticket_messages_id_seq'::regclass);
+
+
+--
 -- Name: tickets id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -5183,6 +5224,14 @@ ALTER TABLE ONLY public.tags
 
 ALTER TABLE ONLY public.takedowns
     ADD CONSTRAINT takedowns_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ticket_messages ticket_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ticket_messages
+    ADD CONSTRAINT ticket_messages_pkey PRIMARY KEY (id);
 
 
 --
@@ -7323,6 +7372,20 @@ CREATE INDEX index_takedowns_on_updater_id ON public.takedowns USING btree (upda
 
 
 --
+-- Name: index_ticket_messages_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ticket_messages_on_creator_id ON public.ticket_messages USING btree (creator_id);
+
+
+--
+-- Name: index_ticket_messages_on_ticket_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ticket_messages_on_ticket_id ON public.ticket_messages USING btree (ticket_id);
+
+
+--
 -- Name: index_upload_media_assets_on_checksum; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7812,6 +7875,14 @@ ALTER TABLE ONLY public.tickets
 
 
 --
+-- Name: ticket_messages fk_rails_035c5a41d4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ticket_messages
+    ADD CONSTRAINT fk_rails_035c5a41d4 FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
 -- Name: destroyed_posts fk_rails_055f35f666; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8169,6 +8240,14 @@ ALTER TABLE ONLY public.tag_versions
 
 ALTER TABLE ONLY public.forum_posts
     ADD CONSTRAINT fk_rails_37bba5409c FOREIGN KEY (warning_user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: ticket_messages fk_rails_398b98fd8f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ticket_messages
+    ADD CONSTRAINT fk_rails_398b98fd8f FOREIGN KEY (ticket_id) REFERENCES public.tickets(id);
 
 
 --
@@ -9266,6 +9345,9 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260914012419'),
+('20260913224437'),
+('20260913183850'),
 ('20260907223002'),
 ('20260907223001'),
 ('20260907223000'),
@@ -9462,6 +9544,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220106081415');
 
 INSERT INTO "fixes" (id, "index") VALUES
+(239, NULL),
 (237, 2),
 (237, 1),
 (236, 2),

@@ -19,7 +19,7 @@
 | [app/models/post_flag.rb](app/models/post_flag.rb#L52) | 52 | We need access control/blocks for associations |
 | [app/models/tag_alias.rb](app/models/tag_alias.rb#L175) | 175 | Race condition with indexing jobs here. |
 | [app/models/tag_implication.rb](app/models/tag_implication.rb#L207) | 207 | Race condition with indexing jobs here. |
-| [app/models/ticket.rb](app/models/ticket.rb#L181) | 181 | We need access control/blocks for associations |
+| [app/models/ticket.rb](app/models/ticket.rb#L209) | 209 | We need access control/blocks for associations |
 | [app/controllers/forums/topics_controller.rb](app/controllers/forums/topics_controller.rb#L20) | 20 | revisit muting, it may need to be further optimized or removed due to performance issues |
 | [app/logical/vote_manager/posts.rb](app/logical/vote_manager/posts.rb#L90) | 90 | this can likely be optimized to just update post ids |
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L12) | 12 | Lock off these extra items? |

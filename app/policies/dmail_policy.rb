@@ -42,7 +42,7 @@ class DmailPolicy < ApplicationPolicy
   end
 
   def permitted_attributes
-    %i[title body to_name to_id]
+    %i[title body to_name to_id parent_id]
   end
 
   def permitted_search_params

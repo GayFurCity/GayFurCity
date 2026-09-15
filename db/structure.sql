@@ -1075,7 +1075,8 @@ CREATE TABLE public.dmails (
     respond_to_id bigint,
     is_spam boolean DEFAULT false NOT NULL,
     is_deleted_by_sender boolean DEFAULT false NOT NULL,
-    is_deleted_by_recipient boolean DEFAULT false NOT NULL
+    is_deleted_by_recipient boolean DEFAULT false NOT NULL,
+    parent_id bigint
 );
 
 
@@ -5922,6 +5923,13 @@ CREATE INDEX index_dmails_on_lower_body_trgm ON public.dmails USING gin (lower(b
 
 
 --
+-- Name: index_dmails_on_parent_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_dmails_on_parent_id ON public.dmails USING btree (parent_id);
+
+
+--
 -- Name: index_dmails_on_respond_to_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8237,6 +8245,14 @@ ALTER TABLE ONLY public.ticket_messages
 
 
 --
+-- Name: dmails fk_rails_3a06762382; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.dmails
+    ADD CONSTRAINT fk_rails_3a06762382 FOREIGN KEY (parent_id) REFERENCES public.dmails(id);
+
+
+--
 -- Name: post_replacements fk_rails_3ddcb25767; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9323,6 +9339,7 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260915133535'),
 ('20260914220550'),
 ('20260914220451'),
 ('20260914012419'),

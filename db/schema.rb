@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_14_220550) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_15_133535) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -548,6 +548,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_220550) do
     t.boolean "is_read", default: false, null: false
     t.boolean "is_spam", default: false, null: false
     t.string "key", default: "", null: false
+    t.bigint "parent_id"
     t.bigint "respond_to_id"
     t.text "title", null: false
     t.bigint "to_id", null: false
@@ -556,6 +557,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_220550) do
     t.index "to_tsvector('english'::regconfig, body)", name: "index_dmails_on_to_tsvector_english_body", using: :gin
     t.index ["from_ip_addr"], name: "index_dmails_on_from_ip_addr"
     t.index ["is_read"], name: "index_dmails_on_is_read"
+    t.index ["parent_id"], name: "index_dmails_on_parent_id"
     t.index ["respond_to_id"], name: "index_dmails_on_respond_to_id"
   end
 
@@ -1953,6 +1955,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_220550) do
   add_foreign_key "destroyed_posts", "users", column: "destroyer_id"
   add_foreign_key "destroyed_posts", "users", column: "uploader_id"
   add_foreign_key "dmail_filters", "users"
+  add_foreign_key "dmails", "dmails", column: "parent_id"
   add_foreign_key "dmails", "users", column: "from_id"
   add_foreign_key "dmails", "users", column: "respond_to_id"
   add_foreign_key "dmails", "users", column: "to_id"

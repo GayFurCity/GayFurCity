@@ -105,6 +105,41 @@ class DmailTest < ActiveSupport::TestCase
       assert_equal("Re: #{dmail.title}", response.title)
       assert_equal(dmail.from_id, response.to_id)
       assert_equal(dmail.to_id, response.from_id)
+      assert_equal(dmail.id, response.parent_id)
+    end
+
+    context("threading") do
+      setup do
+        @a_owner = create(:user)
+        @b_owner = create(:user)
+      end
+
+      should("resolve parent/replies/thread_ancestors across a whole chain") do
+        # a_owner -> b_owner, then alternating replies: b_owner -> a_owner -> b_owner -> a_owner
+        a = Dmail.create!(title: "a", body: "a", to: @b_owner, from: @a_owner)
+
+        b_draft = a.build_response
+        b = Dmail.create!(title: b_draft.title, body: "b", to_id: b_draft.to_id, from: @b_owner, parent_id: b_draft.parent_id)
+
+        c_draft = b.build_response
+        c = Dmail.create!(title: c_draft.title, body: "c", to_id: c_draft.to_id, from: @a_owner, parent_id: c_draft.parent_id)
+
+        d_draft = c.build_response
+        d = Dmail.create!(title: d_draft.title, body: "d", to_id: d_draft.to_id, from: @b_owner, parent_id: d_draft.parent_id)
+
+        assert_equal(%w[a b c], d.thread_ancestors.map(&:body))
+        assert_equal(c.id, d.parent_id)
+        assert_equal([d.id], c.replies.map(&:id))
+        assert_equal([b.id], a.replies.map(&:id))
+      end
+
+      should("reject a parent the sender never received") do
+        unrelated = create(:dmail, to: @a_owner, from: create(:user))
+        dmail = build(:dmail, from: @b_owner, parent_id: unrelated.id)
+
+        assert_not(dmail.valid?)
+        assert_includes(dmail.errors[:parent], "must be a message you received")
+      end
     end
 
     should("record the from user's ip addr") do

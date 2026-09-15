@@ -217,6 +217,20 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         end
       end
 
+      should("link a reply to the message it responded to, end to end through the reply form") do
+        get_auth(new_dmail_path, @user, params: { respond_to_id: @dmail.id })
+
+        assert_response(:success)
+
+        assert_difference("Dmail.count", 1) do
+          post_auth(dmails_path, @user, params: { dmail: { to_id: @dmail.from_id, title: "Re: #{@dmail.title}", body: "reply", parent_id: @dmail.id } })
+        end
+
+        reply = Dmail.find_by(from_id: @user.id, body: "reply")
+
+        assert_equal(@dmail.id, reply.parent_id)
+      end
+
       context("access control") do
         setup { @admin = create(:admin_user) }
         asserts do

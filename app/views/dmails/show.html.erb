@@ -14,22 +14,23 @@
     <% end %>
   </ul>
 
-  <h3>Body</h3>
-  <div class="dtext-container">
-    <%= format_text(@dmail.body) %>
+  <h3>Conversation</h3>
+  <ul class="dmail-messages">
+    <%= render(partial: "dmails/message", collection: @dmail.thread_ancestors, as: :dmail, locals: { current: false }) %>
+    <%= render(partial: "dmails/message", locals: { dmail: @dmail, current: true }) %>
+  </ul>
 
-    <% if @dmail.is_automated? %>
-      <p class="info">
-        This is an automated message.
-        <% if @dmail.respond_to_id.present? %>
-          Responses will be sent to <%= link_to(User.id_to_name(@dmail.respond_to_id), user_path(@dmail.respond_to)) %>.
-        <% else %>
-          Responses will not be seen.
-        <% end %>
-        If you have any questions either message a moderator or ask in the forum.
-      </p>
-    <% end %>
-  </div>
+  <% if @dmail.is_automated? %>
+    <p class="info">
+      This is an automated message.
+      <% if @dmail.respond_to_id.present? %>
+        Responses will be sent to <%= link_to(User.id_to_name(@dmail.respond_to_id), user_path(@dmail.respond_to)) %>.
+      <% else %>
+        Responses will not be seen.
+      <% end %>
+      If you have any questions either message a moderator or ask in the forum.
+    </p>
+  <% end %>
 
   <p>
     <% if @dmail.to_id == CurrentUser.user.id %>
@@ -55,6 +56,14 @@
     <% end %>
   </p>
 
+  <% if @dmail.replies.any? %>
+    <h3>Replies</h3>
+    <ul>
+      <% @dmail.replies.each do |reply| %>
+        <li><%= link_to(reply.title, dmail_path(reply)) %> - <%= time_ago_in_words_tagged(reply.created_at) %></li>
+      <% end %>
+    </ul>
+  <% end %>
 </div>
 
 <div id="share-modal" style="display: none; text-align: center;">

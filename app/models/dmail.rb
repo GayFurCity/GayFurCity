@@ -8,12 +8,15 @@ class Dmail < ApplicationRecord
   validate(:recipient_accepts_dmails, on: :create)
   validate(:user_not_limited, on: :create)
   validate(:user_can_send_to, on: :create)
+  validate(:parent_is_own_conversation, on: :create)
   has_secure_token(:key)
 
   belongs_to_user(:to)
   belongs_to_user(:from, ip: true)
   belongs_to_user(:respond_to, optional: true)
   resolvable(:updater)
+  belongs_to(:parent, class_name: "Dmail", optional: true)
+  has_many(:replies, -> { order(created_at: :asc) }, class_name: "Dmail", foreign_key: "parent_id", inverse_of: :parent)
   has_many(:tickets, as: :model)
   has_one(:spam_ticket, -> { spam }, class_name: "Ticket", as: :model)
 
@@ -69,6 +72,7 @@ class Dmail < ApplicationRecord
           dmail.title = "Re: #{title}"
         end
         dmail.original = self
+        dmail.parent_id = id
         dmail.to_id = respond_to_id || from_id unless options[:forward]
         dmail.from_id = to_id
       end
@@ -164,6 +168,16 @@ class Dmail < ApplicationRecord
     end
   end
 
+  # parent_id is client-suppliable (the reply form round-trips it through a hidden field), so
+  # without this a tampered value could chain onto an arbitrary dmail the sender was never party
+  # to - both fabricating a reply chain and leaking that dmail's content to anyone who later views
+  # this one's thread_ancestors. Requiring the sender to have actually received the parent (i.e.
+  # they could legitimately reply to or forward it) closes both holes.
+  def parent_is_own_conversation
+    return if parent_id.blank?
+    errors.add(:parent, "must be a message you received") unless parent&.to_id == from_id
+  end
+
   def send_email
     if to.receive_email_notifications? && to.email =~ /@/
       UserMailer.dmail_notice(self).deliver_now
@@ -184,6 +198,22 @@ class Dmail < ApplicationRecord
 
   def is_automated?
     User.system.is?(from_id)
+  end
+
+  # Every message in this conversation before this one, oldest first - so a chain A -> B -> C -> D
+  # can render as a whole conversation (A, B, C) leading up to D, the same way a ticket's messages
+  # all render as one thread. Guards against a cycle (shouldn't happen - parent_id can only ever
+  # point to an earlier row - but nothing stops parent_id from being reassigned later) by bailing
+  # out the moment an id repeats.
+  def thread_ancestors
+    ancestors = []
+    seen = Set.new([id])
+    current = self
+    while (p = current.parent) && seen.add?(p.id)
+      ancestors << p
+      current = p
+    end
+    ancestors.reverse
   end
 
   def involves?(user)

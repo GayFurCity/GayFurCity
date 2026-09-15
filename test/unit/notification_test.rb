@@ -27,7 +27,7 @@ class NotificationTest < ActiveSupport::TestCase
     end
 
     should("also mark the dmail as read for dmail notifications") do
-      dmail = create(:dmail, owner: @user)
+      dmail = create(:dmail, to: @user)
       notification = create(:notification, user: @user, category: "dmail", data: { dmail_id: dmail.id })
 
       assert_not(dmail.reload.is_read)

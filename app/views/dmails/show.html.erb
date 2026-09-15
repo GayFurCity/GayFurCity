@@ -32,11 +32,13 @@
   </div>
 
   <p>
-    <%= link_to_if(!@dmail.is_automated? || @dmail.respond_to_id.present?, "Respond", new_dmail_path(respond_to_id: @dmail)) %>
-    | <%= link_to("Forward", new_dmail_path(respond_to_id: @dmail, forward: true)) %>
+    <% if @dmail.to_id == CurrentUser.user.id %>
+      <%= link_to_if(!@dmail.is_automated? || @dmail.respond_to_id.present?, "Respond", new_dmail_path(respond_to_id: @dmail)) %>
+      | <%= link_to("Forward", new_dmail_path(respond_to_id: @dmail, forward: true)) %>
+    <% end %>
     | <%= link_to("Share", dmail_url(@dmail, key: @dmail.key), id: "share-dmail-link") %>
     | <%= link_to_unless(@dmail.is_automated?, "Filter messages like these", edit_users_dmail_filter_path(dmail_id: @dmail.id)) %>
-    <% if @dmail.owner_id == CurrentUser.user.id %>
+    <% if @dmail.involves?(CurrentUser.user) %>
       | <%= link_to("Delete", dmail_path(@dmail), method: :delete, data: { confirm: "Are you sure you want to delete this DMail?" }) %>
       <% if @dmail.to_id == CurrentUser.user.id %>
         | <%= link_to("Mark as unread", mark_as_unread_dmail_path(@dmail), method: :put, data: { confirm: "Are you sure you want to mark this DMail as unread?" }) %>
@@ -44,7 +46,7 @@
         | <%= link_to_if((!@dmail.is_automated? || @dmail.respond_to_id.present?) && TicketPolicy.new(CurrentUser.user, @dmail).create?, "Report", model_new_ticket_path(model: @dmail)) %>
       <% end %>
     <% end %>
-    <% if CurrentUser.user.is_moderator? && @dmail.owner_id != @dmail.from_id %>
+    <% if CurrentUser.user.is_moderator? %>
       <% if @dmail.is_spam? %>
         | <%= link_to("Mark Not Spam", mark_not_spam_dmail_path(@dmail), method: :put) %>
       <% else %>
@@ -52,6 +54,7 @@
       <% end %>
     <% end %>
   </p>
+
 </div>
 
 <div id="share-modal" style="display: none; text-align: center;">

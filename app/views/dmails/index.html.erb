@@ -10,7 +10,7 @@
 
 <%= table_for(@dmails, class: "striped autofit") do |t| %>
   <% t.column("From") do |dmail| %>
-    <% if dmail.filtered? %>
+    <% if dmail.filtered?(CurrentUser.user) %>
       <%= link_to("[filtered]", user_path(dmail.from)) %>
     <% else %>
       <%= link_to_user(dmail.from) %>
@@ -23,11 +23,8 @@
   <% t.column("To") do |dmail| %>
     <%= link_to_user(dmail.to) %>
   <% end %>
-  <% t.column("Owner", if: CurrentUser.user.is_owner? && params[:folder].blank?) do |dmail| %>
-    <%= link_to_user(dmail.owner) %>
-  <% end %>
-  <% t.column("Subject", th: { width: CurrentUser.user.is_owner? && params[:folder].blank? ? "55%" : "65%" }) do |dmail| %>
-    <% if dmail.filtered? %>
+  <% t.column("Subject", th: { width: "65%" }) do |dmail| %>
+    <% if dmail.filtered?(CurrentUser.user) %>
       <%= link_to("[filtered]", dmail_path(dmail)) %>
     <% else %>
       <%= link_to(dmail.title, dmail_path(dmail)) %>

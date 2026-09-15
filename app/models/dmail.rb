@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class Dmail < ApplicationRecord
-  soft_deletable
   normalizes(:body, with: ->(body) { body.gsub("\r\n", "\n") })
   validates(:title, :body, presence: { on: :create })
   validates(:title, length: { minimum: 1, maximum: 250 })
@@ -11,7 +10,6 @@ class Dmail < ApplicationRecord
   validate(:user_can_send_to, on: :create)
   has_secure_token(:key)
 
-  belongs_to_user(:owner)
   belongs_to_user(:to)
   belongs_to_user(:from, ip: true)
   belongs_to_user(:respond_to, optional: true)
@@ -28,20 +26,22 @@ class Dmail < ApplicationRecord
 
   scope(:from_user, ->(user) { where(from_id: u2id(user)) })
   scope(:to_user, ->(user) { where(to_id: u2id(user)) })
-  scope(:owned_by, ->(user) { where(owner_id: u2id(user)) })
-  scope(:not_owned_by, ->(user) { where.not(owner_id: u2id(user)) })
-  scope(:sent_by, ->(user) { from_user(user).and(not_owned_by(user)) })
-  scope(:received_by, ->(user) { to_user(user).and(owned_by(user)) })
-  scope(:active, -> { where(is_deleted: false) })
-  scope(:deleted, -> { where(is_deleted: true) })
+  scope(:sent_by, ->(user) { from_user(user) })
+  scope(:received_by, ->(user) { to_user(user) })
+  scope(:involving, ->(user) { from_user(user).or(to_user(user)) })
+  # A non-party (e.g. staff browsing broadly) has no deletion state of their own to speak of, so
+  # they see the row either way - only excluded if the viewer IS specifically the side that
+  # deleted it.
+  scope(:not_deleted_for, ->(user) {
+    uid = u2id(user)
+    where.not(from_id: uid, is_deleted_by_sender: true).where.not(to_id: uid, is_deleted_by_recipient: true)
+  })
   scope(:read, -> { where(is_read: true) })
-  scope(:unread, -> { where(is_read: false).and(active) })
+  scope(:unread, -> { where(is_read: false) })
 
   singleton_class.class_eval do
     alias_method(:from_user_id, :from_user)
     alias_method(:to_user_id, :to_user)
-    alias_method(:owned_by_id, :owned_by)
-    alias_method(:not_owned_by_id, :not_owned_by)
     alias_method(:sent_by_id, :sent_by)
     alias_method(:received_by_id, :received_by)
   end
@@ -50,38 +50,8 @@ class Dmail < ApplicationRecord
     extend(ActiveSupport::Concern)
 
     module ClassMethods
-      def create_split(params)
-        copy = nil
-
-        Dmail.transaction do
-          # recipient's copy
-          copy = Dmail.new(params)
-          copy.owner = copy.to
-          copy.save unless copy.to_id == copy.from_id
-          raise(ActiveRecord::Rollback) if copy.errors.any?
-
-          # sender's copy
-          copy = Dmail.new(params)
-          copy.bypass_limits = true
-          copy.owner = copy.from
-          copy.is_read = true
-          copy.save
-        end
-
-        copy
-      end
-
-      def create_split!(...)
-        create_split(...).tap do |dmail|
-          raise(ActiveRecord::RecordInvalid, dmail) if dmail.errors.any?
-        end
-      end
-
       def create_automated(params)
-        Dmail.new(from: User.system, **params).tap do |dmail|
-          dmail.owner = dmail.to
-          dmail.save
-        end
+        Dmail.create(from: User.system, **params)
       end
 
       def create_automated!(...)
@@ -98,9 +68,7 @@ class Dmail < ApplicationRecord
         else
           dmail.title = "Re: #{title}"
         end
-        dmail.owner_id = from_id
         dmail.original = self
-        dmail.body = quoted_body
         dmail.to_id = respond_to_id || from_id unless options[:forward]
         dmail.from_id = to_id
       end
@@ -109,15 +77,17 @@ class Dmail < ApplicationRecord
 
   module SearchMethods
     def for_folder(folder, user)
-      return all if folder.nil?
-      case folder
-      when "all"
-        owned_by(user)
-      when "sent"
-        sent_by(user)
-      when "received"
-        received_by(user)
-      end
+      scope = case folder
+              when nil
+                all
+              when "sent"
+                sent_by(user)
+              when "received"
+                received_by(user)
+              else
+                involving(user)
+              end
+      scope.not_deleted_for(user)
     end
 
     def query_dsl
@@ -125,13 +95,11 @@ class Dmail < ApplicationRecord
         .field(:title_matches, :title)
         .field(:message_matches, :body)
         .field(:is_read)
-        .field(:is_deleted)
         .field(:is_spam)
         .field(:ip_addr, :from_ip_addr)
         .custom(:read, ->(q, v) { q.if(v, q.read).else(q.unread) })
         .association(:to)
         .association(:from)
-        .association(:owner)
     end
   end
 
@@ -196,53 +164,65 @@ class Dmail < ApplicationRecord
     end
   end
 
-  def quoted_body
-    "[quote]\n@#{from_name} said:\n\n#{body}\n[/quote]\n\n"
-  end
-
   def send_email
-    if to.receive_email_notifications? && to.email =~ /@/ && is_owner?(to)
+    if to.receive_email_notifications? && to.email =~ /@/
       UserMailer.dmail_notice(self).deliver_now
     end
   end
 
   def mark_as_read!(user)
     update(is_read: true, updater: user)
-    owner.update(unread_dmail_count: owner.dmails.unread.count)
-    owner.notifications.unread.where(category: "dmail").and(owner.notifications.where("data->>'dmail_id' = ?", id.to_s)).each { |n| n.mark_as_read!(user) }
+    to.update(unread_dmail_count: to.received_dmails.unread.where(is_deleted_by_recipient: false).count)
+    to.notifications.unread.where(category: "dmail").and(to.notifications.where("data->>'dmail_id' = ?", id.to_s)).each { |n| n.mark_as_read!(user) }
   end
 
   def mark_as_unread!(user)
     update(is_read: false, updater: user)
-    owner.update(unread_dmail_count: owner.dmails.unread.count)
-    owner.notifications.read.where(category: "dmail").and(owner.notifications.where("data->>'dmail_id' = ?", id.to_s)).each { |n| n.mark_as_unread!(user) }
+    to.update(unread_dmail_count: to.received_dmails.unread.where(is_deleted_by_recipient: false).count)
+    to.notifications.read.where(category: "dmail").and(to.notifications.where("data->>'dmail_id' = ?", id.to_s)).each { |n| n.mark_as_unread!(user) }
   end
 
   def is_automated?
     User.system.is?(from_id)
   end
 
-  def is_sender?
-    owner.is?(from_id)
+  def involves?(user)
+    uid = u2id(user)
+    from_id == uid || to_id == uid
   end
 
-  def is_recipient?
-    owner.is?(to_id)
+  def not_deleted_for?(user)
+    uid = u2id(user)
+    return !is_deleted_by_sender? if from_id == uid
+    return !is_deleted_by_recipient? if to_id == uid
+    true
   end
 
-  def filtered?
-    owner.dmail_filter.try(:filtered?, self) || false
+  def soft_delete_for!(user)
+    uid = u2id(user)
+    if from_id == uid
+      update!(is_deleted_by_sender: true, updater: user)
+    elsif to_id == uid
+      update!(is_deleted_by_recipient: true, updater: user)
+    end
+  end
+
+  # "filtered" means filtered by the viewing user's own filter, whichever side of the
+  # conversation they're on (matches the old owner.dmail_filter check, since owner used to always
+  # be whichever party a given copy's row belonged to).
+  def filtered?(user)
+    user.dmail_filter.try(:filtered?, self) || false
   end
 
   def auto_read_if_filtered
-    if owner_id != from_id && to.dmail_filter.try(:filtered?, self)
+    if to.dmail_filter.try(:filtered?, self)
       self.is_read = true
     end
   end
 
   def auto_report_spam
-    if is_recipient? && !is_sender? && SpamDetector.new(self, user_ip: from_ip_addr.to_s).spam?
-      self.is_deleted = true
+    if SpamDetector.new(self, user_ip: from_ip_addr.to_s).spam?
+      self.is_deleted_by_recipient = true
       self.is_spam = true
       tickets << Ticket.new(creator: User.system, reason: "Spam.")
     end
@@ -263,8 +243,8 @@ class Dmail < ApplicationRecord
   end
 
   def update_recipient
-    if owner_id != from_id && !is_deleted? && !is_read?
-      to.update(unread_dmail_count: to.dmails.unread.count)
+    if !is_deleted_by_recipient? && !is_read?
+      to.update(unread_dmail_count: to.received_dmails.unread.where(is_deleted_by_recipient: false).count)
       to.notifications.create!(category: "dmail", data: { user_id: from_id, dmail_id: id, dmail_title: title })
     end
   end
@@ -273,19 +253,30 @@ class Dmail < ApplicationRecord
     return true if user.is_owner?
     return true if user.is_moderator? && (User.system.is?(from_id) || Ticket.exists?(model: self) || key == self.key)
     return true if user.is_admin? && (to.is_admin? || from.is_admin?)
-    is_owner?(user)
+    involves?(user)
   end
 
-  def is_owner?(user)
-    u2id(user) == owner_id
+  # apionly_* methods are the exposed-via-API pattern for a computed value (see api_attributes in
+  # DmailPolicy) - is_deleted_by_sender/is_deleted_by_recipient are per-party, so what "is_deleted"
+  # means depends on who's asking. CurrentUser.user, not an argument, since serializable_hash calls
+  # methods with no arguments.
+  def apionly_is_deleted?
+    if from_id == u2id(CurrentUser.user)
+      is_deleted_by_sender?
+    elsif to_id == u2id(CurrentUser.user)
+      is_deleted_by_recipient?
+    end
   end
 
-  def apionly_is_owner?
-    is_owner?(CurrentUser.user)
+  # Drives the unread-row bold styling (dmails.scss) - is_read now means "has the recipient read
+  # this", so it can be false for a message sitting in the *sender's* own Sent folder (the
+  # recipient just hasn't read it yet), which isn't something the sender's own view should bold.
+  def apionly_is_recipient?
+    to_id == u2id(CurrentUser.user)
   end
 
   def self.available_includes
-    %i[from to owner]
+    %i[from to]
   end
 
   def visible?(user)

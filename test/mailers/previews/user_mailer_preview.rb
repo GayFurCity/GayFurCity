@@ -2,7 +2,7 @@
 
 class UserMailerPreview < ActionMailer::Preview
   def dmail_notice
-    dmail = User.admins.first.dmails.first
+    dmail = User.admins.first.received_dmails.first
     UserMailer.dmail_notice(dmail)
   end
 

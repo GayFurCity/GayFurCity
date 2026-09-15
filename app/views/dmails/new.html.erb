@@ -4,6 +4,12 @@
     This message is being sent to <%= link_to(User.id_to_name(@dmail.original.respond_to_id), @dmail.original.respond_to) %>, the user that initiated the automated dmail.
   </p>
 <% end %>
+<% if @dmail.original.present? %>
+  <div class="dmail-parent-preview">
+    <p class="info">Replying to <%= link_to_user(@dmail.original.from) %>:</p>
+    <div class="dtext-container"><%= format_text(@dmail.original.body) %></div>
+  </div>
+<% end %>
 <%= render("form", dmail: @dmail) %>
 
 <%= render("secondary_links") %>

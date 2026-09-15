@@ -8,7 +8,7 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
       @user = create(:user)
       @user2 = create(:user)
       @mod = create(:moderator_user)
-      @dmail = create(:dmail, owner: @user, to: @user, from: @user2)
+      @dmail = create(:dmail, to: @user, from: @user2)
     end
 
     context("new action") do
@@ -60,12 +60,6 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("not show dmails not owned by the current user") do
-        get_auth(dmails_path, @user, params: { search: { owner_id: @dmail.owner_id } })
-
-        assert_response(:success)
-      end
-
       should("work for json") do
         get_auth(dmails_path, @user, params: { format: :json })
 
@@ -85,7 +79,7 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
           Dmail.delete_all
           @to = create(:user)
           @from = create(:user)
-          @dmail = create(:dmail, to: @to, from: @from, from_ip_addr: "127.0.0.2", owner: @to, title: "foo", body: "bar", is_read: true, is_deleted: false, is_spam: false)
+          @dmail = create(:dmail, to: @to, from: @from, from_ip_addr: "127.0.0.2", title: "foo", body: "bar", is_read: true, is_spam: false)
           @owner = create(:owner_user)
         end
 
@@ -93,7 +87,6 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
           search(:title_matches, "foo").records { [@dmail] }.user { @to }
           search(:message_matches, "bar").records { [@dmail] }.user { @to }
           search(:is_read, "true").records { [@dmail] }.user { @to }
-          search(:is_deleted, "false").records { [@dmail] }.user { @to }
           search(:is_spam, "false").records { [@dmail] }.user { @owner }
           search(:ip_addr, "127.0.0.2").records { [@dmail] }.user { @owner }
           search(:read, "true").records { [@dmail] }.user { @to }
@@ -101,28 +94,33 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
           search(:to_name).value { @to.name }.records { [@dmail] }.user { @to }
           search(:from_id).value { @from.id }.records { [@dmail] }.user { @to }
           search(:from_name).value { @from.name }.records { [@dmail] }.user { @to }
-          search(:owner_id).value { @to.id }.records { [@dmail] }.user { @to }
-          search(:owner_name).value { @to.name }.records { [@dmail] }.user { @to }
           search.shared.records { [@dmail] }.user { @to }
         end
       end
     end
 
     context("show action") do
-      should("show dmails owned by the current user") do
-        get_auth(dmail_path(@dmail), @dmail.owner)
+      should("show dmails to the recipient") do
+        get_auth(dmail_path(@dmail), @dmail.to)
 
         assert_response(:success)
         assert_predicate(@dmail.reload, :is_read?)
-        assert_predicate(@dmail.owner.notifications.last, :is_read?)
+        assert_predicate(@dmail.to.notifications.last, :is_read?)
       end
 
-      should("not mark the dmail as read for json requests") do
-        get_auth(dmail_path(@dmail), @dmail.owner, params: { format: :json })
+      should("also show dmails to the sender, without marking it read") do
+        get_auth(dmail_path(@dmail), @dmail.from)
 
         assert_response(:success)
         assert_not_predicate(@dmail.reload, :is_read?)
-        assert_not_predicate(@dmail.owner.notifications.last, :is_read?)
+      end
+
+      should("not mark the dmail as read for json requests") do
+        get_auth(dmail_path(@dmail), @dmail.to, params: { format: :json })
+
+        assert_response(:success)
+        assert_not_predicate(@dmail.reload, :is_read?)
+        assert_not_predicate(@dmail.to.notifications.last, :is_read?)
       end
 
       should("not mark the dmail as read when shown to users that don't own it") do
@@ -130,11 +128,11 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
 
         assert_response(:success)
         assert_not_predicate(@dmail.reload, :is_read?)
-        assert_not_predicate(@dmail.owner.notifications.last, :is_read?)
+        assert_not_predicate(@dmail.to.notifications.last, :is_read?)
       end
 
-      should("not show dmails not owned by the current user") do
-        get_auth(dmail_path(@dmail), @user2)
+      should("not show dmails to an unrelated user") do
+        get_auth(dmail_path(@dmail), create(:user))
 
         assert_response(:forbidden)
       end
@@ -145,62 +143,62 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         assert_response(:success)
       end
 
-      should("not show dmails with a key for non-moderators") do
-        get_auth(dmail_path(@dmail, key: @dmail.key), @user2)
+      should("not show dmails with a key for non-moderators who aren't a party to it") do
+        get_auth(dmail_path(@dmail, key: @dmail.key), create(:user))
 
         assert_response(:forbidden)
       end
 
       context("access control") do
         asserts do
-          access.gte(User::Levels::REJECTED).get { |user| dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
-          access.gte(User::Levels::REJECTED).json.get { |user| dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
+          access.gte(User::Levels::REJECTED).get { |user| dmail_path(create(:dmail, to: user, from: create(:user))) }
+          access.gte(User::Levels::REJECTED).json.get { |user| dmail_path(create(:dmail, to: user, from: create(:user))) }
         end
       end
     end
 
     context("mark as read action") do
       should("mark the dmail as read") do
-        put_auth(mark_as_read_dmail_path(@dmail), @dmail.owner, params: { format: :json })
+        put_auth(mark_as_read_dmail_path(@dmail), @dmail.to, params: { format: :json })
 
         assert_response(:success)
         assert_predicate(@dmail.reload, :is_read?)
-        assert_predicate(@dmail.owner.notifications.last, :is_read?)
+        assert_predicate(@dmail.to.notifications.last, :is_read?)
       end
 
       context("access control") do
         asserts do
-          access.gte(User::Levels::REJECTED).put { |user| mark_as_read_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
-          access.gte(User::Levels::REJECTED).json.put { |user| mark_as_read_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
+          access.gte(User::Levels::REJECTED).put { |user| mark_as_read_dmail_path(create(:dmail, to: user, from: create(:user))) }
+          access.gte(User::Levels::REJECTED).json.put { |user| mark_as_read_dmail_path(create(:dmail, to: user, from: create(:user))) }
         end
       end
     end
 
     context("mark as unread action") do
       should("mark the dmail as unread") do
-        @dmail.mark_as_read!(@dmail.owner)
+        @dmail.mark_as_read!(@dmail.to)
 
-        assert_equal(0, @dmail.owner.reload.unread_dmail_count)
-        assert_not_predicate(@dmail.owner, :has_mail?)
-        assert_equal(0, @dmail.owner.reload.unread_notification_count)
-        assert_not_predicate(@dmail.owner, :has_unread_notifications?)
+        assert_equal(0, @dmail.to.reload.unread_dmail_count)
+        assert_not_predicate(@dmail.to, :has_mail?)
+        assert_equal(0, @dmail.to.reload.unread_notification_count)
+        assert_not_predicate(@dmail.to, :has_unread_notifications?)
 
-        put_auth(mark_as_unread_dmail_path(@dmail), @dmail.owner, params: { format: :json })
+        put_auth(mark_as_unread_dmail_path(@dmail), @dmail.to, params: { format: :json })
 
         assert_response(:success)
         assert_not_predicate(@dmail.reload, :is_read?)
-        assert_not_predicate(@dmail.owner.notifications.last, :is_read?)
+        assert_not_predicate(@dmail.to.notifications.last, :is_read?)
 
-        assert_equal(1, @dmail.owner.reload.unread_dmail_count)
-        assert_predicate(@dmail.owner, :has_mail?)
-        assert_equal(1, @dmail.owner.reload.unread_notification_count)
-        assert_predicate(@dmail.owner, :has_unread_notifications?)
+        assert_equal(1, @dmail.to.reload.unread_dmail_count)
+        assert_predicate(@dmail.to, :has_mail?)
+        assert_equal(1, @dmail.to.reload.unread_notification_count)
+        assert_predicate(@dmail.to, :has_unread_notifications?)
       end
 
       context("access control") do
         asserts do
-          access.gte(User::Levels::REJECTED).put { |user| mark_as_unread_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }.success(:redirect)
-          access.gte(User::Levels::REJECTED).json.put { |user| mark_as_unread_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
+          access.gte(User::Levels::REJECTED).put { |user| mark_as_unread_dmail_path(create(:dmail, to: user, from: create(:user))) }.success(:redirect)
+          access.gte(User::Levels::REJECTED).json.put { |user| mark_as_unread_dmail_path(create(:dmail, to: user, from: create(:user))) }
         end
       end
     end
@@ -210,8 +208,8 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         @user2 = create(:user)
       end
 
-      should("create two messages, one for the sender and one for the recipient") do
-        assert_difference("Dmail.count", 2) do
+      should("create a single message shared by the sender and recipient") do
+        assert_difference("Dmail.count", 1) do
           dmail_attribs = { to_id: @user2.id, title: "abc", body: "abc" }
           post_auth(dmails_path, @user, params: { dmail: dmail_attribs })
 
@@ -228,33 +226,45 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
     end
 
     context("destroy action") do
-      should("allow deletion if the dmail is owned by the current user") do
+      should("allow deletion by the recipient, without affecting the sender's side") do
         delete_auth(dmail_path(@dmail), @user)
 
         assert_redirected_to(dmails_path)
         @dmail.reload
 
-        assert(@dmail.is_deleted)
+        assert_predicate(@dmail, :is_deleted_by_recipient?)
+        assert_not(@dmail.is_deleted_by_sender?)
       end
 
-      should("not allow deletion if the dmail is not owned by the current user") do
+      should("allow deletion by the sender, without affecting the recipient's side") do
         delete_auth(dmail_path(@dmail), @user2)
+
+        assert_redirected_to(dmails_path)
         @dmail.reload
 
-        assert_not(@dmail.is_deleted)
+        assert_predicate(@dmail, :is_deleted_by_sender?)
+        assert_not(@dmail.is_deleted_by_recipient?)
+      end
+
+      should("not allow deletion by an unrelated user") do
+        delete_auth(dmail_path(@dmail), create(:user))
+        @dmail.reload
+
+        assert_not(@dmail.is_deleted_by_sender?)
+        assert_not(@dmail.is_deleted_by_recipient?)
       end
 
       context("access control") do
         asserts do
-          access.gte(User::Levels::REJECTED).delete { |user| dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }.success(:redirect)
-          access.gte(User::Levels::REJECTED).json.delete { |user| dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }.success(:no_content)
+          access.gte(User::Levels::REJECTED).delete { |user| dmail_path(create(:dmail, to: user, from: create(:user))) }.success(:redirect)
+          access.gte(User::Levels::REJECTED).json.delete { |user| dmail_path(create(:dmail, to: user, from: create(:user))) }.success(:no_content)
         end
       end
     end
 
     context("spam") do
       setup do
-        @mod_dmail = create(:dmail, owner: @mod, from: @user, to: @mod)
+        @mod_dmail = create(:dmail, from: @user, to: @mod)
         SpamDetector.stubs(:enabled?).returns(true)
         stub_request(:post, %r{https://.*\.rest\.akismet\.com/(\d\.?)+/comment-check}).to_return(status: 200, body: "true")
         stub_request(:post, %r{https://.*\.rest\.akismet\.com/(\d\.?)+/submit-spam}).to_return(status: 200, body: nil)
@@ -263,7 +273,7 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
 
       should("mark spam dmails as spam") do
         SpamDetector.any_instance.stubs(:spam?).returns(true)
-        assert_difference({ "User.system.tickets.count" => 1, "Dmail.count" => 2 }) do
+        assert_difference({ "User.system.tickets.count" => 1, "Dmail.count" => 1 }) do
           post_auth(dmails_path, @user, params: { dmail: { to_id: @user2.id, title: "abc", body: "abc" } })
 
           assert_redirected_to(dmail_path(@user.sent_dmails.last))
@@ -274,12 +284,12 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         assert_equal(@dmail, @ticket.model)
         assert_equal("Spam.", @ticket.reason)
         assert_predicate(@dmail, :is_spam?)
-        assert_predicate(@dmail, :is_deleted?)
+        assert_predicate(@dmail, :is_deleted_by_recipient?)
       end
 
       should("not mark moderator dmails as spam") do
         # no need to stub anything, it should return false due to Trusted+ bypassing spam checks
-        assert_difference({ "User.system.tickets.count" => 0, "Dmail.count" => 2 }) do
+        assert_difference({ "User.system.tickets.count" => 0, "Dmail.count" => 1 }) do
           post_auth(dmails_path, @mod, params: { dmail: { to_id: @user.id, title: "abc", body: "abc" } })
 
           assert_redirected_to(dmail_path(@mod.sent_dmails.last))
@@ -287,7 +297,7 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         @dmail = @user.received_dmails.last
 
         assert_not(@dmail.is_spam?)
-        assert_not(@dmail.is_deleted?)
+        assert_not(@dmail.is_deleted_by_recipient?)
       end
 
       should("auto ban spammers") do
@@ -295,7 +305,7 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         Ticket.delete_all
 
         stub_const(SpamDetector, :AUTOBAN_THRESHOLD, 1) do
-          assert_difference({ "Ban.count" => 1, "User.system.tickets.count" => 1, "Dmail.count" => 2 }) do
+          assert_difference({ "Ban.count" => 1, "User.system.tickets.count" => 1, "Dmail.count" => 1 }) do
             post_auth(dmails_path, @user, params: { dmail: { to_id: @user2.id, title: "abc", body: "abc" } })
 
             assert_redirected_to(dmail_path(@user.sent_dmails.last))
@@ -309,7 +319,7 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         assert_equal("Automatically Banned", @ticket.ticket_messages.last.body)
         assert_equal("approved", @ticket.status)
         assert_predicate(@dmail, :is_spam?)
-        assert_predicate(@dmail, :is_deleted?)
+        assert_predicate(@dmail, :is_deleted_by_recipient?)
         assert_predicate(@user.reload, :is_banned?)
       end
 
@@ -338,8 +348,8 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
         context("access control") do
           setup { SpamDetector.any_instance.stubs(:spam!).returns(true) }
           asserts do
-            access.gte(User::Levels::MODERATOR).put { |user| mark_spam_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }.success(:redirect)
-            access.gte(User::Levels::MODERATOR).json.put { |user| mark_spam_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
+            access.gte(User::Levels::MODERATOR).put { |user| mark_spam_dmail_path(create(:dmail, to: user, from: create(:user))) }.success(:redirect)
+            access.gte(User::Levels::MODERATOR).json.put { |user| mark_spam_dmail_path(create(:dmail, to: user, from: create(:user))) }
           end
         end
       end
@@ -370,8 +380,8 @@ class DmailsControllerTest < ActionDispatch::IntegrationTest
 
         context("access control") do
           asserts do
-            access.gte(User::Levels::MODERATOR).put { |user| mark_not_spam_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }.success(:redirect)
-            access.gte(User::Levels::MODERATOR).json.put { |user| mark_not_spam_dmail_path(create(:dmail, owner: user, to: user, from: create(:user))) }
+            access.gte(User::Levels::MODERATOR).put { |user| mark_not_spam_dmail_path(create(:dmail, to: user, from: create(:user))) }.success(:redirect)
+            access.gte(User::Levels::MODERATOR).json.put { |user| mark_not_spam_dmail_path(create(:dmail, to: user, from: create(:user))) }
           end
         end
       end

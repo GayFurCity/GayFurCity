@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_14_012419) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_14_220550) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -543,11 +543,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_012419) do
     t.datetime "created_at", precision: nil, null: false
     t.bigint "from_id", null: false
     t.inet "from_ip_addr", null: false
-    t.boolean "is_deleted", default: false, null: false
+    t.boolean "is_deleted_by_recipient", default: false, null: false
+    t.boolean "is_deleted_by_sender", default: false, null: false
     t.boolean "is_read", default: false, null: false
     t.boolean "is_spam", default: false, null: false
     t.string "key", default: "", null: false
-    t.bigint "owner_id", null: false
     t.bigint "respond_to_id"
     t.text "title", null: false
     t.bigint "to_id", null: false
@@ -555,9 +555,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_012419) do
     t.index "lower(body) gin_trgm_ops", name: "index_dmails_on_lower_body_trgm", using: :gin
     t.index "to_tsvector('english'::regconfig, body)", name: "index_dmails_on_to_tsvector_english_body", using: :gin
     t.index ["from_ip_addr"], name: "index_dmails_on_from_ip_addr"
-    t.index ["is_deleted"], name: "index_dmails_on_is_deleted"
     t.index ["is_read"], name: "index_dmails_on_is_read"
-    t.index ["owner_id"], name: "index_dmails_on_owner_id"
     t.index ["respond_to_id"], name: "index_dmails_on_respond_to_id"
   end
 
@@ -1956,7 +1954,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_012419) do
   add_foreign_key "destroyed_posts", "users", column: "uploader_id"
   add_foreign_key "dmail_filters", "users"
   add_foreign_key "dmails", "users", column: "from_id"
-  add_foreign_key "dmails", "users", column: "owner_id"
   add_foreign_key "dmails", "users", column: "respond_to_id"
   add_foreign_key "dmails", "users", column: "to_id"
   add_foreign_key "edit_histories", "users", column: "updater_id"

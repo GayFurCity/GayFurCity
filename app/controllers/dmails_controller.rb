@@ -5,8 +5,7 @@ class DmailsController < ApplicationController
   respond_to(:json, except: %i[new create])
 
   def index
-    @query = authorize(Dmail).html_includes(request, :from, :to, :owner)
-                             .active
+    @query = authorize(Dmail).html_includes(request, :from, :to)
                              .for_folder(params[:folder], CurrentUser.user)
                              .search_current(search_params(Dmail))
     @dmails = @query.paginate(params[:page], limit: params[:limit])
@@ -22,7 +21,7 @@ class DmailsController < ApplicationController
       @dmail = authorize(Dmail.find(params[:id]))
     end
     respond_with(@dmail) do |format|
-      format.html { @dmail.mark_as_read!(CurrentUser.user) if @dmail.is_owner?(CurrentUser.user) }
+      format.html { @dmail.mark_as_read!(CurrentUser.user) if @dmail.to_id == CurrentUser.user.id }
     end
   end
 
@@ -39,14 +38,14 @@ class DmailsController < ApplicationController
 
   def create
     authorize(Dmail.new_with_current(:from, permitted_attributes(Dmail)))
-    @dmail = Dmail.create_split(**permitted_attributes(Dmail), from: CurrentUser.user)
+    @dmail = Dmail.create(**permitted_attributes(Dmail), from: CurrentUser.user)
     respond_with(@dmail)
   end
 
   def destroy
     @dmail = authorize(Dmail.find(params[:id]))
-    @dmail.mark_as_read!(CurrentUser.user)
-    @dmail.soft_delete_with_current(:updater)
+    @dmail.mark_as_read!(CurrentUser.user) if @dmail.to_id == CurrentUser.user.id
+    @dmail.soft_delete_for!(CurrentUser.user)
     respond_with(@dmail) do |format|
       format.html { redirect_to(dmails_path, notice: "Message deleted") }
     end
@@ -68,7 +67,7 @@ class DmailsController < ApplicationController
 
   def mark_all_as_read
     authorize(Dmail)
-    Dmail.visible(CurrentUser.user).unread.each do |x|
+    CurrentUser.user.received_dmails.unread.where(is_deleted_by_recipient: false).find_each do |x|
       x.update_column(:is_read, true)
     end
     CurrentUser.user.update(unread_dmail_count: 0)

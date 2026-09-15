@@ -53,7 +53,7 @@ module StatsUpdater
       stats[:"#{name.downcase}_users"] = User.where(level: level).count
     end
     stats[:unactivated_users] = User.email_not_verified.count
-    stats[:total_dmails] = (Dmail.maximum("id") || 0) / 2
+    stats[:total_dmails] = Dmail.maximum("id") || 0
     stats[:average_registrations_per_day] = daily_average.call(stats[:total_users])
 
     ### Comments ###

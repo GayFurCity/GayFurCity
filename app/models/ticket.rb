@@ -338,7 +338,7 @@ class Ticket < ApplicationRecord
           title += " to #{pretty_status.downcase}"
         end
       end
-      Dmail.create_split!(
+      Dmail.create!(
         from:          handler,
         to:            creator,
         title:         title,
@@ -361,7 +361,7 @@ class Ticket < ApplicationRecord
         #{message.body}
       MSG
       recipients.each do |recipient|
-        Dmail.create_split!(
+        Dmail.create!(
           from:          message.creator,
           to:            recipient,
           title:         "New reply on ticket ##{id}",

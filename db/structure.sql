@@ -1063,19 +1063,19 @@ ALTER SEQUENCE public.dmail_filters_id_seq OWNED BY public.dmail_filters.id;
 
 CREATE TABLE public.dmails (
     id bigint NOT NULL,
-    owner_id bigint NOT NULL,
     from_id bigint NOT NULL,
     to_id bigint NOT NULL,
     title text NOT NULL,
     body text NOT NULL,
     is_read boolean DEFAULT false NOT NULL,
-    is_deleted boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     from_ip_addr inet NOT NULL,
     key character varying DEFAULT ''::character varying NOT NULL,
     respond_to_id bigint,
-    is_spam boolean DEFAULT false NOT NULL
+    is_spam boolean DEFAULT false NOT NULL,
+    is_deleted_by_sender boolean DEFAULT false NOT NULL,
+    is_deleted_by_recipient boolean DEFAULT false NOT NULL
 );
 
 
@@ -5908,13 +5908,6 @@ CREATE INDEX index_dmails_on_from_ip_addr ON public.dmails USING btree (from_ip_
 
 
 --
--- Name: index_dmails_on_is_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_dmails_on_is_deleted ON public.dmails USING btree (is_deleted);
-
-
---
 -- Name: index_dmails_on_is_read; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5926,13 +5919,6 @@ CREATE INDEX index_dmails_on_is_read ON public.dmails USING btree (is_read);
 --
 
 CREATE INDEX index_dmails_on_lower_body_trgm ON public.dmails USING gin (lower(body) public.gin_trgm_ops);
-
-
---
--- Name: index_dmails_on_owner_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_dmails_on_owner_id ON public.dmails USING btree (owner_id);
 
 
 --
@@ -9003,14 +8989,6 @@ ALTER TABLE ONLY public.forum_topic_statuses
 
 
 --
--- Name: dmails fk_rails_c303efc12e; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.dmails
-    ADD CONSTRAINT fk_rails_c303efc12e FOREIGN KEY (owner_id) REFERENCES public.users(id);
-
-
---
 -- Name: tag_aliases fk_rails_c6bacf1da2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9345,6 +9323,8 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260914220550'),
+('20260914220451'),
 ('20260914012419'),
 ('20260913224437'),
 ('20260913183850'),
@@ -9544,6 +9524,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220106081415');
 
 INSERT INTO "fixes" (id, "index") VALUES
+(240, NULL),
 (239, NULL),
 (237, 2),
 (237, 1),

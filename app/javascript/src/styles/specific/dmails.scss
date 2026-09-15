@@ -1,6 +1,39 @@
 div#c-dmails {
-  tr[data-is-read=false]:not([data-is-owner=false]) {
+  tr[data-is-read=false][data-is-recipient=true] {
     font-weight: bold;
     background-color: var(--color-section-lighten-10);
+  }
+
+  .dmail-messages {
+    list-style: none;
+    margin: 0 0 1em;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+
+    .dmail-message {
+      border-radius: 8px;
+      padding: 0.5em 0.75em;
+      background: var(--color-section-darken-5);
+
+      // The message being shown gets its own real header/body above (title, sender/recipient
+      // list, action links) - highlighted here just so it doesn't read as identical to the
+      // read-only history leading up to it.
+      &.current {
+        background: var(--color-section);
+        border: 1px solid var(--color-table-border);
+      }
+    }
+
+    .dmail-message-meta {
+      font-size: 0.85em;
+      opacity: 0.75;
+      margin-bottom: 0.25em;
+    }
+
+    .dmail-message-body {
+      word-break: break-word;
+    }
   }
 }

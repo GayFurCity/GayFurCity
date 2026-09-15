@@ -71,7 +71,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should("send a new dmail if the status is changed") do
-        assert_difference("Dmail.count", 2) do
+        assert_difference("Dmail.count", 1) do
           put_auth(ticket_path(@ticket), @admin, params: { ticket: { status: "approved", message: "abc" } })
         end
       end
@@ -90,7 +90,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
           put_auth(ticket_path(@ticket), @admin, params: { ticket: { message: "abc" } })
         end
 
-        assert_difference("Dmail.count", 2) do
+        assert_difference("Dmail.count", 1) do
           put_auth(ticket_path(@ticket), @admin, params: { ticket: { message: "def", send_update_dmail: true } })
         end
       end
@@ -152,7 +152,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       end
 
       should("notify the reporter when staff replies") do
-        assert_difference("Dmail.count", 2) do
+        assert_difference("Dmail.count", 1) do
           post_auth(ticket_messages_path(@ticket), @admin, params: { ticket_message: { body: "looking into it" } })
         end
       end
@@ -160,7 +160,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should("notify the claimant when the reporter replies") do
         @ticket.claim!(@admin)
 
-        assert_difference("Dmail.count", 2) do
+        assert_difference("Dmail.count", 1) do
           post_auth(ticket_messages_path(@ticket), @reporter, params: { ticket_message: { body: "more info" } })
         end
       end
@@ -180,7 +180,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         mod2 = create(:moderator_user)
         @ticket.claim!(@admin)
 
-        assert_difference("Dmail.count", 4) do
+        assert_difference("Dmail.count", 2) do
           post_auth(ticket_messages_path(@ticket), mod2, params: { ticket_message: { body: "chiming in" } })
         end
       end
@@ -188,7 +188,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       should("only notify the creator when the claimant themselves replies") do
         @ticket.claim!(@admin)
 
-        assert_difference("Dmail.count", 2) do
+        assert_difference("Dmail.count", 1) do
           post_auth(ticket_messages_path(@ticket), @admin, params: { ticket_message: { body: "still looking into it" } })
         end
       end
@@ -387,7 +387,7 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
 
     context("for a dmail ticket") do
       setup do
-        @content = create(:dmail, from: @bad_actor, to: @reporter, owner: @reporter)
+        @content = create(:dmail, from: @bad_actor, to: @reporter)
       end
 
       should("disallow reporting dmails you did not recieve") do

@@ -4,7 +4,4 @@
   <%= f.input(:message_matches, label: "Message", hint: "Use * for wildcard") %>
   <%= f.user(:to) %>
   <%= f.user(:from) %>
-  <% if CurrentUser.user.is_owner? && params[:folder].blank? %>
-    <%= f.user(:owner) %>
-  <% end %>
 <% end %>

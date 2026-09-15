@@ -4,7 +4,7 @@ require("test_helper")
 
 class DmailFilterTest < ActiveSupport::TestCase
   def create_dmail(body, title)
-    Dmail.create_split!(to: @receiver, from: @sender, body: body, title: title)
+    Dmail.create!(to: @receiver, from: @sender, body: body, title: title)
   end
 
   context("A dmail filter") do
@@ -21,19 +21,19 @@ class DmailFilterTest < ActiveSupport::TestCase
       should("filter on that word in the body") do
         create_dmail("banned", "okay")
 
-        assert_predicate(@receiver.dmails.last, :is_read?)
+        assert_predicate(@receiver.received_dmails.last, :is_read?)
       end
 
       should("filter on that word in the title") do
         create_dmail("okay", "banned")
 
-        assert_predicate(@receiver.dmails.last, :is_read?)
+        assert_predicate(@receiver.received_dmails.last, :is_read?)
       end
 
       should("be case insensitive") do
         create_dmail("Banned.", "okay")
 
-        assert_predicate(@receiver.dmails.last, :is_read?)
+        assert_predicate(@receiver.received_dmails.last, :is_read?)
       end
     end
 
@@ -45,7 +45,7 @@ class DmailFilterTest < ActiveSupport::TestCase
       should("filter on the sender") do
         create_dmail("okay", "okay")
 
-        assert_predicate(@receiver.dmails.last, :is_read?)
+        assert_predicate(@receiver.received_dmails.last, :is_read?)
       end
     end
 
@@ -54,7 +54,7 @@ class DmailFilterTest < ActiveSupport::TestCase
         @receiver.create_dmail_filter(words: "foo bar spam")
         create_dmail("this is a test (not *SPAM*)", "hello world")
 
-        assert_predicate(@receiver.dmails.last, :is_read?)
+        assert_predicate(@receiver.received_dmails.last, :is_read?)
       end
     end
   end

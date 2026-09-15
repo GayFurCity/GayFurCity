@@ -3,7 +3,7 @@
 <li class="dmail-message <%= "current" if current %>">
   <div class="dmail-message-meta">
     <%= link_to_user(dmail.from) %>
-    <%= time_ago_in_words_tagged(dmail.created_at) %>
+    <%= link_to(time_ago_in_words_tagged(dmail.created_at), dmail_path(dmail)) %>
   </div>
   <div class="dmail-message-body dtext-container"><%= format_text(dmail.body) %></div>
 </li>

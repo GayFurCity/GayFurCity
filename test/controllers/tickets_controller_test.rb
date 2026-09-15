@@ -74,6 +74,10 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         assert_difference("Dmail.count", 1) do
           put_auth(ticket_path(@ticket), @admin, params: { ticket: { status: "approved", message: "abc" } })
         end
+
+        dmail = Dmail.last
+
+        assert_equal({ "type" => "ticket", "ticket_id" => @ticket.id, "ticket_message_id" => @ticket.ticket_messages.last.id }, dmail.reference_data)
       end
 
       should("add a new ticket message") do
@@ -155,6 +159,10 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
         assert_difference("Dmail.count", 1) do
           post_auth(ticket_messages_path(@ticket), @admin, params: { ticket_message: { body: "looking into it" } })
         end
+
+        dmail = Dmail.last
+
+        assert_equal({ "type" => "ticket", "ticket_id" => @ticket.id, "ticket_message_id" => @ticket.ticket_messages.last.id }, dmail.reference_data)
       end
 
       should("notify the claimant when the reporter replies") do

@@ -90,6 +90,18 @@ class DmailTest < ActiveSupport::TestCase
       end
     end
 
+    should("default reference_data to an empty hash") do
+      dmail = create(:dmail, from: @user)
+
+      assert_equal({}, dmail.reference_data)
+    end
+
+    should("store arbitrary reference_data") do
+      dmail = create(:dmail, from: @user, reference_data: { type: "ticket", ticket_id: 5 })
+
+      assert_equal({ "type" => "ticket", "ticket_id" => 5 }, dmail.reload.reference_data)
+    end
+
     should("should parse user names") do
       dmail = build(:dmail, from: @user)
       dmail.to_id = nil

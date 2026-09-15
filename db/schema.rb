@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_133535) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_15_135048) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -549,6 +549,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_133535) do
     t.boolean "is_spam", default: false, null: false
     t.string "key", default: "", null: false
     t.bigint "parent_id"
+    t.jsonb "reference_data", default: {}, null: false
     t.bigint "respond_to_id"
     t.text "title", null: false
     t.bigint "to_id", null: false

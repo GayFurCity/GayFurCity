@@ -6,6 +6,9 @@
     <li><strong>Sender</strong>: <%= link_to_user(@dmail.from) %></li>
     <li><strong>Recipient</strong>: <%= link_to_user(@dmail.to) %></li>
     <li><strong>Date</strong>: <%= compact_time(@dmail.created_at) %></li>
+    <% if dmail_reference_source(@dmail).present? %>
+      <li><strong>Source</strong>: <%= dmail_reference_source(@dmail) %></li>
+    <% end %>
     <% if policy(@dmail).can_see_ip_addr? %>
       <li><strong>Sender IP</strong>: <%= link_to_ip(@dmail.from_ip_addr) %></li>
     <% end %>

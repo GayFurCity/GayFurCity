@@ -339,11 +339,12 @@ class Ticket < ApplicationRecord
         end
       end
       Dmail.create!(
-        from:          handler,
-        to:            creator,
-        title:         title,
-        body:          msg,
-        bypass_limits: true,
+        from:           handler,
+        to:             creator,
+        title:          title,
+        body:           msg,
+        bypass_limits:  true,
+        reference_data: { type: "ticket", ticket_id: id, ticket_message_id: message&.id },
       )
     end
 
@@ -362,11 +363,12 @@ class Ticket < ApplicationRecord
       MSG
       recipients.each do |recipient|
         Dmail.create!(
-          from:          message.creator,
-          to:            recipient,
-          title:         "New reply on ticket ##{id}",
-          body:          msg,
-          bypass_limits: true,
+          from:           message.creator,
+          to:             recipient,
+          title:          "New reply on ticket ##{id}",
+          body:           msg,
+          bypass_limits:  true,
+          reference_data: { type: "ticket", ticket_id: id, ticket_message_id: message.id },
         )
       end
     end

@@ -1076,7 +1076,8 @@ CREATE TABLE public.dmails (
     is_spam boolean DEFAULT false NOT NULL,
     is_deleted_by_sender boolean DEFAULT false NOT NULL,
     is_deleted_by_recipient boolean DEFAULT false NOT NULL,
-    parent_id bigint
+    parent_id bigint,
+    reference_data jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -9339,6 +9340,7 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260915135048'),
 ('20260915133535'),
 ('20260914220550'),
 ('20260914220451'),
@@ -9541,8 +9543,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220106081415');
 
 INSERT INTO "fixes" (id, "index") VALUES
+(241, NULL),
 (240, NULL),
 (239, NULL),
+(238, NULL),
 (237, 2),
 (237, 1),
 (236, 2),

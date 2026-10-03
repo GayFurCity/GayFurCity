@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require(File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config", "environment")))
+requires_migration!("20260903112129")
 
 Post.without_timeout do
   conn = Post.connection

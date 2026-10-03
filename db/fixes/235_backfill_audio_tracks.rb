@@ -13,6 +13,7 @@
 # (including ones this same run already created) are skipped by the WHERE NOT EXISTS below.
 
 require(File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config", "environment")))
+requires_migration!("20260831140100")
 
 count = 0
 Post.without_timeout do

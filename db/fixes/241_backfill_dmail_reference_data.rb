@@ -14,6 +14,7 @@
 # status-change notice with no reply text), the dmail still gets tagged with just its ticket_id.
 
 require(File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config", "environment")))
+requires_migration!("20260915135048")
 
 ticket_link_pattern = %r{"Your ticket":#{Regexp.escape(Rails.application.routes.url_helpers.tickets_path)}/(\d+)}
 

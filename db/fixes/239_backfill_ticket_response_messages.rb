@@ -6,6 +6,7 @@
 # never kept) forward as the first TicketMessage, so it still shows up in the new chat view.
 
 require(File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config", "environment")))
+requires_migration!("20260913183850")
 
 count = 0
 Ticket.without_timeout do

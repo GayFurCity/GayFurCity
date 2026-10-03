@@ -8,6 +8,7 @@
 # created_at, rather than requiring an exact timestamp match that was never actually guaranteed.
 
 require(File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config", "environment")))
+requires_migration!("20260914220451")
 
 Dmail.without_timeout do
   merged = 0

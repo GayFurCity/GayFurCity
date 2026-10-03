@@ -112,7 +112,16 @@ gem("builder", "~> 3.3")
 
 gem("image_processing", "~> 1.14")
 
-gem("yiffspace", "~> 0.2.0")
+gem("yiffspace-arel", "~> 0.0.1")
+gem("yiffspace-auth", "~> 0.0.6")
+gem("yiffspace-config", "~> 0.0.1")
+gem("yiffspace-core", "~> 0.2.1")
+gem("yiffspace-ext", "~> 0.0.1")
+gem("yiffspace-fixers", "~> 0.0.3")
+gem("yiffspace-include", "~> 0.0.1")
+gem("yiffspace-search", "~> 0.0.1")
+gem("yiffspace-tables", "~> 0.0.2")
+gem("yiffspace-user", "~> 0.0.2")
 
 # XXX: Added to silence "loaded from standard library" warnings
 gem("benchmark", "~> 0.5.0")

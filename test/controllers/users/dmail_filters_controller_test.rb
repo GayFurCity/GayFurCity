@@ -12,7 +12,7 @@ module Users
 
       context("update action") do
         setup do
-          @dmail = create(:dmail, owner: @user1, from: @user1)
+          @dmail = create(:dmail, from: @user1)
         end
 
         should("work") do

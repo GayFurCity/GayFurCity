@@ -311,7 +311,7 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
       end
 
       should("not allow unspecified includes") do
-        create(:dmail, owner: @user)
+        create(:dmail, to: @user)
         get_auth(user_path(@user), @user, params: { only: "dmails[id]", format: :json })
 
         assert_response(:success)

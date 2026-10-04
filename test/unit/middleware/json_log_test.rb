@@ -4,26 +4,31 @@ require("test_helper")
 
 module Middleware
   class JsonLogTest < ActiveSupport::TestCase
+    # Each test gets its own log files - the real ones in log/ are shared with every other
+    # parallel worker's requests, so "the last line" there isn't necessarily ours.
     def setup
-      @request_path = Rails.root.join("log", "requests.#{Rails.env}.jsonl")
-      @performance_path = Rails.root.join("log", "performance.#{Rails.env}.jsonl")
-      @existing_request_size = File.exist?(@request_path) ? File.size(@request_path) : 0
-      @existing_performance_size = File.exist?(@performance_path) ? File.size(@performance_path) : 0
+      @dir = Dir.mktmpdir
+      @request_path = File.join(@dir, "requests.jsonl")
+      @performance_path = File.join(@dir, "performance.jsonl")
     end
 
-    def last_logged_line(path, existing_size)
-      File.open(path) do |f|
-        f.seek(existing_size)
-        f.read.lines.last
+    def teardown
+      FileUtils.remove_entry(@dir)
+    end
+
+    def build_middleware(app)
+      JsonLog.new(app).tap do |middleware|
+        middleware.instance_variable_set(:@request_path, @request_path)
+        middleware.instance_variable_set(:@performance_path, @performance_path)
       end
     end
 
     def last_request_line
-      last_logged_line(@request_path, @existing_request_size)
+      File.readlines(@request_path).last
     end
 
     def last_performance_line
-      last_logged_line(@performance_path, @existing_performance_size)
+      File.readlines(@performance_path).last
     end
 
     should("log the request summary to the requests file and queries/renders to the performance file") do
@@ -32,7 +37,7 @@ module Middleware
         ActiveSupport::Notifications.instrument("render_partial.action_view", identifier: Rails.root.join("app/views/posts/_post.html.erb").to_s)
         [200, {}, [""]]
       end
-      middleware = JsonLog.new(app)
+      middleware = build_middleware(app)
 
       middleware.call(Rack::MockRequest.env_for("/test"))
 
@@ -62,7 +67,7 @@ module Middleware
         ActiveSupport::Notifications.instrument("sql.active_record", sql: "PRAGMA foreign_keys", name: "SCHEMA", connection: ::ActiveRecord::Base.connection)
         [200, {}, [""]]
       end
-      middleware = JsonLog.new(app)
+      middleware = build_middleware(app)
 
       middleware.call(Rack::MockRequest.env_for("/test"))
 
@@ -76,7 +81,7 @@ module Middleware
         ActiveSupport::Notifications.instrument("!render_template.action_view", identifier: Rails.root.join("app/views/posts/index.html.erb").to_s)
         [200, {}, [""]]
       end
-      middleware = JsonLog.new(app)
+      middleware = build_middleware(app)
 
       middleware.call(Rack::MockRequest.env_for("/test"))
 

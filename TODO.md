@@ -26,7 +26,7 @@
 | [app/views/posts/index.html.erb](app/views/posts/index.html.erb#L28) | 28 | Fix tag array with forced -status:deleted |
 | [test/test_helpers/minitest.rb](test/test_helpers/minitest.rb#L5) | 5 | look into refactoring out minitest? |
 | [test/unit/post_test.rb](test/unit/post_test.rb#L2229) | 2229 | These don't quite make sense, what should hide deleted posts and what shouldn't? |
-| [config/config.rb](config/config.rb#L209) | 209 | appealed posts should be visible, but this makes it far too easy to get the contents of deleted posts at a moments notice |
+| [config/config.rb](config/config.rb#L222) | 222 | appealed posts should be visible, but this makes it far too easy to get the contents of deleted posts at a moments notice |
 
 ### XXXs
 | Filename | line # | XXX |

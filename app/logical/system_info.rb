@@ -9,6 +9,7 @@ class SystemInfo
     redis
     memcached
     elasticsearch
+    eris
     git
     main
     gems
@@ -123,7 +124,63 @@ class SystemInfo
     end.sort_by(&:first)
   end
 
+  def eris
+    return OpenHash.from(enabled: false) unless ErisProxy.enabled?
+    @eris ||= begin
+      conn = Faraday.new(GayFurCity.config.faraday_options)
+      status = nil
+      latency = time { status = conn.get("#{ErisProxy.endpoint}/status") }
+      raise(ErisProxy::Error, "status returned #{status.status}") unless status.success?
+      data = JSON.parse(status.body)
+      metrics = parse_metrics(conn.get("#{ErisProxy.endpoint}/metrics").body)
+      OpenHash.from(
+        enabled:          true,
+        error:            nil,
+        latency:          latency,
+        version:          data["version"],
+        ready:            data["ready"],
+        uptime:           data["uptime_seconds"],
+        images:           data["images"],
+        chunks:           data["chunks"],
+        tombstones:       data["tombstones"],
+        tombstone_ratio:  data["tombstone_ratio"],
+        index_heap_bytes: data["index_heap_bytes"],
+        cursor:           data["cursor"],
+        lag:              data["lag_seconds"],
+        bootstrap:        data["bootstrap_seconds"],
+        requests:         metrics["eris_http_requests_total"].map { |labels, value| [labels["route"], labels["status"], value.to_i] }.sort,
+        writes:           metrics["eris_writes_total"].to_h { |labels, value| [labels["op"], value.to_i] },
+        queries:          query_stats(metrics),
+      )
+    rescue Faraday::Error, ErisProxy::Error, JSON::ParserError => e
+      OpenHash.from(enabled: true, error: e.message)
+    end
+  end
+
   private
+
+  # Prometheus text format, returns { name => [[labels, value], ...] }
+  def parse_metrics(body)
+    body.each_line.with_object(Hash.new { |h, k| h[k] = [] }) do |line, metrics|
+      next if line.blank? || line.start_with?("#")
+      match = line.strip.match(/\A(\w+)(?:\{(.*)\})?\s+(\S+)\z/)
+      next unless match
+      labels = match[2].to_s.scan(/(\w+)="([^"]*)"/).to_h
+      metrics[match[1]] << [labels, match[3].to_f]
+    end
+  end
+
+  def query_stats(metrics)
+    counts = metrics["eris_query_duration_seconds_count"].to_h { |labels, value| [labels["kind"], value.to_i] }
+    sums = metrics["eris_query_duration_seconds_sum"].to_h { |labels, value| [labels["kind"], value] }
+    quantiles = metrics["eris_query_duration_seconds"].each_with_object(Hash.new { |h, k| h[k] = {} }) do |(labels, value), hash|
+      hash[labels["kind"]][labels["quantile"]] = (value * 1000).round(3)
+    end
+    counts.keys.sort.to_h do |kind|
+      avg = counts[kind] > 0 ? (sums[kind] / counts[kind] * 1000).round(3) : 0
+      [kind, { total: counts[kind], avg: avg, quantiles: quantiles[kind] }]
+    end
+  end
 
   def time(&block)
     start = Process.clock_gettime(Process::CLOCK_MONOTONIC)

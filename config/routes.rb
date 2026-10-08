@@ -329,7 +329,7 @@ Rails.application.routes.draw do
   end
   resources(:posts, only: %i[index show update destroy]) do
     resource(:recommended, only: %i[show], controller: "posts/recommendations")
-    resource(:similar, only: %i[show], controller: "posts/iqdb")
+    resource(:similar, only: %i[show], controller: "posts/eris")
     resource(:votes, controller: "posts/votes", only: %i[create destroy])
     resource(:flag, controller: "posts/flags", only: %i[destroy])
     collection do
@@ -346,11 +346,14 @@ Rails.application.routes.draw do
       resources(:disapprovals, controller: "posts/disapprovals", as: "post_disapprovals", only: %i[create index])
       resources(:events, controller: "posts/events", as: "post_events", only: :index)
       resources(:flags, controller: "posts/flags", as: "post_flags", except: %i[edit update])
-      resource(:iqdb, controller: "posts/iqdb", as: "posts_iqdb", only: %i[show]) do
+      resource(:eris, controller: "posts/eris", as: "posts_eris", only: %i[show]) do
         collection do
           post(:show)
         end
       end
+      # old iqdb paths, kept for api clients
+      get(:iqdb, controller: "posts/eris", action: :show)
+      post(:iqdb, controller: "posts/eris", action: :show)
       resource(:recommendations, controller: "posts/recommendations", as: "post_recommendations", only: %i[show])
       resources(:replacements, controller: "posts/replacements", as: "post_replacements", only: %i[index new create destroy]) do
         member do
@@ -387,7 +390,8 @@ Rails.application.routes.draw do
       end
     end
     member do
-      put(:update_iqdb)
+      put(:update_eris)
+      put(:update_iqdb, action: :update_eris)
       put(:revert)
       put(:copy_notes)
       get(:show_seq)

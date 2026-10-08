@@ -71,8 +71,8 @@ class PostTest < ActiveSupport::TestCase
         end
       end
 
-      should("remove the post from iqdb") do
-        request_stub = stub_request(:delete, "#{IqdbProxy.endpoint}/images/#{@post.id}")
+      should("remove the post from eris") do
+        request_stub = stub_request(:delete, "#{ErisProxy.endpoint}/images/#{@post.id}")
         with_inline_jobs { @post.expunge!(@user) }
 
         assert_requested(request_stub)

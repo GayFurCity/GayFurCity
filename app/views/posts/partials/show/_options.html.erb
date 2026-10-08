@@ -49,8 +49,8 @@
     <% if policy(post).ai_check? %>
       <%= li_link_to("Check for AI", ai_check_post_path(post), method: :put) %>
     <% end %>
-    <% if IqdbProxy.enabled? && policy(post).update_iqdb? %>
-      <li><%= link_to("Update IQDB", update_iqdb_post_path(post), method: :put) %></li>
+    <% if ErisProxy.enabled? && policy(post).update_eris? %>
+      <li><%= link_to("Update Eris", update_eris_post_path(post), method: :put) %></li>
     <% end %>
     <% if policy(post).expunge? %>
       <li><%= tag.a("Destroy", "href": "#", "id": "destroy-post-link", "data-pid": post.id) %></li>

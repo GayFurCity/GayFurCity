@@ -20,7 +20,7 @@ class ServiceStatusChecker
       "Redis"         => method(:check_redis),
       "Elasticsearch" => method(:check_elasticsearch),
       "Memcached"     => method(:check_memcached),
-      "IQDB"          => (method(:check_iqdb) if IqdbProxy.enabled?),
+      "Eris"          => (method(:check_eris) if ErisProxy.enabled?),
       "Recommender"   => (method(:check_recommender) if Recommender.enabled?),
       "Reports"       => (method(:check_reports) if GayFurCity.config.reports.enabled?),
       "ClickHouse"    => (method(:check_clickhouse) if GayFurCity.config.clickhouse_url.present?),
@@ -68,10 +68,10 @@ class ServiceStatusChecker
   end
   private_class_method(:check_elasticsearch)
 
-  def self.check_iqdb
-    http_get("#{GayFurCity.config.iqdb_server}/status")
+  def self.check_eris
+    http_get("#{GayFurCity.config.eris_server}/status")
   end
-  private_class_method(:check_iqdb)
+  private_class_method(:check_eris)
 
   def self.check_recommender
     http_get("#{GayFurCity.config.recommender_server}/info")

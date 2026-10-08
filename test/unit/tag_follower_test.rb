@@ -12,7 +12,7 @@ class TagFollowerTest < ActiveSupport::TestCase
 
     context("posts") do
       setup do
-        IqdbProxy.stubs(:enabled?).returns(false)
+        ErisProxy.stubs(:enabled?).returns(false)
       end
 
       should("alert followers when a new post is uploaded") do

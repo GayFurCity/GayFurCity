@@ -1380,7 +1380,7 @@ components:
         updated_at:
           type: string
           format: date-time
-    IQDBResponse:
+    ErisResponse:
       type: object
       required:
         - hash
@@ -9909,9 +9909,9 @@ paths:
           $ref: "#/components/responses/NotFound"
         422:
           $ref: "#/components/responses/ExpectedError"
-  /posts/{id}/update_iqdb.json:
+  /posts/{id}/update_eris.json:
     put:
-      summary: Update Post IQDB
+      summary: Update Post Eris
       tags:
         - Posts
       security:
@@ -10869,12 +10869,12 @@ paths:
                 $ref: "#/components/schemas/PostFlag"
         404:
           $ref: "#/components/responses/NotFound"
-  # IQDB
-  /posts/iqdb.json:
+  # Eris
+  /posts/eris.json:
     get:
-      summary: Query IQDB
+      summary: Query Eris
       tags:
-        - IQDB
+        - Eris
       parameters:
         - name: search[score_cutoff]
           in: query
@@ -10900,13 +10900,13 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/IQDBResponse"
+                  $ref: "#/components/schemas/ErisResponse"
         403:
           $ref: "#/components/responses/AccessDenied"
     post:
-      summary: Query IQDB
+      summary: Query Eris
       tags:
-        - IQDB
+        - Eris
       requestBody:
         content:
           multipart/form-data:
@@ -10943,7 +10943,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/IQDBResponse"
+                  $ref: "#/components/schemas/ErisResponse"
         403:
           $ref: "#/components/responses/AccessDenied"
   # Post Recommendations

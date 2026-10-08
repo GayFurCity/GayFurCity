@@ -6,7 +6,7 @@
     <%= li_link_to_if(policy(Upload).index?, "Upload Listing", uploads_path) %>
     <%= li_link_to("Popular Uploads", uploads_popular_index_path) %>
     <%= li_link_to("Most Viewed", views_popular_index_path) %>
-    <%= li_link_to("Similar Images Search", posts_iqdb_path) %>
+    <%= li_link_to("Similar Images Search", posts_eris_path) %>
     <%= li_link_to_if(policy(PostDisapproval).index?, "Disapprovals", post_disapprovals_path) %>
     <%= li_link_to_if(policy(PostDeletionReason).index?, "Post Deletion Reasons", post_deletion_reasons_path) %>
     <%= li_link_to_if(policy(PostReplacementRejectionReason).index?, "Post Replacement Rejection Reasons", post_replacement_rejection_reasons_path) %>

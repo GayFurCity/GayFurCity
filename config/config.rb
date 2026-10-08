@@ -75,7 +75,7 @@ module GayFurCity
 
     config(:memcached_servers, :array) { [] }
     config(:recommender_server) { nil }
-    config(:iqdb_server) { nil }
+    config(:eris_server) { nil }
     config(:autocompleted_server) { nil }
     config(:elasticsearch_host, required: true) { required!(:elasticsearch_host) }
     config(:redis_url, required: true) { required!(:redis_url) }

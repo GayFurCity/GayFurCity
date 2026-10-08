@@ -80,8 +80,8 @@ class Post < ApplicationRecord
   after_commit(:update_pool_artists)
   after_commit(:update_tag_followers, on: %i[create update], if: :should_update_followers?)
   after_commit(:delete_files, on: :destroy)
-  after_commit(:remove_iqdb_async, on: :destroy)
-  after_commit(:update_iqdb_async, on: :create)
+  after_commit(:remove_eris_async, on: :destroy)
+  after_commit(:update_eris_async, on: :create)
 
   belongs_to_user(:uploader, ip: true, clones: :updater, aliases: %i[creator], counter_cache: "post_count") # TODO: convert to creator?
   belongs_to_user(:updater, ip: true)
@@ -2210,25 +2210,25 @@ class Post < ApplicationRecord
     end
   end
 
-  module IqdbMethods
+  module ErisMethods
     extend(ActiveSupport::Concern)
 
     module ClassMethods
-      def remove_iqdb(post_id)
-        if IqdbProxy.enabled?
-          IqdbRemoveJob.perform_later(post_id)
+      def remove_eris(post_id)
+        if ErisProxy.enabled?
+          ErisRemoveJob.perform_later(post_id)
         end
       end
     end
 
-    def update_iqdb_async
-      if IqdbProxy.enabled? && has_preview?
-        IqdbUpdateJob.perform_later(id)
+    def update_eris_async
+      if ErisProxy.enabled? && has_preview?
+        ErisUpdateJob.perform_later(id)
       end
     end
 
-    def remove_iqdb_async
-      Post.remove_iqdb(id)
+    def remove_eris_async
+      Post.remove_eris(id)
     end
   end
 
@@ -2415,7 +2415,7 @@ class Post < ApplicationRecord
   include(VersionMethods)
   include(NoteMethods)
   include(ApiMethods)
-  include(IqdbMethods)
+  include(ErisMethods)
   include(ValidationMethods)
   include(PostEventMethods)
   include(DocumentStore::Model)

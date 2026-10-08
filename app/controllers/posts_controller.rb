@@ -137,9 +137,9 @@ class PostsController < ApplicationController
     respond_with_post_after_update(@post)
   end
 
-  def update_iqdb
+  def update_eris
     @post = authorize(Post.find(params[:id]))
-    @post.update_iqdb_async
+    @post.update_eris_async
     respond_with_post_after_update(@post)
   end
 

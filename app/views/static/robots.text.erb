@@ -37,7 +37,8 @@ Disallow: <%= post_deletion_reasons_path %>
 Disallow: <%= post_disapprovals_path %>
 Disallow: <%= post_events_path %>
 Disallow: <%= post_flags_path %>
-Disallow: <%= posts_iqdb_path %>
+Disallow: <%= posts_eris_path %>
+Disallow: <%= iqdb_posts_path %>
 Disallow: <%= post_recommendations_path %>
 Disallow: <%= post_replacements_path %>
 Disallow: <%= post_versions_path %>
@@ -58,7 +59,7 @@ Disallow: <%= post_votes_path(post_id: "*") %>
 Disallow: <%= post_flag_path(post_id: "*") %>
 Disallow: <%= move_favorites_post_path(id: "*") %>
 Disallow: <%= comments_post_path(id: "*") %>
-<% %w[update_iqdb revert copy_notes show_seq mark_as_translated favorites expunge delete undelete regenerate_thumbnails regenerate_videos regenerate_audio_track add_to_pool remove_from_pool].each do |action| %>
+<% %w[update_eris revert copy_notes show_seq mark_as_translated favorites expunge delete undelete regenerate_thumbnails regenerate_videos regenerate_audio_track add_to_pool remove_from_pool].each do |action| %>
 Disallow: <%= url_for(controller: "posts", action: action, id: "*") %>
 <% end %>
 Disallow: /popular

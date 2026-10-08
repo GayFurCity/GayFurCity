@@ -9543,6 +9543,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220106081415');
 
 INSERT INTO "fixes" (id, "index") VALUES
+(243, NULL),
+(242, NULL),
 (241, NULL),
 (240, NULL),
 (239, NULL),

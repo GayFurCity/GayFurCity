@@ -2,7 +2,7 @@
   <%= subnav_link_to("Listing", uploads_path) %>
   <%= subnav_link_to_if(policy(Post).uploaders?, "Uploaders List", uploaders_posts_path) %>
   <%= subnav_link_to_if(policy(Upload).create?, "New", new_upload_path) %>
-  <%= subnav_link_to("Similar Images Search", posts_iqdb_path) %>
+  <%= subnav_link_to("Similar Images Search", posts_eris_path) %>
   <%= subnav_link_to("Help", help_page_path(id: "uploading")) %>
 <% end %>
 <%= latest_link(@uploads) %>

@@ -3,10 +3,10 @@
 require("test_helper")
 
 module Posts
-  class IqdbControllerTest < ActionDispatch::IntegrationTest
-    context("The iqdb controller") do
+  class ErisControllerTest < ActionDispatch::IntegrationTest
+    context("The eris controller") do
       setup do
-        IqdbProxy.stubs(:endpoint).returns("http://iqdb:5588")
+        ErisProxy.stubs(:endpoint).returns("http://eris:5588")
         @user = create(:user)
         @posts = create_list(:post, 2, uploader: @user)
       end
@@ -25,8 +25,8 @@ module Posts
           end
 
           should("render a response") do
-            IqdbProxy.expects(:query_url).with(@user, @url, nil).returns(@mocked_response)
-            get_auth(posts_iqdb_path, @user, params: @params)
+            ErisProxy.expects(:query_url).with(@user, @url, nil).returns(@mocked_response)
+            get_auth(posts_eris_path, @user, params: @params)
 
             assert_select("#post_#{@posts[0].id}")
           end
@@ -43,9 +43,9 @@ module Posts
             }]
           end
 
-          should("redirect to iqdb") do
-            IqdbProxy.expects(:query_post).with(@posts[0], nil).returns(@mocked_response)
-            get_auth(posts_iqdb_path, @user, params: @params)
+          should("redirect to eris") do
+            ErisProxy.expects(:query_post).with(@posts[0], nil).returns(@mocked_response)
+            get_auth(posts_eris_path, @user, params: @params)
 
             assert_select("#post_#{@posts[0].id}")
           end
@@ -58,7 +58,7 @@ module Posts
           end
 
           should("render with matches") do
-            get_auth(posts_iqdb_path, @user, params: @params)
+            get_auth(posts_eris_path, @user, params: @params)
 
             assert_response(:success)
           end
@@ -66,7 +66,7 @@ module Posts
 
         context("access control") do
           asserts do
-            access.gte(User::Levels::ANONYMOUS).get(posts_iqdb_path)
+            access.gte(User::Levels::ANONYMOUS).get(posts_eris_path)
           end
         end
       end

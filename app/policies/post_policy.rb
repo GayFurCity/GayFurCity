@@ -13,7 +13,7 @@ class PostPolicy < ApplicationPolicy
     member? && min_level?
   end
 
-  def update_iqdb?
+  def update_eris?
     user.is_admin?
   end
 

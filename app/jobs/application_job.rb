@@ -19,7 +19,7 @@ class ApplicationJob < ActiveJob::Base
 
   # GoodJob orders jobs by `priority ASC NULLS LAST` (lower number = runs first), unlike Sidekiq's
   # weighted-queue random selection. This approximates the old queue weights
-  # (low/variants/iqdb/followers: 1, tags: 2, default: 3, high: 5) as a fixed priority ordering.
+  # (low/variants/eris/followers: 1, tags: 2, default: 3, high: 5) as a fixed priority ordering.
   QUEUE_PRIORITIES = { high: -20, default: 0, tags: 10 }.freeze
 
   before_enqueue do |job|

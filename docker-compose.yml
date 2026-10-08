@@ -6,7 +6,7 @@ x-environment: &common-env
   GAYFURCITY_REDIS_URL: redis://redis/0
   GAYFURCITY_ELASTICSEARCH_HOST: elasticsearch
   GAYFURCITY_MEMCACHED_SERVERS: memcached
-  GAYFURCITY_IQDB_SERVER: http://eris:5588
+  GAYFURCITY_ERIS_SERVER: http://eris:5588
   GAYFURCITY_RECOMMENDER_SERVER: http://recommender:5000
   GAYFURCITY_AUTOCOMPLETED_SERVER: http://autocompleted:8118
   # Must be externally accessible

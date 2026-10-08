@@ -268,6 +268,106 @@
       </td>
     </tr>
   </tbody>
+  <% if @info.eris.enabled %>
+    <thead>
+      <tr>
+        <% if @info.eris.error || !@info.eris.ready %>
+          <th colspan="3" style="text-align: center; background-color: #8d6e20">Eris</th>
+        <% else %>
+          <th colspan="3" style="text-align: center">Eris</th>
+        <% end %>
+      </tr>
+      <tr>
+        <th>Data</th>
+        <th colspan="2">Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if @info.eris.error %>
+        <tr>
+          <td>Error</td>
+          <td colspan="2"><code><%= @info.eris.error %></code></td>
+        </tr>
+      <% else %>
+        <tr>
+          <td>Version</td>
+          <td colspan="2"><%= @info.eris.version %></td>
+        </tr>
+        <tr>
+          <td>Ready</td>
+          <td colspan="2"><%= @info.eris.ready ? "Yes" : "No" %></td>
+        </tr>
+        <tr>
+          <td>Latency</td>
+          <td colspan="2"><%= @info.eris.latency %>ms</td>
+        </tr>
+        <tr>
+          <td>Uptime</td>
+          <td colspan="2"><%= ActiveSupport::Duration.build(@info.eris.uptime.to_i).inspect %></td>
+        </tr>
+        <tr>
+          <td>Bootstrap Time</td>
+          <td colspan="2"><%= (@info.eris.bootstrap.to_f * 1000).round(2) %>ms</td>
+        </tr>
+        <tr>
+          <td>Images</td>
+          <td colspan="2"><%= number_with_delimiter(@info.eris.images) %></td>
+        </tr>
+        <tr>
+          <td>Chunks</td>
+          <td colspan="2"><%= number_with_delimiter(@info.eris.chunks) %></td>
+        </tr>
+        <tr>
+          <td>Tombstones</td>
+          <td colspan="2"><%= number_with_delimiter(@info.eris.tombstones) %> (<%= number_to_percentage(@info.eris.tombstone_ratio.to_f * 100, precision: 2) %>)</td>
+        </tr>
+        <tr>
+          <td>Heap Size</td>
+          <td colspan="2"><%= number_to_human_size(@info.eris.index_heap_bytes) %></td>
+        </tr>
+        <tr>
+          <td>Feed</td>
+          <td colspan="2">Cursor <%= @info.eris.cursor %>, <%= @info.eris.lag %>s lag</td>
+        </tr>
+        <tr>
+          <td>Writes</td>
+          <td colspan="2">
+            <% @info.eris.writes.each do |op, count| %>
+              <dl>
+                <dt><%= op %></dt>
+                <dd><%= number_with_delimiter(count) %></dd>
+              </dl>
+            <% end %>
+          </td>
+        </tr>
+        <tr>
+          <td>Queries</td>
+          <td colspan="2">
+            <% @info.eris.queries.each do |kind, stats| %>
+              <dl>
+                <dt><%= kind %></dt>
+                <dd>
+                  <%= number_with_delimiter(stats.total) %> <%= "query".pluralize(stats.total) %>, avg <%= stats.avg %>ms
+                  (<%= stats.quantiles.map { |quantile, value| "p#{(quantile.to_f * 100).to_s.delete_suffix('.0')} #{value}ms" }.join(", ") %>)
+                </dd>
+              </dl>
+            <% end %>
+          </td>
+        </tr>
+        <tr>
+          <td>Requests</td>
+          <td colspan="2">
+            <% @info.eris.requests.each do |route, status, count| %>
+              <dl>
+                <dt><%= route %> (<%= status %>)</dt>
+                <dd><%= number_with_delimiter(count) %></dd>
+              </dl>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  <% end %>
   <thead>
     <tr>
       <th colspan="3" style="text-align: center">Git (Local)</th>

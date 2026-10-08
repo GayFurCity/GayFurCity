@@ -35,8 +35,8 @@
       <h1>Related</h1>
       <ul>
         <li><%= link_to("Sets with this post", post_sets_path(search: { post_id: @post.id }), rel: "nofollow") %></li>
-        <% if IqdbProxy.enabled? && @post.has_preview? %>
-          <li><%= link_to("Visually similar", posts_iqdb_path(search: { post_id: @post.id }), rel: "nofollow") %></li>
+        <% if ErisProxy.enabled? && @post.has_preview? %>
+          <li><%= link_to("Visually similar", posts_eris_path(search: { post_id: @post.id }), rel: "nofollow") %></li>
           <li><%= link_to("Recommendations", post_recommendations_path(search: { post_id: @post.id }), rel: "nofollow") %></li>
         <% end %>
         <% if @post.visible?(CurrentUser.user) && @post.is_image? %>

@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-module IqdbProxy
+module ErisProxy
   class Error < StandardError; end
 
-  IQDB_NUM_PIXELS = 128
+  ERIS_NUM_PIXELS = 128
 
   module_function
 
   def endpoint
-    GayFurCity.config.iqdb_server
+    GayFurCity.config.eris_server
   end
 
   def enabled?
@@ -32,12 +32,12 @@ module IqdbProxy
     raise(Error, "failed to generate thumb for #{post.id}") unless thumb
 
     response = make_request("/images/#{post.id}", :post, get_channels_data(thumb))
-    raise(Error, "iqdb request failed") if response.status != 200
+    raise(Error, "eris request failed") if response.status != 200
   end
 
   def remove_post(post_id)
     response = make_request("/images/#{post_id}", :delete)
-    raise(Error, "iqdb request failed") if response.status != 200
+    raise(Error, "eris request failed") if response.status != 200
   end
 
   def query_url(user, image_url, score_cutoff)
@@ -60,17 +60,17 @@ module IqdbProxy
     response = make_request("/query", :post, get_channels_data(thumb))
     return [] if response.status != 200
 
-    process_iqdb_result(JSON.parse(response.body), score_cutoff)
+    process_eris_result(JSON.parse(response.body), score_cutoff)
   end
 
   def query_hash(hash, score_cutoff)
     response = make_request("/query", :post, { hash: hash })
     return [] if response.status != 200
 
-    process_iqdb_result(JSON.parse(response.body), score_cutoff)
+    process_eris_result(JSON.parse(response.body), score_cutoff)
   end
 
-  def process_iqdb_result(json, score_cutoff)
+  def process_eris_result(json, score_cutoff)
     raise(Error, "Server returned an error. Most likely the url is not found.") unless json.is_a?(Array)
 
     json.filter! { |entry| (entry["score"] || 0) >= (score_cutoff.presence || 60).to_i }
@@ -83,9 +83,9 @@ module IqdbProxy
   end
 
   def generate_thumbnail(file_path)
-    Vips::Image.thumbnail(file_path, IQDB_NUM_PIXELS, height: IQDB_NUM_PIXELS, size: :force)
+    Vips::Image.thumbnail(file_path, ERIS_NUM_PIXELS, height: ERIS_NUM_PIXELS, size: :force)
   rescue Vips::Error => e
-    ExceptionLog.add!(e, source: "IqdbProxy#generate_thumbnail")
+    ExceptionLog.add!(e, source: "ErisProxy#generate_thumbnail")
     Rails.logger.error("failed to generate thumbnail for #{file_path}")
     Rails.logger.error(e)
     nil

@@ -22,6 +22,7 @@ class DbExportJobTest < ActiveSupport::TestCase
     context("when enabled") do
       setup do
         AdminConfig.any_instance.stubs(:db_exports_enabled).returns(true)
+        GayFurCity.config.stubs(:eris_database_url).returns(nil)
       end
 
       should("record a DbExport row for each configured export") do
@@ -61,9 +62,9 @@ class DbExportJobTest < ActiveSupport::TestCase
         # result - reopen the method directly instead, so every export but posts still runs through
         # the real implementation, and restore it afterwards regardless of outcome.
         original_write_csv_gz = DbExportJob.instance_method(:write_csv_gz)
-        DbExportJob.send(:define_method, :write_csv_gz) do |query, file|
+        DbExportJob.send(:define_method, :write_csv_gz) do |conn, query, file|
           raise(StandardError, "boom") if query.include?("public.posts")
-          original_write_csv_gz.bind(self).call(query, file)
+          original_write_csv_gz.bind(self).call(conn, query, file)
         end
 
         begin
@@ -81,6 +82,31 @@ class DbExportJobTest < ActiveSupport::TestCase
         DbExportJob.perform_now
 
         assert_includes(read_export("tags"), "test_export_tag")
+      end
+
+      context("with eris exports") do
+        setup do
+          # eris' database doesn't exist in tests, so point it at the test database instead
+          config = ActiveRecord::Base.connection_db_config.configuration_hash
+          GayFurCity.config.stubs(:eris_database_url).returns("postgres://#{config[:username]}@#{config[:host]}/#{config[:database]}")
+          DbExportJob.any_instance.stubs(:eris_exports).returns({ "eris_test" => "SELECT 1 AS one" })
+        end
+
+        should("export from the eris database") do
+          DbExportJob.perform_now
+
+          assert_equal({ "one" => "integer" }, DbExport.find_by(name: "eris_test").columns)
+          assert_includes(read_export("eris_test"), "one")
+        end
+
+        should("skip eris exports when the eris database is unreachable") do
+          GayFurCity.config.stubs(:eris_database_url).returns("postgres://nobody@127.0.0.1:1/eris")
+
+          assert_difference(-> { DbExport.count }, DbExportJob::EXPORTS.size) do
+            DbExportJob.perform_now
+          end
+          assert_not(DbExport.exists?(name: "eris_test"))
+        end
       end
 
       should("export pool data") do

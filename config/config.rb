@@ -76,6 +76,19 @@ module GayFurCity
     config(:memcached_servers, :array) { [] }
     config(:recommender_server) { nil }
     config(:eris_server) { nil }
+    # Bearer token for eris, must match its ERIS_TOKEN
+    config(:eris_token) { nil }
+    # Only used for the eris database export
+    config(:eris_database_url) { nil }
+    config(:eris_read_timeout, :integer) { 5 }
+    config(:eris_max_concurrent_queries, :integer) { 20 }
+    # Searches are paused for eris_circuit_cooldown seconds after eris_circuit_failure_threshold
+    # errors within eris_circuit_failure_window seconds, and anonymous users are locked out for
+    # eris_anon_lockdown_duration seconds
+    config(:eris_circuit_failure_threshold, :integer) { 10 }
+    config(:eris_circuit_failure_window, :integer) { 60 }
+    config(:eris_circuit_cooldown, :integer) { 30 }
+    config(:eris_anon_lockdown_duration, :integer) { 3600 }
     config(:autocompleted_server) { nil }
     config(:elasticsearch_host, required: true) { required!(:elasticsearch_host) }
     config(:redis_url, required: true) { required!(:redis_url) }

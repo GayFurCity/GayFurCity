@@ -7,6 +7,7 @@ x-environment: &common-env
   GAYFURCITY_ELASTICSEARCH_HOST: elasticsearch
   GAYFURCITY_MEMCACHED_SERVERS: memcached
   GAYFURCITY_ERIS_SERVER: http://eris:5588
+  GAYFURCITY_ERIS_DATABASE_URL: postgres://gayfurcity@postgres:5432/eris
   GAYFURCITY_RECOMMENDER_SERVER: http://recommender:5000
   GAYFURCITY_AUTOCOMPLETED_SERVER: http://autocompleted:8118
   # Must be externally accessible

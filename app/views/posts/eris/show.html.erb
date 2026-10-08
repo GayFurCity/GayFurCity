@@ -6,8 +6,12 @@
   <%= f.input(:score_cutoff, label: "Similarity", default: 60) %>
 <% end %>
 
+<% if @error %>
+  <p><span class="error"><%= @error %></span></p>
+<% end %>
+
 <%= render("posts/partials/common/inline_blacklist") %>
-<%= render("posts/eris/matches") %>
+<%= render("posts/eris/matches") unless @error %>
 
 <% content_for(:page_title) do %>
   Similar Images Search

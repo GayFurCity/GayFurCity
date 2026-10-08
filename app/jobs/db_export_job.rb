@@ -7,6 +7,11 @@ class DbExportJob < ApplicationJob
     [File.basename(path, ".sql"), File.read(path)]
   end.freeze
 
+  # These are read from eris' database instead of ours
+  ERIS_EXPORTS = Rails.root.glob("db/export/eris/*.sql").to_h do |path|
+    ["eris_#{File.basename(path, '.sql')}", File.read(path)]
+  end.freeze
+
   def perform
     return unless AdminConfig.db_exports_enabled?
 
@@ -14,20 +19,39 @@ class DbExportJob < ApplicationJob
     EXPORTS.each do |name, query|
       generate_export(name, query, date)
     end
+    generate_eris_exports(date)
 
     DbExport.prune_expired!
   end
 
   private
 
-  def generate_export(name, query, date)
+  def generate_eris_exports(date)
+    return if GayFurCity.config.eris_database_url.blank? || eris_exports.empty?
+
+    conn = PG.connect(GayFurCity.config.eris_database_url)
+    eris_exports.each do |name, query|
+      generate_export(name, query, date, conn)
+    end
+  rescue PG::Error => e
+    Rails.logger.error("DbExportJob: Failed to connect to the eris database: #{e.message}")
+  ensure
+    conn&.close
+  end
+
+  def eris_exports
+    ERIS_EXPORTS
+  end
+
+  def generate_export(name, query, date, conn = nil)
     Rails.logger.info("DbExportJob: Generating #{name} export")
+    conn ||= ActiveRecord::Base.connection.raw_connection
 
     export = DbExport.find_or_initialize_by(name: name, date: date)
-    columns = export_columns(query)
+    columns = export_columns(conn, query)
 
     file = Tempfile.new(["#{name}-export", ".csv.gz"], binmode: true)
-    write_csv_gz(query, file)
+    write_csv_gz(conn, query, file)
     file.rewind
 
     checksum = Digest::SHA256.file(file.path).hexdigest
@@ -42,8 +66,7 @@ class DbExportJob < ApplicationJob
     file&.close!
   end
 
-  def export_columns(query)
-    conn = ActiveRecord::Base.connection.raw_connection
+  def export_columns(conn, query)
     result = conn.exec("SELECT * FROM (#{query}) db_export_columns LIMIT 0")
     oids = result.nfields.times.map { |i| result.ftype(i) }
     type_names = resolve_type_names(conn, oids)
@@ -61,9 +84,8 @@ class DbExportJob < ApplicationJob
     types&.clear
   end
 
-  def write_csv_gz(query, file)
+  def write_csv_gz(conn, query, file)
     gz = Zlib::GzipWriter.new(file)
-    conn = ActiveRecord::Base.connection.raw_connection
     conn.exec("SET statement_timeout = 0")
     conn.copy_data("COPY (#{query}) TO STDOUT WITH CSV HEADER") do
       while (row = conn.get_copy_data)

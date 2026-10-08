@@ -29,13 +29,13 @@ module Downloads
       end
     end
 
-    def download!(max_size: nil)
+    def download!(max_size: nil, retries: 3)
       # default arguments are evaluated when the method is defined
       max_size ||= AdminConfig.instance.max_file_size * 1.megabyte
       file = Tempfile.new(binmode: true)
       conn = Faraday.new(GayFurCity.config.faraday_options) do |f|
         f.response(:follow_redirects, callback: ->(_old_env, new_env) { validate_uri_allowed!(new_env.url) })
-        f.request(:retry, max: 3, retry_block: ->(*) { file = Tempfile.new(binmode: true) })
+        f.request(:retry, max: retries, retry_block: ->(*) { file = Tempfile.new(binmode: true) })
       end
 
       res = conn.get(uncached_url, nil, strategy.headers) do |req|

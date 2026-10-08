@@ -10903,6 +10903,14 @@ paths:
                   $ref: "#/components/schemas/ErisResponse"
         403:
           $ref: "#/components/responses/AccessDenied"
+        400:
+          $ref: "#/components/responses/MessageError"
+        422:
+          $ref: "#/components/responses/MessageError"
+        429:
+          $ref: "#/components/responses/MessageError"
+        503:
+          $ref: "#/components/responses/MessageError"
     post:
       summary: Query Eris
       tags:
@@ -10946,6 +10954,14 @@ paths:
                   $ref: "#/components/schemas/ErisResponse"
         403:
           $ref: "#/components/responses/AccessDenied"
+        400:
+          $ref: "#/components/responses/MessageError"
+        422:
+          $ref: "#/components/responses/MessageError"
+        429:
+          $ref: "#/components/responses/MessageError"
+        503:
+          $ref: "#/components/responses/MessageError"
   # Post Recommendations
   /posts/recommendations.json:
     get:

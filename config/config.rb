@@ -50,6 +50,7 @@ module GayFurCity
     config(:replacement_path_prefix) { "replacements/" }
     config(:mascot_path_prefix) { "mascots/" }
     config(:audio_track_path_prefix) { "audio_tracks/" }
+    config(:site_asset_path_prefix) { "site/" }
 
     config(:protected_file_secret, required: true) { required!(:protected_file_secret) }
     config(:replacement_file_secret, required: true) { required!(:replacement_file_secret) }
@@ -409,7 +410,7 @@ module GayFurCity
       variant = variant.to_s
       next :none if variant == "original"
       next :path if %w[720p 480p crop preview large].include?(variant)
-      next :file if %w[thumb].include?(variant)
+      next :file if %w[thumb ico].include?(variant) || variant.start_with?("png_")
       # return :file if %w[720p 480p].include?(variant)
       # return :path if %w[crop preview large].include?(variant)
       Rails.logger.warn("[variant_location]: Unknown variant #{variant}")

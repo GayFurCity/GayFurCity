@@ -24,7 +24,7 @@ Rails.application.configure do
     policy.font_src(:self)
     policy.img_src(:self, :data, :blob, GayFurCity.config.cdn_domain)
     policy.child_src(:none)
-    policy.form_action(:self, "discord.gayfur.city", "discord.com")
+    policy.form_action(:self, *[GayFurCity.config.discord_site, "discord.com"].compact_blank)
     # Specify URI for violation reports
     # policy.report_uri "/csp-violation-report-endpoint"
   end

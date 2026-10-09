@@ -67,6 +67,9 @@ x-constants:
     - set_change_visibility
     - set_delete
     - set_update
+    - site_asset_create
+    - site_asset_delete
+    - site_asset_update
     - tag_alias_create
     - tag_alias_update
     - tag_implication_create
@@ -132,6 +135,7 @@ x-constants:
     - QuickRule
     - RuleCategory
     - Rule
+    - SiteAsset
     - TagAlias
     - TagImplication
     - Takedown
@@ -1559,7 +1563,7 @@ components:
         name:
           type: string
           description: |
-            Valid for: `help_create`, `help_delete`, `help_update`, `rule_create`, `rule_delete`, `rule_update`, `rule_category_create`, `rule_category_delete`, `rule_category_update`
+            Valid for: `help_create`, `help_delete`, `help_update`, `site_asset_create`, `site_asset_delete`, `site_asset_update`, `rule_create`, `rule_delete`, `rule_update`, `rule_category_create`, `rule_category_delete`, `rule_category_update`
         total:
           type: number
           description: |

@@ -37,7 +37,7 @@ module MediaAssets
     end
 
     def asset_child_class
-      asset_class.name.gsub("MediaAsset", "").constantize
+      asset_class.model
     end
   end
 end

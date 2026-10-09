@@ -114,6 +114,9 @@ struct DTextOptions {
   // Links to this domain are considered internal URLs, rather than external URLs (used so links to https://danbooru.donmai.us don't get marked as external).
   std::string domain;
 
+  // If set, issue/pull/commit #N link to this GitHub repo, otherwise they're left as plain text.
+  std::string github_url;
+
   // The maximum amount of thumbnails to render.
   int max_thumbs;
 

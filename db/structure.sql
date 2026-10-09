@@ -270,7 +270,9 @@ CREATE TABLE public.admin_config (
     artist_tag_placeholder character varying DEFAULT 'artist_name, unknown_artist, anonymous_artist etc.'::character varying NOT NULL,
     character_tag_placeholder character varying DEFAULT 'character_name solo_focus 1_male 2_females etc.'::character varying NOT NULL,
     species_tag_placeholder character varying DEFAULT 'bear dragon hyena rat newt etc.'::character varying NOT NULL,
-    content_tag_placeholder character varying DEFAULT 'cub scatplay watersports diaper my_little_pony vore rape hyper etc.'::character varying NOT NULL
+    content_tag_placeholder character varying DEFAULT 'cub scatplay watersports diaper my_little_pony vore rape hyper etc.'::character varying NOT NULL,
+    site_icon_size jsonb DEFAULT '{"max": 10000, "min": 512}'::jsonb NOT NULL,
+    max_site_asset_file_sizes jsonb DEFAULT '{"jpg": 10240, "png": 10240, "webp": 10240}'::jsonb NOT NULL
 );
 
 
@@ -2948,6 +2950,93 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: site_assets; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.site_assets (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    site_media_asset_id bigint NOT NULL,
+    creator_id bigint NOT NULL,
+    creator_ip_addr inet NOT NULL,
+    updater_id bigint NOT NULL,
+    updater_ip_addr inet NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: site_assets_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.site_assets_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: site_assets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.site_assets_id_seq OWNED BY public.site_assets.id;
+
+
+--
+-- Name: site_media_assets; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.site_media_assets (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    creator_id bigint NOT NULL,
+    media_metadata_id bigint NOT NULL,
+    creator_ip_addr inet NOT NULL,
+    checksum character varying(32),
+    md5 character varying(32),
+    file_ext character varying(4),
+    is_animated_png boolean,
+    is_animated_gif boolean,
+    is_animated_webp boolean,
+    file_size integer,
+    image_width integer,
+    image_height integer,
+    duration numeric,
+    framecount integer,
+    pixel_hash character varying(32),
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    status_message character varying,
+    last_chunk_id integer DEFAULT 0 NOT NULL,
+    generated_variants jsonb DEFAULT '[]'::jsonb NOT NULL,
+    variants_data jsonb DEFAULT '[]'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: site_media_assets_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.site_media_assets_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: site_media_assets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.site_media_assets_id_seq OWNED BY public.site_media_assets.id;
+
+
+--
 -- Name: staff_audit_logs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4404,6 +4493,20 @@ ALTER TABLE ONLY public.rules ALTER COLUMN id SET DEFAULT nextval('public.rules_
 
 
 --
+-- Name: site_assets id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_assets ALTER COLUMN id SET DEFAULT nextval('public.site_assets_id_seq'::regclass);
+
+
+--
+-- Name: site_media_assets id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_media_assets ALTER COLUMN id SET DEFAULT nextval('public.site_media_assets_id_seq'::regclass);
+
+
+--
 -- Name: staff_audit_logs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -5154,6 +5257,22 @@ ALTER TABLE ONLY public.rules
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: site_assets site_assets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_assets
+    ADD CONSTRAINT site_assets_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: site_media_assets site_media_assets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_media_assets
+    ADD CONSTRAINT site_media_assets_pkey PRIMARY KEY (id);
 
 
 --
@@ -7185,6 +7304,69 @@ CREATE INDEX index_rules_on_updater_id ON public.rules USING btree (updater_id);
 
 
 --
+-- Name: index_site_assets_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_assets_on_creator_id ON public.site_assets USING btree (creator_id);
+
+
+--
+-- Name: index_site_assets_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_site_assets_on_name ON public.site_assets USING btree (name);
+
+
+--
+-- Name: index_site_assets_on_site_media_asset_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_assets_on_site_media_asset_id ON public.site_assets USING btree (site_media_asset_id);
+
+
+--
+-- Name: index_site_assets_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_assets_on_updater_id ON public.site_assets USING btree (updater_id);
+
+
+--
+-- Name: index_site_media_assets_on_checksum; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_media_assets_on_checksum ON public.site_media_assets USING btree (checksum);
+
+
+--
+-- Name: index_site_media_assets_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_media_assets_on_creator_id ON public.site_media_assets USING btree (creator_id);
+
+
+--
+-- Name: index_site_media_assets_on_md5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_media_assets_on_md5 ON public.site_media_assets USING btree (md5);
+
+
+--
+-- Name: index_site_media_assets_on_media_metadata_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_media_assets_on_media_metadata_id ON public.site_media_assets USING btree (media_metadata_id);
+
+
+--
+-- Name: index_site_media_assets_on_pixel_hash; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_site_media_assets_on_pixel_hash ON public.site_media_assets USING btree (pixel_hash);
+
+
+--
 -- Name: index_staff_audit_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7958,6 +8140,14 @@ ALTER TABLE ONLY public.post_set_versions
 
 
 --
+-- Name: site_media_assets fk_rails_0e6fa8de58; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_media_assets
+    ADD CONSTRAINT fk_rails_0e6fa8de58 FOREIGN KEY (media_metadata_id) REFERENCES public.media_metadata(id);
+
+
+--
 -- Name: audio_tracks fk_rails_10424702f9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7995,6 +8185,14 @@ ALTER TABLE ONLY public.uploads
 
 ALTER TABLE ONLY public.bulk_update_request_imports
     ADD CONSTRAINT fk_rails_132718aca7 FOREIGN KEY (forum_topic_id) REFERENCES public.forum_topics(id);
+
+
+--
+-- Name: site_assets fk_rails_1426194e5e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_assets
+    ADD CONSTRAINT fk_rails_1426194e5e FOREIGN KEY (site_media_asset_id) REFERENCES public.site_media_assets(id);
 
 
 --
@@ -8203,6 +8401,14 @@ ALTER TABLE ONLY public.wiki_page_versions
 
 ALTER TABLE ONLY public.comments
     ADD CONSTRAINT fk_rails_2fd19c0db7 FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+--
+-- Name: site_assets fk_rails_314d5eb6d7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_assets
+    ADD CONSTRAINT fk_rails_314d5eb6d7 FOREIGN KEY (creator_id) REFERENCES public.users(id);
 
 
 --
@@ -8723,6 +8929,22 @@ ALTER TABLE ONLY public.bulk_update_request_imports
 
 ALTER TABLE ONLY public.post_replacement_rejection_reasons
     ADD CONSTRAINT fk_rails_95ac45c762 FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
+-- Name: site_media_assets fk_rails_96f8289b45; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_media_assets
+    ADD CONSTRAINT fk_rails_96f8289b45 FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
+-- Name: site_assets fk_rails_982b991074; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_assets
+    ADD CONSTRAINT fk_rails_982b991074 FOREIGN KEY (updater_id) REFERENCES public.users(id);
 
 
 --
@@ -9340,6 +9562,7 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261009120000'),
 ('20260915135048'),
 ('20260915133535'),
 ('20260914220550'),
@@ -9543,6 +9766,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220106081415');
 
 INSERT INTO "fixes" (id, "index") VALUES
+(244, NULL),
 (243, NULL),
 (242, NULL),
 (241, NULL),

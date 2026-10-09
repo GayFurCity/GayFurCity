@@ -33,7 +33,7 @@ module DTextHelper
   # to just the host or it'll never match.
   def default_options
     domain = GayFurCity.config.domain.to_s.sub(/:\d+\z/, "")
-    { domain: domain, internal_domains: [domain] }
+    { domain: domain, internal_domains: [domain], github_url: GayFurCity.config.source_code_url }
   end
 
   def format_text(text, **)

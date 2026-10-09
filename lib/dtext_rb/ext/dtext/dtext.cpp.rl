@@ -88,6 +88,7 @@ action mark_g2 { g2 = p; }
 action after_mention_boundary { is_mention_boundary(p[-1]) }
 action after_qtag_boundary { is_qtag_boundary(p[-1]) }
 action mentions_enabled { options.f_mentions }
+action github_enabled { !options.github_url.empty() }
 action qtags_enabled { options.f_qtags }
 action in_quote { dstack_is_open(BLOCK_QUOTE) }
 action in_section { dstack_is_open(BLOCK_SECTION) }
@@ -388,9 +389,9 @@ inline := |*
   'dnp #'i id                                  => { append_id_link("avoid posting", "avoid-posting", "/avoid_postings/", { a1, a2 }); };
   'avoid posting #'i id                        => { append_id_link("avoid posting", "avoid-posting", "/avoid_postings/", { a1, a2 }); };
 
-  'issue #'i id                                => { append_id_link("issue", "github", "https://github.com/GayFurCity/GayFurCity/issues/", { a1, a2 }); };
-  'pull #'i id                                 => { append_id_link("pull", "github-pull", "https://github.com/GayFurCity/GayFurCity/pull/", { a1, a2 }); };
-  'commit #'i id                               => { append_id_link("commit", "github-commit", "https://github.com/GayFurCity/GayFurCity/commit/", { a1, a2 }); };
+  ('issue #'i id) when github_enabled                               => { append_id_link("issue", "github", (options.github_url + "/issues/").c_str(), { a1, a2 }); };
+  ('pull #'i id) when github_enabled                                => { append_id_link("pull", "github-pull", (options.github_url + "/pull/").c_str(), { a1, a2 }); };
+  ('commit #'i id) when github_enabled                              => { append_id_link("commit", "github-commit", (options.github_url + "/commit/").c_str(), { a1, a2 }); };
 
 
   basic_post_search_link => {

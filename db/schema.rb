@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_135048) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_09_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -103,6 +103,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_135048) do
     t.integer "max_multi_count", default: 100, null: false
     t.integer "max_numbered_pages", default: 1000, null: false
     t.integer "max_per_page", default: 500, null: false
+    t.jsonb "max_site_asset_file_sizes", default: {"jpg" => 10240, "png" => 10240, "webp" => 10240}, null: false
     t.integer "max_tags_per_post", default: 2000, null: false
     t.integer "max_upload_per_request", default: 75, null: false
     t.integer "max_video_duration", default: 1800, null: false
@@ -158,6 +159,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_135048) do
     t.integer "set_post_limit_bypass", default: 40, null: false
     t.integer "show_backtrace", default: 20, null: false
     t.integer "show_tag_scripting", default: 15, null: false
+    t.jsonb "site_icon_size", default: {"max" => 10000, "min" => 512}, null: false
     t.string "species_tag_placeholder", default: "bear dragon hyena rat newt etc.", null: false
     t.string "staff_wiki_page", default: "help:staff", null: false
     t.string "system_user_name", default: "System", null: false
@@ -1448,6 +1450,52 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_135048) do
     t.index ["updater_id"], name: "index_rules_on_updater_id"
   end
 
+  create_table "site_assets", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "creator_id", null: false
+    t.inet "creator_ip_addr", null: false
+    t.string "name", null: false
+    t.bigint "site_media_asset_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "updater_id", null: false
+    t.inet "updater_ip_addr", null: false
+    t.index ["creator_id"], name: "index_site_assets_on_creator_id"
+    t.index ["name"], name: "index_site_assets_on_name", unique: true
+    t.index ["site_media_asset_id"], name: "index_site_assets_on_site_media_asset_id"
+    t.index ["updater_id"], name: "index_site_assets_on_updater_id"
+  end
+
+  create_table "site_media_assets", force: :cascade do |t|
+    t.string "checksum", limit: 32
+    t.datetime "created_at", null: false
+    t.bigint "creator_id", null: false
+    t.inet "creator_ip_addr", null: false
+    t.decimal "duration"
+    t.string "file_ext", limit: 4
+    t.integer "file_size"
+    t.integer "framecount"
+    t.jsonb "generated_variants", default: [], null: false
+    t.integer "image_height"
+    t.integer "image_width"
+    t.boolean "is_animated_gif"
+    t.boolean "is_animated_png"
+    t.boolean "is_animated_webp"
+    t.integer "last_chunk_id", default: 0, null: false
+    t.string "md5", limit: 32
+    t.bigint "media_metadata_id", null: false
+    t.string "name", null: false
+    t.string "pixel_hash", limit: 32
+    t.string "status", default: "pending", null: false
+    t.string "status_message"
+    t.datetime "updated_at", null: false
+    t.jsonb "variants_data", default: [], null: false
+    t.index ["checksum"], name: "index_site_media_assets_on_checksum"
+    t.index ["creator_id"], name: "index_site_media_assets_on_creator_id"
+    t.index ["md5"], name: "index_site_media_assets_on_md5"
+    t.index ["media_metadata_id"], name: "index_site_media_assets_on_media_metadata_id"
+    t.index ["pixel_hash"], name: "index_site_media_assets_on_pixel_hash"
+  end
+
   create_table "staff_audit_logs", force: :cascade do |t|
     t.string "action", default: "unknown_action", null: false
     t.datetime "created_at", null: false
@@ -2048,6 +2096,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_135048) do
   add_foreign_key "rules", "rule_categories", column: "category_id"
   add_foreign_key "rules", "users", column: "creator_id"
   add_foreign_key "rules", "users", column: "updater_id"
+  add_foreign_key "site_assets", "site_media_assets"
+  add_foreign_key "site_assets", "users", column: "creator_id"
+  add_foreign_key "site_assets", "users", column: "updater_id"
+  add_foreign_key "site_media_assets", "media_metadata", column: "media_metadata_id"
+  add_foreign_key "site_media_assets", "users", column: "creator_id"
   add_foreign_key "staff_audit_logs", "users"
   add_foreign_key "staff_notes", "users"
   add_foreign_key "staff_notes", "users", column: "creator_id"

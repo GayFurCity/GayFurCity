@@ -9,6 +9,9 @@
   <%= subnav_link_to_if(policy(MascotMediaAsset).index?, "Mascot Media Assets", mascot_media_assets_path) %>
   <%= subnav_link_to_if(policy(Mascot).index?, "Mascots", mascots_path) %>
   <li>|</li>
+  <%= subnav_link_to_if(policy(SiteMediaAsset).index?, "Site Media Assets", site_media_assets_path) %>
+  <%= subnav_link_to_if(policy(SiteAsset).index?, "Site Assets", site_assets_path) %>
+  <li>|</li>
   <%= subnav_link_to_if(policy(AudioTrackMediaAsset).index?, "Audio Track Media Assets", audio_track_media_assets_path) %>
   <%= subnav_link_to_if(policy(AudioTrack).index?, "Audio Tracks", post_audio_tracks_path) %>
 <% end %>

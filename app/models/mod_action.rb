@@ -372,6 +372,20 @@ class ModAction < ApplicationRecord
       json: %i[],
     },
 
+    ### Site Asset ###
+    site_asset_create:                          {
+      text: ->(mod, _user) { "Uploaded the site #{mod.name}" },
+      json: %i[name],
+    },
+    site_asset_delete:                          {
+      text: ->(mod, _user) { "Reset the site #{mod.name} to the default" },
+      json: %i[name],
+    },
+    site_asset_update:                          {
+      text: ->(mod, _user) { "Replaced the site #{mod.name}" },
+      json: %i[name],
+    },
+
     ### Bulk Update Request ###
     bulk_update_request_import_create:          {
       text: ->(mod, _user) { "Created bulk update request import ##{mod.subject_id}" },

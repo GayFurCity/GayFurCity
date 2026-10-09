@@ -1,0 +1,33 @@
+<h1>Site Assets</h1>
+
+<%= table_for(SiteAsset::SLOTS.values) do |t| %>
+  <% t.column("Name") do |slot| %>
+    <strong><%= slot.title %></strong>
+    <p class="hint"><%= slot.hint %> Must be a square image between <%= slot.size[:min] %>x<%= slot.size[:min] %> and <%= slot.size[:max] %>x<%= slot.size[:max] %>.</p>
+  <% end %>
+  <% t.column("Current") do |slot| %>
+    <% preview = "png_#{slot.png_sizes.max}" %>
+    <img src="<%= SiteAsset.url_for(slot.name, preview) || slot.default_path %>" alt="<%= slot.title %>" class="site-asset-preview" />
+  <% end %>
+  <% t.column("Updated") do |slot| %>
+    <% if asset = @site_assets[slot.name] %>
+      <%= link_to_user(asset.updater) %>
+      <p><%= compact_time(asset.updated_at) %></p>
+    <% else %>
+      Default
+    <% end %>
+  <% end %>
+  <% t.column(if: policy(SiteAsset).update?) do |slot| %>
+    <%= custom_form_for(@site_assets[slot.name] || SiteAsset.new(name: slot.name), url: site_asset_path(slot.name), method: :put, html: { multipart: true }) do |f| %>
+      <%= f.input(:file, as: :file, label: false, input_html: { accept: "image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" }) %>
+      <%= f.submit("Upload") %>
+    <% end %>
+    <% if @site_assets[slot.name] && policy(SiteAsset).destroy? %>
+      <%= link_to("Reset to default", site_asset_path(slot.name), method: :delete, data: { confirm: "Are you sure you want to go back to the default #{slot.title.downcase}?" }) %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<% content_for(:page_title) do %>
+  Site Assets
+<% end %>

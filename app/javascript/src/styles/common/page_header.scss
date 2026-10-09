@@ -13,7 +13,7 @@
 
     margin-top: 6px;
     background-color: themed("color-foreground");
-    background-image: url("main-icon.png");
+    background-image: var(--site-logo, url("main-icon.png"));
     background-repeat: no-repeat;
     background-size: contain;
     background-position-y: center;

@@ -67,13 +67,13 @@
   <%= tag.meta(name: "canonical", content: root_url(host: GayFurCity.config.hostname, protocol: "https")) %>
 
   <meta property="og:type" content="website">
-  <meta property="og:image" content="<%= GayFurCity.config.hostname %>/main-icon.png">
-  <meta property="og:image:height" content="710">
-  <meta property="og:image:width" content="710">
+  <%= tag.meta(property: "og:image", content: URI.join(GayFurCity.config.hostname, site_logo_url).to_s) %>
+  <%= tag.meta(property: "og:image:height", content: site_logo_size) %>
+  <%= tag.meta(property: "og:image:width", content: site_logo_size) %>
 
   <%# Twitter properties %>
   <meta name="twitter:card" content="summary">
   <%= tag.meta(name: "twitter:title", content: AdminConfig.instance.app_name) %>
   <%= tag.meta(name: "twitter:description", content: AdminConfig.instance.app_description) %>
-  <meta property="twitter:image" content="<%= GayFurCity.config.hostname %>/main-icon.png">
+  <%= tag.meta(property: "twitter:image", content: URI.join(GayFurCity.config.hostname, site_logo_url).to_s) %>
 <% end %>

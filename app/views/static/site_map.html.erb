@@ -122,6 +122,7 @@
     <%= li_link_to_if(policy(AdminDashboard).show?, "Admin Dashboard", admin_dashboard_path) %>
     <%= li_link_to_if(policy(EmailBlacklist).index?, "Email Blacklist", email_blacklists_path) %>
     <%= li_link_to_if(policy(AdminConfig).index?, "Config", admin_config_path) %>
+    <%= li_link_to_if(policy(SiteAsset).index?, "Site Assets", site_assets_path) %>
     <%= li_link_to_if(policy(%i[security dashboard]).index?, "Security", security_root_path) %>
     <%= li_link_to_if(policy(IpBan).index?, "IP Bans", ip_bans_path) %>
     <%= li_link_to_if(policy(%i[admin user]).alt_list?, "Alt list", alt_list_admin_users_path) %>

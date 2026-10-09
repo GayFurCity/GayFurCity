@@ -138,6 +138,10 @@ class MediaAsset < ApplicationRecord
     is_a?(AudioTrackMediaAsset)
   end
 
+  def is_site_asset?
+    is_a?(SiteMediaAsset)
+  end
+
   def has_variants?
     is_a?(MediaAssetWithVariants)
   end

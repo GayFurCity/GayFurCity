@@ -118,7 +118,7 @@ class Takedown < ApplicationRecord
     end
 
     def matching_post_ids(input)
-      input.scan(%r{(?:https://gayfur\.city/posts/)?(\d+)}i).flatten.map(&:to_i).uniq
+      input.scan(%r{(?:https?://#{Regexp.escape(GayFurCity.config.domain)}/posts/)?(\d+)}i).flatten.map(&:to_i).uniq
     end
   end
 

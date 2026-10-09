@@ -291,7 +291,7 @@ class GitHelper
       response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 5, read_timeout: 5) do |http|
         req = Net::HTTP::Get.new(uri)
         req["Accept"]     = "application/vnd.github+json"
-        req["User-Agent"] = "GayFurCity-GitHelper"
+        req["User-Agent"] = GayFurCity.config.user_agent
         http.request(req)
       end
 

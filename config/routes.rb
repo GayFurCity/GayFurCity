@@ -272,6 +272,7 @@ Rails.application.routes.draw do
   scope(module: :media_assets, path: "media_assets") do
     resource(:status, as: "media_asset_status", only: %i[show update])
     resources(:mascots, only: %i[index], as: "mascot_media_assets")
+    resources(:site_assets, path: "site", only: %i[index], as: "site_media_assets")
     resources(:post_replacements, only: %i[index], as: "post_replacement_media_assets") do
       member do
         put(:append)
@@ -574,6 +575,7 @@ Rails.application.routes.draw do
     end
   end
   resources(:mascots, only: %i[index new create edit update destroy])
+  resources(:site_assets, only: %i[index update destroy], param: :name)
   resource(:api, controller: "api_documentation", as: "api_documentation", only: %i[show]) do
     get(:spec)
   end
@@ -593,11 +595,14 @@ Rails.application.routes.draw do
   get("/static/staff", to: "static#staff", as: "staff")
   get("/static/avoid_posting", to: "static#avoid_posting", as: "avoid_posting_static")
   get("/robots", to: "static#robots", as: "robots")
+  get("/manifest", to: "static#manifest", as: "web_manifest", defaults: { format: :json })
+  get("/browserconfig", to: "static#browserconfig", as: "browserconfig", defaults: { format: :xml })
   get("/sitemap", to: "static#site_map", as: "sitemap_root")
   get("/sitemap/*type", to: "static#site_map", as: "sitemap_type")
   get("/route", to: "static#recognize_route", as: "recognize_route")
   get("/up", to: "rails/health#show", as: "health_check")
   root(to: "static#home")
+  get("/:file", to: "site_assets#file", as: "site_asset_file", format: false, constraints: { file: Regexp.union(SiteAsset::SLOTS.values.flat_map { |slot| slot.files.keys }) })
 
   get("*other", to: "static#not_found")
 end

@@ -1,9 +1,13 @@
 <title><%= get_title %></title>
-<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="manifest" href="/manifest.json">
+<link rel="shortcut icon" href="<%= site_asset_url("favicon.ico") %>" type="image/x-icon">
+<link rel="apple-touch-icon" sizes="180x180" href="<%= site_asset_url("apple-icon.png") %>">
+<link rel="icon" type="image/png" sizes="32x32" href="<%= site_asset_url("favicon-32x32.png") %>">
+<link rel="icon" type="image/png" sizes="16x16" href="<%= site_asset_url("favicon-16x16.png") %>">
+<% if SiteAsset.url_for("icon", "png_512") %>
+  <style>:root { --site-logo: url("<%= site_logo_url %>"); }</style>
+<% end %>
+<link rel="manifest" href="<%= web_manifest_path(format: :json) %>">
+<meta name="msapplication-config" content="<%= browserconfig_path(format: :xml) %>">
 <meta name="theme-color" content="#222222">
 <meta name="RATING" content="RTA-5042-1996-1400-1577-RTA" />
 <link rel="top" title="<%= AdminConfig.instance.app_name %>" href="/">

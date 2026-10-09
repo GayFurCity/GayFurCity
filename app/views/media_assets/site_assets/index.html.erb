@@ -1,0 +1,74 @@
+<h1>Site Media Assets</h1>
+
+<%= render(partial: "search") %>
+
+<%= table_for(@assets) do |t| %>
+  <% t.column("Creator") do |asset| %>
+    <%= link_to_user(asset.creator) %>
+    <% if policy(asset).can_see_ip_addr? %>
+      (<%= link_to_ip(asset.creator_ip_addr) %>)
+    <% end %>
+    <p><%= compact_time(asset.created_at) %></p>
+  <% end %>
+  <% t.column("File") do |asset| %>
+    <% if asset.visible?(CurrentUser.user) && asset.md5.present? && asset.file_url(user: CurrentUser.user).present? %>
+      <%= link_to_if(asset.file_visible?(CurrentUser.user), "show", asset.file_url(user: CurrentUser.user)) %>
+      <% if asset.duplicate? && (url = asset.link_to_duplicate) %>
+        <%= link_to("»", url) %>
+      <% end %>
+    <% end %>
+  <% end %>
+  <% t.column("Status") do |asset| %>
+    <%= asset.format_status %>
+  <% end %>
+  <% t.column("Details") do |asset| %>
+    <ul>
+      <% if asset.checksum.present? %>
+        <li>
+          Checksum: <%= link_to(asset.checksum, site_media_assets_path(search: { checksum: asset.checksum })) %>
+          <% if asset.md5.present? %>
+            <% if asset.checksum == asset.md5 %>
+              <i class="fa-solid fa-check text-green checksum-matches"></i>
+            <% else %>
+              <i class="fa-solid fa-xmark text-red checksum-matches"></i>
+            <% end %>
+          <% end %>
+        </li>
+      <% end %>
+      <% if asset.md5.present? %>
+        <li>MD5: <%= link_to(asset.md5, site_media_assets_path(search: { md5: asset.md5 })) %></li>
+      <% end %>
+      <% if asset.pixel_hash.present? %>
+        <li>Pixel Hash: <%= link_to(asset.pixel_hash, site_media_assets_path(search: { pixel_hash: asset.pixel_hash })) %></li>
+      <% end %>
+      <% if asset.file_ext.present? %>
+        <li>Type: <%= link_to(asset.file_ext, site_media_assets_path(search: { file_ext: asset.file_ext })) %></li>
+      <% end %>
+      <% if asset.file_size.present? %>
+        <li>Size: <%= number_to_human_size(asset.file_size) %></li>
+      <% end %>
+      <% if asset.variants_data.any? %>
+        <li>
+          Variants:
+          <%= safe_join(asset.generated_variant_list.map { |variant| link_to_if(asset.file_visible?(CurrentUser.user), variant.type, variant.file_url(user: CurrentUser.user)) }, ", ") %>
+        </li>
+        <li>Variants Size: <%= number_to_human_size(asset.variants_data.pluck("size").sum) %></li>
+      <% end %>
+    </ul>
+  <% end %>
+  <% t.column("Related") do |asset| %>
+    <ul>
+      <% if asset.site_asset.present? %>
+        <%= li_link_to("site asset: #{asset.site_asset.name}", site_assets_path) %>
+      <% end %>
+    </ul>
+  <% end %>
+<% end %>
+
+<%= numbered_paginator(@assets) %>
+
+<%= render(partial: "media_assets/secondary_links") %>
+
+<% content_for(:page_title) do %>
+  Site Media Assets
+<% end %>

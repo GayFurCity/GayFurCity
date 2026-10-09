@@ -35,6 +35,7 @@ The parser accepts options that change behavior:
 | `base_url` | string | "" | Prefix prepended to relative URLs in output |
 | `domain` | string | "" | Domain treated as "internal" (no `rel="external nofollow noreferrer"`) |
 | `internal_domains` | string[] | [] | Domains whose URLs are converted to shortlinks (e.g. `post #1234`) |
+| `github_url` | string | "" | Repo URL used for `issue #N`, `pull #N` and `commit #N` links, they're left as plain text when unset |
 | `max_thumbs` | int | 0 | Maximum number of `thumb #N` thumbnails to render as `thumb-placeholder-link` |
 
 **Inline mode**: All block tags (`[quote]`, `[section]`, `[code]`, headers, tables, lists) are ignored or collapsed. Paragraph breaks become a single space.
@@ -485,9 +486,9 @@ The following text patterns are automatically converted to links. ID must be one
 | `take down request #N` | `takedown #N` | `/takedowns/N` |
 | `dnp #N` | `avoid posting #N` | `/avoid_postings/N` |
 | `avoid posting #N` | `avoid posting #N` | `/avoid_postings/N` |
-| `issue #N` | `issue #N` | `https://github.com/GayFurCity/GayFurCity/issues/N` |
-| `pull #N` | `pull #N` | `https://github.com/GayFurCity/GayFurCity/pull/N` |
-| `commit #N` | `commit #N` | `https://github.com/GayFurCity/GayFurCity/commit/N` |
+| `issue #N` | `issue #N` | `<github_url>/issues/N`, plain text if `github_url` isn't set |
+| `pull #N` | `pull #N` | `<github_url>/pull/N`, plain text if `github_url` isn't set |
+| `commit #N` | `commit #N` | `<github_url>/commit/N`, plain text if `github_url` isn't set |
 
 **Notes**:
 - Patterns are case-insensitive.

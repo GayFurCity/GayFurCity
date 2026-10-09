@@ -2,8 +2,6 @@
 
 module LinkHelper
   DECORATABLE_DOMAINS = [
-    "gayfur.city",
-    #
     # Aggregators
     "linktr.ee",
     "carrd.co",
@@ -161,7 +159,8 @@ module LinkHelper
     if hostname
       tag.img(
         class: "link-decoration",
-        src:   asset_pack_path("static/#{hostname}.png"),
+        # links to this site use its own favicon
+        src:   hostname == site_hostname ? "/favicon-32x32.png" : asset_pack_path("static/#{hostname}.png"),
         data:  {
           hostname: hostname,
         },
@@ -185,7 +184,7 @@ module LinkHelper
     hostname = uri.host.delete_prefix("www.")
 
     # 1: direct match
-    return hostname if DECORATABLE_DOMAINS.include?(hostname)
+    return hostname if hostname == site_hostname || DECORATABLE_DOMAINS.include?(hostname)
 
     # 2: aliases
     return DECORATABLE_ALIASES[hostname] if DECORATABLE_ALIASES[hostname]
@@ -193,8 +192,12 @@ module LinkHelper
     # 3: Try the same, this time with the leftmost subdomain removed
     if hostname.count(".") > 1
       _removed, remaining_hostname = hostname.split(".", 2)
-      return remaining_hostname if DECORATABLE_DOMAINS.include?(remaining_hostname)
+      return remaining_hostname if remaining_hostname == site_hostname || DECORATABLE_DOMAINS.include?(remaining_hostname)
       DECORATABLE_ALIASES[remaining_hostname]
     end
+  end
+
+  def site_hostname
+    GayFurCity.config.domain.sub(/:\d+\z/, "").delete_prefix("www.")
   end
 end

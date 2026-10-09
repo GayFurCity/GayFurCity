@@ -4,7 +4,7 @@ require("test_helper")
 
 class LinkHelperTest < ActionView::TestCase
   test("for a non-handled url") do
-    assert_nil(hostname_for_link("https://example.com"))
+    assert_nil(hostname_for_link("https://example.org"))
   end
 
   test("for a invalid url") do
@@ -40,7 +40,13 @@ class LinkHelperTest < ActionView::TestCase
   end
 
   test("it returns a fontawesome icon if no hostname is found") do
-    assert_match("globe", favicon_for_link("https://example.com"))
+    assert_match("globe", favicon_for_link("https://example.org"))
+  end
+
+  test("for this site's domain") do
+    assert_equal("example.com", hostname_for_link("https://example.com/posts/1"))
+    assert_equal("example.com", hostname_for_link("https://discord.example.com"))
+    assert_match("/favicon-32x32.png", favicon_for_link("https://example.com/posts/1"))
   end
 
   test("all listed images exist") do

@@ -1,0 +1,9 @@
+<%= form_search(path: site_media_assets_path, policy: policy(SiteMediaAsset)) do |f| %>
+  <%= f.user(:creator) %>
+  <%= f.input(:checksum) %>
+  <%= f.input(:md5, label: "MD5") %>
+  <%= f.input(:file_ext, label: "Type") %>
+  <%= f.input(:pixel_hash, label: "Pixel Hash") %>
+  <%= f.input(:status, collection: SiteMediaAsset.statuses) %>
+  <%= f.input(:status_message_matches, label: "Status Message") %>
+<% end %>

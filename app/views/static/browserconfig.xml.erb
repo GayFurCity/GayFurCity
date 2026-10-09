@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<browserconfig>
+  <msapplication>
+    <tile>
+      <% [70, 150, 310].each do |size| %>
+        <square<%= size %>x<%= size %>logo src="<%= SiteAsset.file_url("ms-icon-#{size}x#{size}.png") %>"/>
+      <% end %>
+      <TileColor>#222222</TileColor>
+    </tile>
+  </msapplication>
+</browserconfig>

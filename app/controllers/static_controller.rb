@@ -95,6 +95,18 @@ class StaticController < ApplicationController
     expires_in(1.day, public: true)
   end
 
+  def manifest
+    expires_in(1.day, public: true)
+    icons = { 36 => "0.75", 48 => "1.0", 72 => "1.5", 96 => "2.0", 144 => "3.0", 192 => "4.0" }.map do |size, density|
+      { src: SiteAsset.file_url("android-icon-#{size}x#{size}.png"), sizes: "#{size}x#{size}", type: "image/png", density: density }
+    end
+    render(json: { name: AdminConfig.instance.app_name, icons: icons })
+  end
+
+  def browserconfig
+    expires_in(1.day, public: true)
+  end
+
   def recognize_route
     method = params[:method]&.upcase || "GET"
     route = Rails.application.routes.recognize_path(params[:url], method: method)

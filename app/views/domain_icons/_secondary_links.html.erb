@@ -1,0 +1,4 @@
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to("Listing", domain_icons_path) %>
+  <%= subnav_link_to_if(policy(DomainIcon).create?, "New", new_domain_icon_path) %>
+<% end %>

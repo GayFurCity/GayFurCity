@@ -34,8 +34,8 @@ FileUtils.chdir(APP_ROOT) do
   puts("== Creating system user ==\n")
   system!("RAILS_ENV=#{env} bin/rails runner 'User.system.save'")
 
-  puts("== Creating site assets ==\n")
-  system!("RAILS_ENV=#{env} bin/rails runner 'SiteAsset.create_defaults!'")
+  puts("== Creating site assets and domain icons ==\n")
+  system!("RAILS_ENV=#{env} bin/rails runner 'SiteAsset.create_defaults!; DomainIcon.create_defaults!'")
 
   puts("\n== Removing old logs and tempfiles ==")
   system!("bin/rails log:clear tmp:clear")

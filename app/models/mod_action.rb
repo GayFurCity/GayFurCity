@@ -40,6 +40,7 @@ class ModAction < ApplicationRecord
     artist_name
     post_id
     message old_message
+    domain
   ].freeze
 
   store_accessor(:values, *VALUES)
@@ -370,6 +371,20 @@ class ModAction < ApplicationRecord
     mascot_update:                              {
       text: ->(mod, _user) { "Updated mascot ##{mod.subject_id}" },
       json: %i[],
+    },
+
+    ### Domain Icon ###
+    domain_icon_create:                         {
+      text: ->(mod, _user) { "Created the domain icon for #{mod.domain}" },
+      json: %i[domain],
+    },
+    domain_icon_delete:                         {
+      text: ->(mod, _user) { "Deleted the domain icon for #{mod.domain}" },
+      json: %i[domain],
+    },
+    domain_icon_update:                         {
+      text: ->(mod, _user) { "Updated the domain icon for #{mod.domain}" },
+      json: %i[domain],
     },
 
     ### Site Asset ###

@@ -3,6 +3,8 @@
 # Images the site itself uses, like its icon. Each slot is a single upload that gets converted into every
 # size the site needs. Every slot is created from its default file on setup (see .create_defaults!).
 class SiteAsset < ApplicationRecord
+  include(ReplacesMediaAsset)
+
   # default is relative to public/, and is served as-is if the slot is ever missing
   # files maps public file names to the variant served for them
   # size_config is the admin config holding the slot's min and max size
@@ -108,24 +110,7 @@ class SiteAsset < ApplicationRecord
   end
 
   def update_file
-    return if file.blank?
-    file = self.file
-    self.file = nil
-    old_asset = site_media_asset
-    new_asset = SiteMediaAsset.new(name: name, creator: updater, checksum: MediaAsset.md5(file.path))
-    new_asset.append_all!(file, save: false)
-    if new_asset.valid? && new_asset.active?
-      # saved before being assigned, otherwise it saves this record again through the inverse association
-      new_asset.save!
-      self.site_media_asset = new_asset
-      old_asset.updater = updater
-      old_asset.delete_all_files
-      old_asset.update_columns(status: "replaced")
-    else
-      errors.merge!(new_asset.errors)
-      errors.add(:file, new_asset.status_message) if new_asset.status_message.present? && errors.empty?
-      throw(:abort)
-    end
+    replace_media_asset(:site_media_asset, name: name)
   end
 
   modactions(:site_asset)

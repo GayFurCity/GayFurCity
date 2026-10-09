@@ -51,6 +51,7 @@ module GayFurCity
     config(:mascot_path_prefix) { "mascots/" }
     config(:audio_track_path_prefix) { "audio_tracks/" }
     config(:site_asset_path_prefix) { "site/" }
+    config(:domain_icon_path_prefix) { "domain_icons/" }
 
     config(:protected_file_secret, required: true) { required!(:protected_file_secret) }
     config(:replacement_file_secret, required: true) { required!(:replacement_file_secret) }

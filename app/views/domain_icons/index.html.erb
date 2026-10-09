@@ -1,0 +1,30 @@
+<%= render("search") %>
+<h1>Domain Icons</h1>
+
+<%= table_for(@domain_icons) do |t| %>
+  <% t.column("Icon") do |domain_icon| %>
+    <img src="<%= domain_icon.file_url(user: CurrentUser.user) %>" alt="<%= domain_icon.domain %>" class="link-decoration" />
+  <% end %>
+  <% t.column(:domain) %>
+  <% t.column("Aliases") do |domain_icon| %>
+    <%= domain_icon.aliases.join(", ") %>
+  <% end %>
+  <% t.column("Updated") do |domain_icon| %>
+    <%= link_to_user(domain_icon.updater) %>
+    <p><%= compact_time(domain_icon.updated_at) %></p>
+  <% end %>
+  <% if policy(DomainIcon).all?(:update?, :destroy?) %>
+    <% t.column do |domain_icon| %>
+      <%= link_to("Edit", edit_domain_icon_path(domain_icon)) %> |
+      <%= link_to("Delete", domain_icon_path(domain_icon), method: :delete, data: { confirm: "Are you sure you want to delete the icon for #{domain_icon.domain}?" }) %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<%= numbered_paginator(@domain_icons) %>
+
+<%= render("secondary_links") %>
+
+<% content_for(:page_title) do %>
+  Domain Icons
+<% end %>

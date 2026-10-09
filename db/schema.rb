@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_09_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_10_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -69,6 +69,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_120000) do
     t.integer "dmail_minute_limit", default: 2, null: false
     t.integer "dmail_minute_limit_bypass", default: 20, null: false
     t.integer "dmail_restricted_day_limit", default: 5, null: false
+    t.jsonb "domain_icon_size", default: {"max" => 256, "min" => 16}, null: false
     t.string "download_preview_url", default: "/images/download-preview.png", null: false
     t.jsonb "elasticsearch_query_timeout", default: {"0" => 3000, "15" => 6000, "19" => 9000}, null: false
     t.jsonb "elasticsearch_request_timeout", default: {"0" => 5, "15" => 10, "19" => 15}, null: false
@@ -96,6 +97,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_120000) do
     t.text "lore_suffixes", default: "lore", null: false
     t.jsonb "mascot_height", default: {"max" => 1000, "min" => 250}, null: false
     t.jsonb "mascot_width", default: {"max" => 1000, "min" => 250}, null: false
+    t.jsonb "max_domain_icon_file_sizes", default: {"gif" => 256, "jpg" => 256, "png" => 256, "webp" => 256}, null: false
     t.integer "max_file_size", default: 200, null: false
     t.jsonb "max_file_sizes", default: {"gif" => 30, "jpg" => 100, "mp4" => 200, "png" => 100, "apng" => 30, "webm" => 200, "webp" => 100}, null: false
     t.integer "max_image_resolution", default: 441, null: false
@@ -562,6 +564,50 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_120000) do
     t.index ["is_read"], name: "index_dmails_on_is_read"
     t.index ["parent_id"], name: "index_dmails_on_parent_id"
     t.index ["respond_to_id"], name: "index_dmails_on_respond_to_id"
+  end
+
+  create_table "domain_icon_media_assets", force: :cascade do |t|
+    t.string "checksum", limit: 32
+    t.datetime "created_at", null: false
+    t.bigint "creator_id", null: false
+    t.inet "creator_ip_addr", null: false
+    t.decimal "duration"
+    t.string "file_ext", limit: 4
+    t.integer "file_size"
+    t.integer "framecount"
+    t.integer "image_height"
+    t.integer "image_width"
+    t.boolean "is_animated_gif"
+    t.boolean "is_animated_png"
+    t.boolean "is_animated_webp"
+    t.integer "last_chunk_id", default: 0, null: false
+    t.string "md5", limit: 32
+    t.bigint "media_metadata_id", null: false
+    t.string "pixel_hash", limit: 32
+    t.string "status", default: "pending", null: false
+    t.string "status_message"
+    t.datetime "updated_at", null: false
+    t.index ["checksum"], name: "index_domain_icon_media_assets_on_checksum"
+    t.index ["creator_id"], name: "index_domain_icon_media_assets_on_creator_id"
+    t.index ["md5"], name: "index_domain_icon_media_assets_on_md5"
+    t.index ["media_metadata_id"], name: "index_domain_icon_media_assets_on_media_metadata_id"
+    t.index ["pixel_hash"], name: "index_domain_icon_media_assets_on_pixel_hash"
+  end
+
+  create_table "domain_icons", force: :cascade do |t|
+    t.string "aliases", default: [], null: false, array: true
+    t.datetime "created_at", null: false
+    t.bigint "creator_id", null: false
+    t.inet "creator_ip_addr", null: false
+    t.string "domain", null: false
+    t.bigint "domain_icon_media_asset_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "updater_id", null: false
+    t.inet "updater_ip_addr", null: false
+    t.index ["creator_id"], name: "index_domain_icons_on_creator_id"
+    t.index ["domain"], name: "index_domain_icons_on_domain", unique: true
+    t.index ["domain_icon_media_asset_id"], name: "index_domain_icons_on_domain_icon_media_asset_id"
+    t.index ["updater_id"], name: "index_domain_icons_on_updater_id"
   end
 
   create_table "dtext_links", force: :cascade do |t|
@@ -2008,6 +2054,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_120000) do
   add_foreign_key "dmails", "users", column: "from_id"
   add_foreign_key "dmails", "users", column: "respond_to_id"
   add_foreign_key "dmails", "users", column: "to_id"
+  add_foreign_key "domain_icon_media_assets", "media_metadata", column: "media_metadata_id"
+  add_foreign_key "domain_icon_media_assets", "users", column: "creator_id"
+  add_foreign_key "domain_icons", "domain_icon_media_assets"
+  add_foreign_key "domain_icons", "users", column: "creator_id"
+  add_foreign_key "domain_icons", "users", column: "updater_id"
   add_foreign_key "edit_histories", "users", column: "updater_id"
   add_foreign_key "email_blacklists", "users", column: "creator_id"
   add_foreign_key "exception_logs", "users"

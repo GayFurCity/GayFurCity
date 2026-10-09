@@ -1,0 +1,7 @@
+<%= custom_form_for(@domain_icon) do |f| %>
+  <%= error_messages_for("domain_icon") %>
+  <%= f.input(:file, as: :file, label: "Icon", hint: "A square image, between #{AdminConfig.domain_icon_size[:min]}x#{AdminConfig.domain_icon_size[:min]} and #{AdminConfig.domain_icon_size[:max]}x#{AdminConfig.domain_icon_size[:max]}.#{' Leave empty to keep the current icon.' if @domain_icon.persisted?}", input_html: { accept: "image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp" }) %>
+  <%= f.input(:domain, hint: "Subdomains use this icon too.") %>
+  <%= f.input(:aliases_string, label: "Aliases", as: :text, hint: "Other domains that use this icon, like image servers. Separated by spaces or new lines.") %>
+  <%= f.button(:submit, "Save") %>
+<% end %>

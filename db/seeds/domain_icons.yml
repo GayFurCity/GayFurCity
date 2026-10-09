@@ -1,0 +1,122 @@
+# Domains with an icon in db/seeds/domain_icons, and the other domains that share it
+4chan.org:
+- 4cdn.org
+aethy.com: []
+amazonaws.com:
+- cloudfront.net
+archiveofourown.org:
+- archiveofourown.com
+artconomy.com: []
+artfight.net: []
+artstation.com: []
+aryion.com: []
+blogspot.com: []
+boosty.to: []
+bsky.app: []
+buymeacoffee.com: []
+carrd.co: []
+catbox.moe: []
+cohost.org:
+- cohostcdn.org
+commishes.com: []
+curiouscat.me:
+- curiouscat.live
+danbooru.donmai.us: []
+derpibooru.org:
+- derpicdn.net
+desuarchive.org: []
+deviantart.com:
+- deviantart.net
+- sta.sh
+- wixmp.com
+discord.com:
+- discord.gg
+- discordapp.com
+drive.google.com: []
+dropbox.com:
+- dropboxusercontent.com
+e-hentai.org:
+- exhentai.org
+e621.net:
+- e926.net
+etsy.com: []
+f-list.net: []
+facebook.com:
+- fbcdn.net
+fanbox.cc: []
+fandom.com:
+- static.wikia.nocookie.net
+- wikia.com
+furaffinity.net:
+- facdn.net
+furbooru.org:
+- furrycdn.org
+furrynetwork.com: []
+furrystation.com: []
+gelbooru.com: []
+gitea.com:
+- git.furry.cool
+gumroad.com: []
+hentai-foundry.com: []
+hiccears.com: []
+imgur.com: []
+inkbunny.net:
+- ib.metapix.net
+instagram.com: []
+itaku.ee: []
+itch.io: []
+ko-fi.com: []
+linktr.ee: []
+mastodon.social:
+- baraag.net
+- mastodon.art
+- meow.social
+mega.nz: []
+newgrounds.com:
+- ngfiles.com
+- ungrounded.net
+nijie.info: []
+onedrive.live.com: []
+patreon.com:
+- patreonusercontent.com
+pawoo.net: []
+picarto.tv: []
+piczel.tv: []
+pillowfort.social:
+- pillowfort.io
+pixiv.net:
+- pixiv.me
+- pximg.net
+plurk.com: []
+privatter.net: []
+redbubble.com: []
+reddit.com:
+- redd.it
+rule34.paheal.net: []
+rule34.xxx: []
+skeb.jp: []
+sofurry.com:
+- sofurryfiles.com
+steamcommunity.com: []
+subscribestar.adult:
+- subscribestar.com
+t.me: []
+tiktok.com: []
+toyhou.se: []
+trello.com: []
+tumblr.com: []
+twitch.tv: []
+twitter.com:
+- twimg.com
+- x.com
+u18chan.com: []
+vk.com: []
+weasyl.com: []
+web.archive.org: []
+webtoons.com: []
+weibo.com: []
+wikimedia.org: []
+wordpress.com: []
+yiff.life: []
+youtube.com:
+- youtu.be

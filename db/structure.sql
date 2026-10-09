@@ -272,7 +272,9 @@ CREATE TABLE public.admin_config (
     species_tag_placeholder character varying DEFAULT 'bear dragon hyena rat newt etc.'::character varying NOT NULL,
     content_tag_placeholder character varying DEFAULT 'cub scatplay watersports diaper my_little_pony vore rape hyper etc.'::character varying NOT NULL,
     site_icon_size jsonb DEFAULT '{"max": 10000, "min": 512}'::jsonb NOT NULL,
-    max_site_asset_file_sizes jsonb DEFAULT '{"jpg": 10240, "png": 10240, "webp": 10240}'::jsonb NOT NULL
+    max_site_asset_file_sizes jsonb DEFAULT '{"jpg": 10240, "png": 10240, "webp": 10240}'::jsonb NOT NULL,
+    domain_icon_size jsonb DEFAULT '{"max": 256, "min": 16}'::jsonb NOT NULL,
+    max_domain_icon_file_sizes jsonb DEFAULT '{"gif": 256, "jpg": 256, "png": 256, "webp": 256}'::jsonb NOT NULL
 );
 
 
@@ -1100,6 +1102,91 @@ CREATE SEQUENCE public.dmails_id_seq
 --
 
 ALTER SEQUENCE public.dmails_id_seq OWNED BY public.dmails.id;
+
+
+--
+-- Name: domain_icon_media_assets; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.domain_icon_media_assets (
+    id bigint NOT NULL,
+    creator_id bigint NOT NULL,
+    media_metadata_id bigint NOT NULL,
+    creator_ip_addr inet NOT NULL,
+    checksum character varying(32),
+    md5 character varying(32),
+    file_ext character varying(4),
+    is_animated_png boolean,
+    is_animated_gif boolean,
+    is_animated_webp boolean,
+    file_size integer,
+    image_width integer,
+    image_height integer,
+    duration numeric,
+    framecount integer,
+    pixel_hash character varying(32),
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    status_message character varying,
+    last_chunk_id integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: domain_icon_media_assets_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.domain_icon_media_assets_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: domain_icon_media_assets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.domain_icon_media_assets_id_seq OWNED BY public.domain_icon_media_assets.id;
+
+
+--
+-- Name: domain_icons; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.domain_icons (
+    id bigint NOT NULL,
+    domain character varying NOT NULL,
+    aliases character varying[] DEFAULT '{}'::character varying[] NOT NULL,
+    domain_icon_media_asset_id bigint NOT NULL,
+    creator_id bigint NOT NULL,
+    creator_ip_addr inet NOT NULL,
+    updater_id bigint NOT NULL,
+    updater_ip_addr inet NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: domain_icons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.domain_icons_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: domain_icons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.domain_icons_id_seq OWNED BY public.domain_icons.id;
 
 
 --
@@ -4185,6 +4272,20 @@ ALTER TABLE ONLY public.dmails ALTER COLUMN id SET DEFAULT nextval('public.dmail
 
 
 --
+-- Name: domain_icon_media_assets id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.domain_icon_media_assets ALTER COLUMN id SET DEFAULT nextval('public.domain_icon_media_assets_id_seq'::regclass);
+
+
+--
+-- Name: domain_icons id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.domain_icons ALTER COLUMN id SET DEFAULT nextval('public.domain_icons_id_seq'::regclass);
+
+
+--
 -- Name: dtext_links id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4863,6 +4964,22 @@ ALTER TABLE ONLY public.dmail_filters
 
 ALTER TABLE ONLY public.dmails
     ADD CONSTRAINT dmails_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: domain_icon_media_assets domain_icon_media_assets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.domain_icon_media_assets
+    ADD CONSTRAINT domain_icon_media_assets_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: domain_icons domain_icons_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.domain_icons
+    ADD CONSTRAINT domain_icons_pkey PRIMARY KEY (id);
 
 
 --
@@ -6061,6 +6178,69 @@ CREATE INDEX index_dmails_on_respond_to_id ON public.dmails USING btree (respond
 --
 
 CREATE INDEX index_dmails_on_to_tsvector_english_body ON public.dmails USING gin (to_tsvector('english'::regconfig, body));
+
+
+--
+-- Name: index_domain_icon_media_assets_on_checksum; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_domain_icon_media_assets_on_checksum ON public.domain_icon_media_assets USING btree (checksum);
+
+
+--
+-- Name: index_domain_icon_media_assets_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_domain_icon_media_assets_on_creator_id ON public.domain_icon_media_assets USING btree (creator_id);
+
+
+--
+-- Name: index_domain_icon_media_assets_on_md5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_domain_icon_media_assets_on_md5 ON public.domain_icon_media_assets USING btree (md5);
+
+
+--
+-- Name: index_domain_icon_media_assets_on_media_metadata_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_domain_icon_media_assets_on_media_metadata_id ON public.domain_icon_media_assets USING btree (media_metadata_id);
+
+
+--
+-- Name: index_domain_icon_media_assets_on_pixel_hash; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_domain_icon_media_assets_on_pixel_hash ON public.domain_icon_media_assets USING btree (pixel_hash);
+
+
+--
+-- Name: index_domain_icons_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_domain_icons_on_creator_id ON public.domain_icons USING btree (creator_id);
+
+
+--
+-- Name: index_domain_icons_on_domain; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_domain_icons_on_domain ON public.domain_icons USING btree (domain);
+
+
+--
+-- Name: index_domain_icons_on_domain_icon_media_asset_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_domain_icons_on_domain_icon_media_asset_id ON public.domain_icons USING btree (domain_icon_media_asset_id);
+
+
+--
+-- Name: index_domain_icons_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_domain_icons_on_updater_id ON public.domain_icons USING btree (updater_id);
 
 
 --
@@ -8164,6 +8344,14 @@ ALTER TABLE ONLY public.help_pages
 
 
 --
+-- Name: domain_icons fk_rails_118eacfeae; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.domain_icons
+    ADD CONSTRAINT fk_rails_118eacfeae FOREIGN KEY (domain_icon_media_asset_id) REFERENCES public.domain_icon_media_assets(id);
+
+
+--
 -- Name: tag_followers fk_rails_12486be0da; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8225,6 +8413,14 @@ ALTER TABLE ONLY public.post_replacements
 
 ALTER TABLE ONLY public.takedowns
     ADD CONSTRAINT fk_rails_168424c541 FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
+-- Name: domain_icons fk_rails_176b2120eb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.domain_icons
+    ADD CONSTRAINT fk_rails_176b2120eb FOREIGN KEY (creator_id) REFERENCES public.users(id);
 
 
 --
@@ -8505,6 +8701,14 @@ ALTER TABLE ONLY public.user_events
 
 ALTER TABLE ONLY public.user_approvals
     ADD CONSTRAINT fk_rails_43c6809d8a FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: domain_icons fk_rails_440e8bdb33; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.domain_icons
+    ADD CONSTRAINT fk_rails_440e8bdb33 FOREIGN KEY (updater_id) REFERENCES public.users(id);
 
 
 --
@@ -9028,6 +9232,14 @@ ALTER TABLE ONLY public.quick_rules
 
 
 --
+-- Name: domain_icon_media_assets fk_rails_a5d803011b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.domain_icon_media_assets
+    ADD CONSTRAINT fk_rails_a5d803011b FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
 -- Name: forum_category_visits fk_rails_a66488d470; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9137,6 +9349,14 @@ ALTER TABLE ONLY public.artist_versions
 
 ALTER TABLE ONLY public.avoid_postings
     ADD CONSTRAINT fk_rails_b2ebf2bc30 FOREIGN KEY (artist_id) REFERENCES public.artists(id);
+
+
+--
+-- Name: domain_icon_media_assets fk_rails_b3f440bce8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.domain_icon_media_assets
+    ADD CONSTRAINT fk_rails_b3f440bce8 FOREIGN KEY (media_metadata_id) REFERENCES public.media_metadata(id);
 
 
 --
@@ -9562,6 +9782,7 @@ ALTER TABLE ONLY public.help_pages
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261010090000'),
 ('20261009120000'),
 ('20260915135048'),
 ('20260915133535'),
@@ -9766,6 +9987,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220106081415');
 
 INSERT INTO "fixes" (id, "index") VALUES
+(245, NULL),
 (244, NULL),
 (243, NULL),
 (242, NULL),

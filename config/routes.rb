@@ -273,6 +273,7 @@ Rails.application.routes.draw do
     resource(:status, as: "media_asset_status", only: %i[show update])
     resources(:mascots, only: %i[index], as: "mascot_media_assets")
     resources(:site_assets, path: "site", only: %i[index], as: "site_media_assets")
+    resources(:domain_icons, only: %i[index], as: "domain_icon_media_assets")
     resources(:post_replacements, only: %i[index], as: "post_replacement_media_assets") do
       member do
         put(:append)
@@ -576,6 +577,7 @@ Rails.application.routes.draw do
   end
   resources(:mascots, only: %i[index new create edit update destroy])
   resources(:site_assets, only: %i[index update destroy], param: :name)
+  resources(:domain_icons, only: %i[index new create edit update destroy])
   resource(:api, controller: "api_documentation", as: "api_documentation", only: %i[show]) do
     get(:spec)
   end

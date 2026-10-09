@@ -28,6 +28,9 @@ x-constants:
     - comment_hide
     - comment_unhide
     - comment_update
+    - domain_icon_create
+    - domain_icon_delete
+    - domain_icon_update
     - post_deletion_reason_create
     - post_deletion_reason_delete
     - post_deletion_reasons_reorder
@@ -123,6 +126,7 @@ x-constants:
     - Ban
     - BulkUpdateRequest
     - Comment
+    - DomainIcon
     - ForumCategory
     - ForumPost
     - ForumTopic
@@ -1564,6 +1568,10 @@ components:
           type: string
           description: |
             Valid for: `help_create`, `help_delete`, `help_update`, `site_asset_create`, `site_asset_delete`, `site_asset_update`, `rule_create`, `rule_delete`, `rule_update`, `rule_category_create`, `rule_category_delete`, `rule_category_update`
+        domain:
+          type: string
+          description: |
+            Valid for: `domain_icon_create`, `domain_icon_delete`, `domain_icon_update`
         total:
           type: number
           description: |

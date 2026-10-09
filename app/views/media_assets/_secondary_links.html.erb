@@ -12,6 +12,9 @@
   <%= subnav_link_to_if(policy(SiteMediaAsset).index?, "Site Media Assets", site_media_assets_path) %>
   <%= subnav_link_to_if(policy(SiteAsset).index?, "Site Assets", site_assets_path) %>
   <li>|</li>
+  <%= subnav_link_to_if(policy(DomainIconMediaAsset).index?, "Domain Icon Media Assets", domain_icon_media_assets_path) %>
+  <%= subnav_link_to_if(policy(DomainIcon).index?, "Domain Icons", domain_icons_path) %>
+  <li>|</li>
   <%= subnav_link_to_if(policy(AudioTrackMediaAsset).index?, "Audio Track Media Assets", audio_track_media_assets_path) %>
   <%= subnav_link_to_if(policy(AudioTrack).index?, "Audio Tracks", post_audio_tracks_path) %>
 <% end %>

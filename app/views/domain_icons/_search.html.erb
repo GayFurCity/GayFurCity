@@ -1,0 +1,5 @@
+<%= form_search(path: domain_icons_path) do |f| %>
+  <%= f.input(:domain, hint: "Use * for wildcard") %>
+  <%= f.input(:domain_matches, label: "Used For", hint: "A domain or alias") %>
+  <%= f.input(:order, collection: [["Domain", "domain"], ["Recently created", "created_at"], ["Last updated", "updated_at"]]) %>
+<% end %>

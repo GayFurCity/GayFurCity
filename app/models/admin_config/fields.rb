@@ -175,6 +175,8 @@ class AdminConfig
       add_object_field(:max_mascot_file_sizes, AdminConfig.values_for_hash_column("max_mascot_file_sizes"), hint: "in kilobytes")
       add_object_field(:site_icon_size, AdminConfig.values_for_hash_column("site_icon_size"), hint: "Width and height of the site icon, which must be square")
       add_object_field(:max_site_asset_file_sizes, AdminConfig.values_for_hash_column("max_site_asset_file_sizes"), hint: "in kilobytes")
+      add_object_field(:domain_icon_size, AdminConfig.values_for_hash_column("domain_icon_size"), hint: "Width and height of domain icons, which must be square")
+      add_object_field(:max_domain_icon_file_sizes, AdminConfig.values_for_hash_column("max_domain_icon_file_sizes"), hint: "in kilobytes")
       add_number_field(:max_tags_per_post)
       add_number_field(:max_multi_count, hint: "The maximum number of items that will be accepted for string separated (e.g. comma) inputs")
     end
